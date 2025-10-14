@@ -7,7 +7,7 @@ import {
   text,
   timestamp,
   uuid,
-  varchar
+  varchar,
 } from "drizzle-orm/pg-core";
 import { pgTable } from "../utils";
 import { EntryTable } from "./entries";
@@ -23,6 +23,12 @@ export const DocumentTable = pgTable(
     entryId: text("entry_id")
       .notNull()
       .references(() => EntryTable.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id"),
+    organizationCommentingEnabled: boolean(
+      "organization_commenting_enabled"
+    )
+      .notNull()
+      .default(false),
     title: text("title").notNull(),
     content: text("content"),
     kind: varchar("kind", { enum: ["obituary", "eulogy"] })
@@ -50,6 +56,57 @@ export const DocumentRelations = relations(DocumentTable, ({ one }) => ({
     references: [EntryTable.id],
   }),
 }));
+
+export const DocumentCommentTable = pgTable(
+  "document_comment",
+  {
+    id: uuid("id").notNull().defaultRandom().unique(),
+    documentId: uuid("document_id").notNull(),
+    documentCreatedAt: timestamp("document_created_at").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => UserTable.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    parentId: uuid("parent_id").references((): any => DocumentCommentTable.id, {
+      onDelete: "cascade",
+    }),
+    createdAt: timestamp("created_at")
+      .$defaultFn(() => new Date())
+      .notNull(),
+    updatedAt: timestamp("updated_at")
+      .$defaultFn(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.id, table.createdAt] }),
+    foreignKey({
+      columns: [table.documentId, table.documentCreatedAt],
+      foreignColumns: [DocumentTable.id, DocumentTable.createdAt],
+      name: "document_comment_document_fk",
+    }).onDelete("cascade"),
+  ]
+);
+
+export const DocumentCommentRelations = relations(
+  DocumentCommentTable,
+  ({ one }) => ({
+    document: one(DocumentTable, {
+      fields: [
+        DocumentCommentTable.documentId,
+        DocumentCommentTable.documentCreatedAt,
+      ],
+      references: [DocumentTable.id, DocumentTable.createdAt],
+    }),
+    user: one(UserTable, {
+      fields: [DocumentCommentTable.userId],
+      references: [UserTable.id],
+    }),
+    parent: one(DocumentCommentTable, {
+      fields: [DocumentCommentTable.parentId],
+      references: [DocumentCommentTable.id],
+    }),
+  })
+);
 
 export const SuggestionTable = pgTable(
   "suggestion",
@@ -85,4 +142,5 @@ export const SuggestionRelations = relations(SuggestionTable, ({ one }) => ({
 }));
 
 export type Document = typeof DocumentTable.$inferSelect;
+export type DocumentComment = typeof DocumentCommentTable.$inferSelect;
 export type Suggestion = typeof SuggestionTable.$inferSelect;

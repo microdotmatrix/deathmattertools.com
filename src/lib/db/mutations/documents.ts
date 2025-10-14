@@ -11,6 +11,7 @@ export const saveDocument = async ({
   kind,
   tokenUsage,
   userId,
+  organizationId,
 }: {
   id: string;
   title: string;
@@ -19,6 +20,7 @@ export const saveDocument = async ({
   kind: "obituary" | "eulogy";
   tokenUsage: number | undefined;
   userId: string;
+  organizationId?: string | null;
 }) => {
   try {
     // Validate UUID format before saving
@@ -38,6 +40,7 @@ export const saveDocument = async ({
         kind,
         tokenUsage,
         userId,
+        organizationId: organizationId ?? null,
       })
       .returning();
 
@@ -76,6 +79,57 @@ export const updateDocumentContent = async ({
   } catch (error) {
     console.error(error);
     return { error: "Failed to update document" };
+  }
+};
+
+export const setDocumentOrganization = async ({
+  id,
+  organizationId,
+}: {
+  id: string;
+  organizationId: string | null;
+}) => {
+  try {
+    const [document] = await db
+      .update(DocumentTable)
+      .set({
+        organizationId,
+      })
+      .where(eq(DocumentTable.id, id))
+      .returning();
+
+    return { success: true, document };
+  } catch (error) {
+    console.error(error);
+    return { error: "Failed to update document organization" };
+  }
+};
+
+export const updateDocumentOrganizationCommenting = async ({
+  id,
+  enabled,
+  organizationId,
+}: {
+  id: string;
+  enabled: boolean;
+  organizationId?: string | null;
+}) => {
+  try {
+    const [document] = await db
+      .update(DocumentTable)
+      .set({
+        organizationCommentingEnabled: enabled,
+        ...(organizationId !== undefined
+          ? { organizationId }
+          : {}),
+      })
+      .where(eq(DocumentTable.id, id))
+      .returning();
+
+    return { success: true, document };
+  } catch (error) {
+    console.error(error);
+    return { error: "Failed to update organization commenting settings" };
   }
 };
 

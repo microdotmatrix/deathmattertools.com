@@ -157,7 +157,7 @@ const EntryEditContent = async ({
                               </p>
                             </div>
                             <Link
-                              href={`/${entry.id}/obituaries/${obituary.id}`}
+                              href={`/${entry.id}/obituaries/${obituary.id}/view`}
                               className={buttonVariants({
                                 variant: "outline",
                                 size: "sm",
@@ -165,6 +165,19 @@ const EntryEditContent = async ({
                               })}
                             >
                               <Icon icon="mdi:eye" className="w-4 h-4" />
+                            </Link>
+                            <Link
+                              href={`/${entry.id}/obituaries/${obituary.id}`}
+                              className={buttonVariants({
+                                variant: "outline",
+                                size: "sm",
+                                className: "size-8 p-0 flex-shrink-0",
+                              })}
+                            >
+                              <Icon
+                                icon="mdi:pencil"
+                                className="w-4 h-4"
+                              />
                             </Link>
                             <ActionButton
                               action={async () => {

@@ -27,7 +27,7 @@ export const generateObituary = async (
   // languageModel: LanguageModel = models.openai,
   { data }: { data: FormData }
 ) => {
-  const { userId } = await auth();
+  const { userId, orgId } = await auth();
 
   if (!userId) {
     throw new Error("User not authenticated");
@@ -70,6 +70,7 @@ export const generateObituary = async (
           kind: "obituary",
           entryId,
           userId,
+          organizationId: orgId,
         });
       },
     });
@@ -97,7 +98,7 @@ export const generateObituaryFromDocument = async (
   entryId: string,
   { data }: { data: FormData }
 ) => {
-  const { userId } = await auth();
+  const { userId, orgId } = await auth();
 
   if (!userId) {
     throw new Error("User not authenticated");
@@ -150,6 +151,7 @@ export const generateObituaryFromDocument = async (
           kind: "obituary",
           entryId,
           userId,
+          organizationId: orgId,
         });
       },
     });
