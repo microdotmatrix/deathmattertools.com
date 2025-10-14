@@ -7,3 +7,23 @@ export const cache = <Inputs extends unknown[], Output>(
   key: string[],
   options: { revalidate: number; tags: string[] }
 ) => react_cache(next_unstable_cache(callback, key, options));
+
+export const TAGS = {
+  userUploads: "userUploads",
+  userGeneratedImages: "userGeneratedImages",
+  userGeneratedEpitaphIds: "userGeneratedEpitaphIds",
+  userSavedQuotes: "userSavedQuotes",
+  userObituaries: "userObituaries",
+  userObituariesDraft: "userObituariesDraft",
+};
+
+export const entryListTag = (userId: string) => `entries:user:${userId}`;
+export const entryDetailTag = (entryId: string) => `entries:${entryId}`;
+
+export const documentTag = (documentId: string) => `document:${documentId}`;
+export const documentCommentsTag = (documentId: string) =>
+  `document:${documentId}:comments`;
+export const documentInvitesTag = (documentId: string) =>
+  `document:${documentId}:invites`;
+export const documentListTag = (userId: string) => `documents:user:${userId}`;
+export const publicDocumentsTag = "documents:public";

@@ -4,17 +4,12 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   experimental: {
-    cacheComponents: true,
-    clientSegmentCache: true,
     viewTransition: true,
     useLightningcss: true,
     authInterrupts: true,
   },
   typescript: {
     ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
   },
   images: {
     minimumCacheTTL: 3600, // 1 hour

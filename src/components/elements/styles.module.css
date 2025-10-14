@@ -1,0 +1,44 @@
+.dot {
+  --dot-size: 8px;
+  position: absolute;
+  width: var(--dot-size);
+  height: var(--dot-size);
+  background-color: var(--color-foreground);
+  border-radius: 50%;
+  &:nth-child(1) {
+    top: 6px;
+    left: 6px;
+  }
+  &:nth-child(2) {
+    top: 6px;
+    left: calc(50% - 4px);
+  }
+  &:nth-child(3) {
+    top: 6px;
+    right: 6px;
+  }
+  &:nth-child(4) {
+    top: calc(50% - 4px);
+    left: 6px;
+  }
+  &:nth-child(5) {
+    top: calc(50% - 4px);
+    left: calc(50% - 4px);
+  }
+  &:nth-child(6) {
+    top: calc(50% - 4px);
+    right: 6px;
+  }
+  &:nth-child(7) {
+    bottom: 6px;
+    left: 6px;
+  }
+  &:nth-child(8) {
+    bottom: 6px;
+    left: calc(50% - 4px);
+  }
+  &:nth-child(9) {
+    bottom: 6px;
+    right: 6px;
+  }
+}

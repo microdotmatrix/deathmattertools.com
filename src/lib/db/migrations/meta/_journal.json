@@ -8,6 +8,34 @@
       "when": 1757942396094,
       "tag": "0000_chunky_gladiator",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1760030936508,
+      "tag": "0001_thin_rocket_raccoon",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1760455009002,
+      "tag": "0002_overconfident_magma",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1760468674415,
+      "tag": "0003_slimy_earthquake",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1760468732343,
+      "tag": "0004_empty_nekra",
+      "breakpoints": true
     }
   ]
 }
