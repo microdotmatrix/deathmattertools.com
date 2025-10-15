@@ -60,16 +60,14 @@ export const DocumentRelations = relations(DocumentTable, ({ one }) => ({
 export const DocumentCommentTable = pgTable(
   "document_comment",
   {
-    id: uuid("id").notNull().defaultRandom().unique(),
+    id: uuid("id").notNull().defaultRandom(),
     documentId: uuid("document_id").notNull(),
     documentCreatedAt: timestamp("document_created_at").notNull(),
     userId: text("user_id")
       .notNull()
       .references(() => UserTable.id, { onDelete: "cascade" }),
     content: text("content").notNull(),
-    parentId: uuid("parent_id").references((): any => DocumentCommentTable.id, {
-      onDelete: "cascade",
-    }),
+    parentId: uuid("parent_id"),
     createdAt: timestamp("created_at")
       .$defaultFn(() => new Date())
       .notNull(),

@@ -41,6 +41,7 @@ export const saveDocument = async ({
         tokenUsage,
         userId,
         organizationId: organizationId ?? null,
+        organizationCommentingEnabled: organizationId ? true : false,
       })
       .returning();
 

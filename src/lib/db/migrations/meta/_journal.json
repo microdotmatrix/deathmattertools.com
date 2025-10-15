@@ -43,6 +43,13 @@
       "when": 1760483792377,
       "tag": "0005_nasty_madrox",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1760485941981,
+      "tag": "0006_hard_captain_america",
+      "breakpoints": true
     }
   ]
 }

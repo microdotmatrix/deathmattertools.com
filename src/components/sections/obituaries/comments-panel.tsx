@@ -164,7 +164,12 @@ export const ObituaryComments = ({
 
       if (!response.ok) {
         const data = await response.json().catch(() => null);
-        throw new Error(data?.error ?? "Failed to add comment");
+        const errorMessage = typeof data?.error === 'string' 
+          ? data.error 
+          : data?.error?.message 
+          ? data.error.message 
+          : "Failed to add comment";
+        throw new Error(errorMessage);
       }
 
       const json = await response.json();
@@ -214,9 +219,12 @@ export const ObituaryComments = ({
 
       if (!response.ok) {
         const data = await response.json().catch(() => null);
-        throw new Error(
-          data?.error ?? "Failed to update comment"
-        );
+        const errorMessage = typeof data?.error === 'string' 
+          ? data.error 
+          : data?.error?.message 
+          ? data.error.message 
+          : "Failed to update comment";
+        throw new Error(errorMessage);
       }
 
       const { comment } = await response.json();
@@ -262,9 +270,12 @@ export const ObituaryComments = ({
 
       if (!response.ok) {
         const data = await response.json().catch(() => null);
-        throw new Error(
-          data?.error ?? "Failed to delete comment"
-        );
+        const errorMessage = typeof data?.error === 'string' 
+          ? data.error 
+          : data?.error?.message 
+          ? data.error.message 
+          : "Failed to delete comment";
+        throw new Error(errorMessage);
       }
 
       setComments((prev) => {
@@ -496,8 +507,8 @@ export const ObituaryComments = ({
         </div>
       ) : (
         <p className="rounded-md border border-dashed border-border/70 bg-muted/40 p-3 text-sm text-muted-foreground">
-          You have read-only access. Ask the document owner for comment
-          permissions to participate in the conversation.
+          Organization commenting is currently disabled. Contact the document
+          owner if you need to contribute.
         </p>
       )}
       <div className="space-y-6">

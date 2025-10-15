@@ -16,9 +16,12 @@ export const createDocumentComment = async ({
   parentId?: string | null;
 }) => {
   const now = new Date();
+  const commentId = crypto.randomUUID();
+  
   const [comment] = await db
     .insert(DocumentCommentTable)
     .values({
+      id: commentId,
       documentId,
       documentCreatedAt,
       userId,

@@ -12,7 +12,8 @@ import {
 import { Icon } from "@/components/ui/icon";
 import { getDocumentWithAccess, listDocumentComments } from "@/lib/db/queries";
 import { getEntryById } from "@/lib/db/queries/entries";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import { format } from "date-fns";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -76,12 +77,14 @@ export default async function ObituaryViewPage({
     notFound();
   }
 
+  const clerk = await clerkClient();
+
   const [comments, user] = await Promise.all([
     listDocumentComments({
       documentId: access.document.id,
       documentCreatedAt: access.document.createdAt,
     }),
-    clerkClient.users.getUser(userId),
+    clerk.users.getUser(userId),
   ]);
 
   const currentUser = {
@@ -120,7 +123,7 @@ export default async function ObituaryViewPage({
 
       try {
         const memberships =
-          await clerkClient.organizations.getOrganizationMembershipList({
+          await clerk.organizations.getOrganizationMembershipList({
             organizationId: organizationForSharing,
             limit: 200,
           });

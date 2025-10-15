@@ -50,7 +50,12 @@ export const OrganizationCommentingSettings = ({
 
         if (!response.ok) {
           const data = await response.json().catch(() => null);
-          throw new Error(data?.error ?? "Failed to update settings");
+          const errorMessage = typeof data?.error === 'string' 
+            ? data.error 
+            : data?.error?.message 
+            ? data.error.message 
+            : "Failed to update settings";
+          throw new Error(errorMessage);
         }
 
         setEnabled(nextValue);
