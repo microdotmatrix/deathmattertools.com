@@ -184,6 +184,43 @@ export const updateEntryDetailsAction = action(
 );
 
 // Direct action for updating entry details (not wrapped with action utility)
+// Action to set an image as the primary entry image
+export const setPrimaryImageAction = async (
+  entryId: string,
+  imageUrl: string
+) => {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return { error: "Unauthorized" };
+  }
+
+  try {
+    // Verify the user owns the entry
+    const entry = await db
+      .select()
+      .from(EntryTable)
+      .where(and(eq(EntryTable.id, entryId), eq(EntryTable.userId, userId)))
+      .limit(1);
+
+    if (entry.length === 0) {
+      return { error: "Entry not found or unauthorized" };
+    }
+
+    // Update the entry's primary image
+    await db
+      .update(EntryTable)
+      .set({ image: imageUrl, updatedAt: new Date() })
+      .where(and(eq(EntryTable.id, entryId), eq(EntryTable.userId, userId)));
+
+    revalidatePath(`/${entryId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to set primary image:", error);
+    return { error: "Failed to set primary image" };
+  }
+};
+
 export const updateEntryDetailsDirectAction = async (
   entryId: string,
   formData: any

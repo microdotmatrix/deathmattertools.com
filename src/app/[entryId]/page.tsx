@@ -170,12 +170,20 @@ const EntryEditContent = async ({
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Upload and manage photos for {entry.name}'s memorial.
-                  </p>
+                  {canEdit ? (
+                    <p className="text-sm text-muted-foreground">
+                      Upload and manage photos for {entry.name}'s memorial.
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Photos uploaded for {entry.name}'s memorial.
+                    </p>
+                  )}
                   <EntryImageUpload
                     entryId={entry.id}
                     initialImages={entryImages}
+                    readOnly={!canEdit}
+                    currentPrimaryImage={entry.image}
                   />
                 </div>
               </CardContent>

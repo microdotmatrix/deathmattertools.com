@@ -2,6 +2,7 @@
 
 import { ImageUpload } from "@/components/elements/form/image-upload";
 import { deleteEntryImage, uploadEntryImage } from "@/lib/db/mutations/images";
+import { setPrimaryImageAction } from "@/lib/db/mutations/entries";
 import { UserUpload } from "@/lib/db/schema";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,16 +12,21 @@ interface EntryImageUploadProps {
   entryId: string;
   initialImages?: UserUpload[];
   className?: string;
+  readOnly?: boolean;
+  currentPrimaryImage?: string;
 }
 
 export const EntryImageUpload = ({
   entryId,
   initialImages = [],
   className,
+  readOnly = false,
+  currentPrimaryImage,
 }: EntryImageUploadProps) => {
   const router = useRouter();
   const [images, setImages] = useState<UserUpload[]>(initialImages);
   const [uploading, setUploading] = useState(false);
+  const [settingPrimary, setSettingPrimary] = useState(false);
 
   // Convert UserUpload objects to URL strings for ImageUpload component
   const imageUrls = images.map((img) => img.url);
@@ -105,15 +111,39 @@ export const EntryImageUpload = ({
     }
   };
 
+  const handleSetPrimary = async (index: number) => {
+    const imageToSet = images[index];
+    setSettingPrimary(true);
+
+    try {
+      const result = await setPrimaryImageAction(entryId, imageToSet.url);
+
+      if (result.success) {
+        toast.success("Primary image updated successfully");
+        router.refresh();
+      } else {
+        toast.error(result.error || "Failed to set primary image");
+      }
+    } catch (error) {
+      console.error("Set primary error:", error);
+      toast.error("Failed to set primary image");
+    } finally {
+      setSettingPrimary(false);
+    }
+  };
+
   return (
     <ImageUpload
       onUpload={handleUpload}
       onRemove={handleRemove}
+      onSetPrimary={!readOnly ? handleSetPrimary : undefined}
       images={imageUrls}
+      currentPrimaryImage={currentPrimaryImage}
       maxFiles={20}
       maxSize={10}
       className={className}
-      disabled={uploading}
+      disabled={uploading || settingPrimary}
+      readOnly={readOnly}
     />
   );
 };
