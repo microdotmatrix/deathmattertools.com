@@ -5,6 +5,7 @@ import { getUserGeneratedImages } from "@/lib/db/queries";
 import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import type { UserGeneratedImage } from "@/lib/db/schema";
 import { fetchImage } from "@/lib/services/placid";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
@@ -116,7 +117,7 @@ const PageContent = async ({
                     <div className="size-full aspect-square bg-muted animate-pulse" />
                   }
                 >
-                  <ImageResult key={image.id} image={image} />
+                  <ImageResult key={image.id} image={image} entryId={entryId} />
                 </Suspense>
               </figure>
             ))}
@@ -141,7 +142,7 @@ const PageContent = async ({
                           <div className="size-full aspect-square bg-muted animate-pulse" />
                         }
                       >
-                        <ImageResult key={image.id} image={image} />
+                        <ImageResult key={image.id} image={image} entryId={entryId} />
                       </Suspense>
                     </figure>
                   </li>
@@ -155,7 +156,13 @@ const PageContent = async ({
   );
 };
 
-const ImageResult = async ({ image }: { image: UserGeneratedImage }) => {
+const ImageResult = async ({ 
+  image,
+  entryId,
+}: { 
+  image: UserGeneratedImage;
+  entryId: string;
+}) => {
   const epitaphImage = await fetchImage(image.epitaphId);
-  return <EpitaphThumbnail image={epitaphImage} />;
+  return <EpitaphThumbnail image={epitaphImage} entryId={entryId} />;
 };

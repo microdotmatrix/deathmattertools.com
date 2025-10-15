@@ -106,43 +106,59 @@ const EntryEditContent = async ({
               <CardTitle>Commemoration Entry</CardTitle>
             </CardHeader>
             <CardContent>
-              {canEdit ? (
-                <EntryForm entry={entry} />
-              ) : (
-                <div className="space-y-4">
-                  <div className="p-4 bg-muted/50 rounded-lg border border-border">
-                    <p className="text-sm text-muted-foreground flex items-center gap-2">
-                      <Icon icon="mdi:information-outline" className="w-4 h-4" />
-                      You have view-only access to this entry. Only the creator can make edits.
-                    </p>
+              <div className="grid md:grid-cols-[300px_1fr] gap-6">
+                {/* Entry Image - Left side on desktop, top on mobile */}
+                {entry.image && (
+                  <div className="relative w-full aspect-square rounded-lg overflow-hidden border">
+                    <img
+                      src={entry.image}
+                      alt={entry.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium">Name:</span>
-                      <p className="text-muted-foreground">{entry.name}</p>
+                )}
+                
+                {/* Edit Form or View-Only Content - Right side on desktop, bottom on mobile */}
+                <div className="flex-1">
+                  {canEdit ? (
+                    <EntryForm entry={entry} />
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                        <p className="text-sm text-muted-foreground flex items-center gap-2">
+                          <Icon icon="mdi:information-outline" className="w-4 h-4" />
+                          You have view-only access to this entry. Only the creator can make edits.
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="font-medium">Name:</span>
+                          <p className="text-muted-foreground">{entry.name}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium">Location Born:</span>
+                          <p className="text-muted-foreground">{entry.locationBorn || "—"}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium">Location Died:</span>
+                          <p className="text-muted-foreground">{entry.locationDied || "—"}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium">Cause of Death:</span>
+                          <p className="text-muted-foreground">{entry.causeOfDeath || "—"}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <span className="font-medium">Location Born:</span>
-                      <p className="text-muted-foreground">{entry.locationBorn || "—"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium">Location Died:</span>
-                      <p className="text-muted-foreground">{entry.locationDied || "—"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium">Cause of Death:</span>
-                      <p className="text-muted-foreground">{entry.causeOfDeath || "—"}</p>
-                    </div>
-                  </div>
+                  )}
                 </div>
-              )}
+              </div>
             </CardContent>
           </Card>
 
           {/* Obituary Details Section */}
           <div className="grid md:grid-cols-2 gap-6 mt-6">
             {/* Obituary Details Card */}
-            <EntryDetailsCard entry={entry} entryDetails={entryDetails!} />
+            <EntryDetailsCard entry={entry} entryDetails={entryDetails!} canEdit={canEdit} />
 
             {/* Photos & Images Card */}
             <Card>

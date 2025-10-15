@@ -2,11 +2,11 @@ import { CreateImage } from "@/components/sections/memorials/create-image";
 import { ImageResult } from "@/components/sections/memorials/image-results";
 import { Icon } from "@/components/ui/icon";
 import { createEpitaphs } from "@/lib/db/mutations";
-import { getEntryById } from "@/lib/db/queries";
+import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import type { PlacidImage, PlacidRequest } from "@/lib/services/placid";
 import { fetchImage } from "@/lib/services/placid";
 import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 
 export async function getEpitaphImage(id: number) {
@@ -40,13 +40,24 @@ export default async function Create({
     )) as PlacidImage[];
   }
   const { userId } = await auth();
-  // const { quotes } = await getUserSavedQuotes();
-
-  // Fetch the deceased data for this entry
-  const deceased = await getEntryById(entryId);
-  if (!deceased) {
-    redirect("/dashboard");
+  
+  if (!userId) {
+    redirect("/sign-in");
   }
+
+  // Check access to entry - ONLY OWNERS can create images
+  const access = await getEntryWithAccess(entryId);
+  
+  if (!access) {
+    notFound();
+  }
+
+  // Organization members can view but not create
+  if (access.role !== "owner") {
+    redirect(`/${entryId}/images`);
+  }
+
+  const deceased = access.entry;
 
   // Create action wrapper that includes the entryId
   const createEpitaphsAction = async (formData: PlacidRequest) => {

@@ -323,7 +323,21 @@ const FeaturedEntryCard = async ({
           )}
         </div>
         <div className="flex-shrink-0 flex flex-col gap-2 pr-4">
-          <ActionButtons entry={entry} />
+          {isOwnEntry ? (
+            <ActionButtons entry={entry} />
+          ) : (
+            <Link
+              href={`/${entry.id}`}
+              className={buttonVariants({
+                variant: "default",
+                size: "default",
+                className: "w-full",
+              })}
+            >
+              <Icon icon="mdi:eye" className="w-4 h-4 mr-2" />
+              View Entry
+            </Link>
+          )}
         </div>
       </div>
     </Card>

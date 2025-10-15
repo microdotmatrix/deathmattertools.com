@@ -15,12 +15,14 @@ interface DetailsCardProps {
   entry: Entry;
   entryDetails: EntryDetails;
   collapsible?: boolean;
+  canEdit?: boolean;
 }
 
 export const EntryDetailsCard = ({
   entry,
   entryDetails,
   collapsible = false,
+  canEdit = true,
 }: DetailsCardProps) => {
   return (
     <Card>
@@ -29,7 +31,7 @@ export const EntryDetailsCard = ({
           <Icon icon="mdi:account-details" className="w-5 h-5" />
           Obituary Details
         </CardTitle>
-        <EntryDetailsDialog entry={entry} initialData={entryDetails} />
+        {canEdit && <EntryDetailsDialog entry={entry} initialData={entryDetails} />}
       </CardHeader>
       <CardContent>
         {entryDetails ? (

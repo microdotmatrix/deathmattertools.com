@@ -3,29 +3,32 @@
 import { ImageDialog } from "@/components/elements/image-dialog";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { deleteImage } from "@/lib/db/mutations";
+import { deleteImageAction } from "@/actions/images";
 import { downloadImage } from "@/lib/helpers";
 import type { PlacidImage } from "@/lib/services/placid";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
 
-export const EpitaphThumbnail = ({ image }: { image: PlacidImage }) => {
+interface EpitaphThumbnailProps {
+  image: PlacidImage;
+  entryId: string;
+}
+
+export const EpitaphThumbnail = ({ image, entryId }: EpitaphThumbnailProps) => {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
   const handleDelete = () => {
     startTransition(async () => {
-      try {
-        await deleteImage(image.id.toString());
-        toast("Image deleted successfully");
-      } catch (error) {
-        console.error("Error deleting image:", error);
-        toast("Failed to delete image");
-      }
-      startTransition(() => {
+      const result = await deleteImageAction(image.id.toString(), entryId);
+      
+      if (result.success) {
+        toast.success("Image deleted successfully");
         router.refresh();
-      });
+      } else {
+        toast.error(result.error || "Failed to delete image");
+      }
     });
   };
 
