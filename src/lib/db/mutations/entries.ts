@@ -19,7 +19,7 @@ const CreateEntrySchema = z.object({
 });
 
 export const createEntryAction = action(CreateEntrySchema, async (data) => {
-  const { userId } = await auth();
+  const { userId, orgId } = await auth();
 
   if (!userId) {
     return { error: "Unauthorized" };
@@ -35,6 +35,7 @@ export const createEntryAction = action(CreateEntrySchema, async (data) => {
       image: data.image,
       causeOfDeath: data.causeOfDeath,
       userId,
+      organizationId: orgId ?? null,
     });
 
     return { success: true };

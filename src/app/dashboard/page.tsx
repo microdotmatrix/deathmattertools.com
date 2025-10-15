@@ -3,12 +3,20 @@ import { CreatePortal } from "@/components/sections/dashboard/create-dialog";
 import { CreateEntryForm } from "@/components/sections/dashboard/create-form";
 import { CreateEntryImage } from "@/components/sections/dashboard/create-image";
 import { PageContentSkeleton } from "@/components/skeletons/page";
+import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { deleteEntryAction } from "@/lib/db/mutations/entries";
 import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
-import { getCreatorEntries, getUserUploads } from "@/lib/db/queries/entries";
+import { getOrganizationEntries, getUserUploads } from "@/lib/db/queries/entries";
 import { getUserGeneratedImages } from "@/lib/db/queries/media";
 import { Entry } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
@@ -47,9 +55,15 @@ export default async function DashboardPage() {
 }
 
 const PageContent = async () => {
-  const entries = await getCreatorEntries();
+  const { userId } = await auth();
+  const entries = await getOrganizationEntries();
   const uploads = await getUserUploads();
   const hasEntries = entries.length > 0;
+  
+  // Separate owned entries from team entries
+  const myEntries = entries.filter((entry) => entry.userId === userId);
+  const teamEntries = entries.filter((entry) => entry.userId !== userId);
+  
   const [featuredEntry, ...remainingEntries] = entries;
 
   // Calculate server-side date stats to avoid hydration mismatch
@@ -110,13 +124,63 @@ const PageContent = async () => {
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Left Column - Previous Entries (2/3 width) */}
         <div className="lg:col-span-2 space-y-6">
-          <h2 className="text-xl font-semibold">Previous Entries</h2>
+          <h2 className="text-xl font-semibold">All Entries</h2>
           {remainingEntries.length > 0 ? (
-            <div className="space-y-4">
-              {remainingEntries.map((entry) => (
-                <PreviousEntryCard key={entry.id} entry={entry} />
-              ))}
-            </div>
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="all">
+                  All ({remainingEntries.length})
+                </TabsTrigger>
+                <TabsTrigger value="my-entries">
+                  My Entries ({myEntries.length - 1})
+                </TabsTrigger>
+                <TabsTrigger value="team-entries">
+                  Team Entries ({teamEntries.length})
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="all" className="space-y-4 mt-4">
+                {remainingEntries.map((entry) => (
+                  <PreviousEntryCard 
+                    key={entry.id} 
+                    entry={entry}
+                    isOwnEntry={entry.userId === userId}
+                  />
+                ))}
+              </TabsContent>
+              
+              <TabsContent value="my-entries" className="space-y-4 mt-4">
+                {myEntries.slice(1).length > 0 ? (
+                  myEntries.slice(1).map((entry) => (
+                    <PreviousEntryCard 
+                      key={entry.id} 
+                      entry={entry}
+                      isOwnEntry={true}
+                    />
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground py-8 text-center">
+                    No additional entries yet.
+                  </p>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="team-entries" className="space-y-4 mt-4">
+                {teamEntries.length > 0 ? (
+                  teamEntries.map((entry) => (
+                    <PreviousEntryCard 
+                      key={entry.id} 
+                      entry={entry}
+                      isOwnEntry={false}
+                    />
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground py-8 text-center">
+                    No team entries yet. Entries created by your organization members will appear here.
+                  </p>
+                )}
+              </TabsContent>
+            </Tabs>
           ) : (
             <p className="text-muted-foreground">No previous entries yet.</p>
           )}
@@ -136,13 +200,16 @@ const PageContent = async () => {
   );
 };
 
-const FeaturedEntryCard = ({
+const FeaturedEntryCard = async ({
   entry,
   stats,
 }: {
   entry: Entry;
   stats: { obituariesCount: number; imagesCount: number } | null;
 }) => {
+  const { userId } = await auth();
+  const isOwnEntry = entry.userId === userId;
+  
   return (
     <Card className="border-0 shadow-xl grid md:grid-cols-2 min-h-fit p-4">
       {/* Image Section - Left Half */}
@@ -160,9 +227,26 @@ const FeaturedEntryCard = ({
       {/* Content Section - Right Half */}
       <div className="p-8 flex flex-col justify-center space-y-6">
         <div>
-          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">
-            Most Recent
-          </p>
+          <div className="flex items-center gap-2 mb-2">
+            <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Most Recent
+            </p>
+            {!isOwnEntry && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="secondary" className="flex items-center gap-1 cursor-help">
+                      <Icon icon="mdi:account-group" className="w-3 h-3" />
+                      Team Entry
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>This entry was created by a member of your organization</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
           <Link
             href={`/${entry.id}`}
             className="text-3xl font-display font-bold mb-2"
@@ -246,7 +330,13 @@ const FeaturedEntryCard = ({
   );
 };
 
-const PreviousEntryCard = ({ entry }: { entry: Entry }) => {
+const PreviousEntryCard = ({ 
+  entry,
+  isOwnEntry,
+}: { 
+  entry: Entry;
+  isOwnEntry: boolean;
+}) => {
   return (
     <Card className="hover:shadow-xl dark:shadow-foreground/5 transition-shadow duration-200 p-0">
       <CardContent className="p-0">
@@ -264,7 +354,24 @@ const PreviousEntryCard = ({ entry }: { entry: Entry }) => {
 
           {/* Name and dates in the middle */}
           <div className="flex-grow min-w-0 w-full pl-4 md:pl-0">
-            <h3 className="font-semibold text-lg truncate">{entry.name}</h3>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold text-lg truncate">{entry.name}</h3>
+              {!isOwnEntry && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge variant="outline" className="flex items-center gap-1 flex-shrink-0 cursor-help">
+                        <Icon icon="mdi:account-group" className="w-3 h-3" />
+                        Team
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Created by a member of your organization</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
             {entry.locationBorn && (
               <p className="text-sm text-muted-foreground truncate">
                 {entry.locationBorn}
@@ -283,9 +390,25 @@ const PreviousEntryCard = ({ entry }: { entry: Entry }) => {
                   : ""}
               </span>
             </div>
-            <div className="mt-4 pb-4 md:pb-0">
-              <ActionButtons entry={entry} />
-            </div>
+            {isOwnEntry ? (
+              <div className="mt-4 pb-4 md:pb-0">
+                <ActionButtons entry={entry} />
+              </div>
+            ) : (
+              <div className="mt-4 pb-4 md:pb-0">
+                <Link
+                  href={`/${entry.id}`}
+                  className={buttonVariants({
+                    variant: "outline",
+                    size: "sm",
+                    className: "w-full",
+                  })}
+                >
+                  <Icon icon="mdi:eye" className="w-4 h-4 mr-2" />
+                  View Entry
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

@@ -1,6 +1,6 @@
 import { pgTable } from "@/lib/db/utils";
 import { relations } from "drizzle-orm";
-import { boolean, integer, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, index, integer, text, timestamp } from "drizzle-orm/pg-core";
 import { UserGeneratedImageTable } from "./media";
 import { SavedQuotesTable } from "./quotes";
 import { UserTable } from "./users";
@@ -10,6 +10,7 @@ export const EntryTable = pgTable("entry", {
   userId: text("user_id")
     .notNull()
     .references(() => UserTable.id, { onDelete: "cascade" }),
+  organizationId: text("organization_id"),
   name: text("name").notNull(),
   dateOfBirth: timestamp("date_of_birth"),
   dateOfDeath: timestamp("date_of_death"),
@@ -23,7 +24,9 @@ export const EntryTable = pgTable("entry", {
   updatedAt: timestamp("updated_at")
     .$defaultFn(() => new Date())
     .notNull(),
-});
+}, (table) => ({
+  organizationIdIdx: index("entry_organization_id_idx").on(table.organizationId),
+}));
 
 export const EntryRelations = relations(EntryTable, ({ one, many }) => ({
   user: one(UserTable, {

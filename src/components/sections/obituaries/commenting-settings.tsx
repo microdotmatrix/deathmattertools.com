@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/utils";
+import { updateCommentingSettingsAction } from "@/actions/commenting-settings";
 
 interface OrganizationCommentingSettingsProps {
   documentId: string;
@@ -36,40 +37,16 @@ export const OrganizationCommentingSettings = ({
     }
 
     startTransition(async () => {
-      try {
-        const response = await fetch(
-          `/api/obituaries/${documentId}/commenting`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ enabled: nextValue }),
-          }
-        );
+      const result = await updateCommentingSettingsAction(documentId, nextValue);
 
-        if (!response.ok) {
-          const data = await response.json().catch(() => null);
-          const errorMessage = typeof data?.error === 'string' 
-            ? data.error 
-            : data?.error?.message 
-            ? data.error.message 
-            : "Failed to update settings";
-          throw new Error(errorMessage);
-        }
-
+      if (result.error) {
+        toast.error(result.error);
+      } else if (result.success) {
         setEnabled(nextValue);
         toast.success(
           nextValue
             ? "Organization members can now comment."
             : "Commenting is limited to document owners."
-        );
-      } catch (error) {
-        console.error(error);
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Failed to update commenting settings"
         );
       }
     });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useOptimistic, useActionState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -12,6 +12,12 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import { Icon } from "@/components/ui/icon";
+import { CommentContent } from "./comment-content";
+import {
+  createCommentAction,
+  updateCommentAction,
+  deleteCommentAction,
+} from "@/actions/comments";
 
 type SerializableComment = {
   id: string;
@@ -108,21 +114,22 @@ export const ObituaryComments = ({
   currentUser,
   initialComments,
 }: ObituaryCommentsProps) => {
-  const [comments, setComments] =
-    useState<SerializableComment[]>(initialComments);
+  const [comments, setComments] = useState<SerializableComment[]>(initialComments);
+  const [optimisticComments, addOptimisticComment] = useOptimistic<
+    SerializableComment[],
+    SerializableComment
+  >(comments, (state, newComment) => [...state, newComment]);
+  
   const [newComment, setNewComment] = useState("");
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
-  const [editingDrafts, setEditingDrafts] = useState<
-    Record<string, string>
-  >({});
+  const [editingDrafts, setEditingDrafts] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [isPosting, setIsPosting] = useState(false);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const commentTree = useMemo(
-    () => buildCommentTree(comments),
-    [comments]
+    () => buildCommentTree(optimisticComments),
+    [optimisticComments]
   );
 
   const resetStates = () => {
@@ -144,56 +151,45 @@ export const ObituaryComments = ({
       return;
     }
 
-    try {
+    const optimisticComment: SerializableComment = {
+      id: `temp-${Date.now()}`,
+      userId: currentUser.id,
+      content,
+      parentId: parentId ?? null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      author: currentUser,
+    };
+
+    startTransition(async () => {
+      addOptimisticComment(optimisticComment);
+
+      const formData = new FormData();
+      formData.append("content", content);
       if (parentId) {
-        setBusyId(parentId);
-      } else {
-        setIsPosting(true);
+        formData.append("parentId", parentId);
       }
 
-      const response = await fetch(
-        `/api/obituaries/${documentId}/comments`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ content, parentId }),
+      const result = await createCommentAction(documentId, {}, formData);
+
+      if (result.error) {
+        toast.error(result.error);
+      } else if (result.comment) {
+        const comment = normalizeComment(result.comment, currentUser);
+        setComments((prev) => [...prev, comment]);
+        
+        if (parentId) {
+          setReplyDrafts((drafts) => ({
+            ...drafts,
+            [parentId]: "",
+          }));
+          setReplyingTo(null);
+        } else {
+          setNewComment("");
         }
-      );
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        const errorMessage = typeof data?.error === 'string' 
-          ? data.error 
-          : data?.error?.message 
-          ? data.error.message 
-          : "Failed to add comment";
-        throw new Error(errorMessage);
+        toast.success("Comment added");
       }
-
-      const json = await response.json();
-      const comment = normalizeComment(json.comment, currentUser);
-      setComments((prev) => [...prev, comment]);
-      if (parentId) {
-        setReplyDrafts((drafts) => ({
-          ...drafts,
-          [parentId]: "",
-        }));
-        setReplyingTo(null);
-      } else {
-        setNewComment("");
-      }
-      toast.success("Comment added");
-    } catch (error) {
-      console.error(error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to add comment"
-      );
-    } finally {
-      setIsPosting(false);
-      setBusyId(null);
-    }
+    });
   };
 
   const handleUpdate = async (commentId: string) => {
@@ -204,104 +200,64 @@ export const ObituaryComments = ({
       return;
     }
 
-    try {
-      setBusyId(commentId);
-      const response = await fetch(
-        `/api/obituaries/${documentId}/comments/${commentId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ content }),
-        }
-      );
+    startTransition(async () => {
+      const formData = new FormData();
+      formData.append("content", content);
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        const errorMessage = typeof data?.error === 'string' 
-          ? data.error 
-          : data?.error?.message 
-          ? data.error.message 
-          : "Failed to update comment";
-        throw new Error(errorMessage);
+      const result = await updateCommentAction(documentId, commentId, {}, formData);
+
+      if (result.error) {
+        toast.error(result.error);
+      } else if (result.comment) {
+        setComments((prev) =>
+          prev.map((item) =>
+            item.id === commentId
+              ? {
+                  ...item,
+                  content: result.comment.content,
+                  updatedAt:
+                    typeof result.comment.updatedAt === "string"
+                      ? result.comment.updatedAt
+                      : new Date(result.comment.updatedAt).toISOString(),
+                }
+              : item
+          )
+        );
+        setEditingId(null);
+        setEditingDrafts((drafts) => ({
+          ...drafts,
+          [commentId]: "",
+        }));
+        toast.success("Comment updated");
       }
-
-      const { comment } = await response.json();
-      setComments((prev) =>
-        prev.map((item) =>
-          item.id === commentId
-            ? {
-                ...item,
-                content: comment.content,
-                updatedAt:
-                  typeof comment.updatedAt === "string"
-                    ? comment.updatedAt
-                    : new Date(comment.updatedAt).toISOString(),
-              }
-            : item
-        )
-      );
-      setEditingId(null);
-      setEditingDrafts((drafts) => ({
-        ...drafts,
-        [commentId]: "",
-      }));
-      toast.success("Comment updated");
-    } catch (error) {
-      console.error(error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update comment"
-      );
-    } finally {
-      setBusyId(null);
-    }
+    });
   };
 
   const handleDelete = async (commentId: string) => {
-    try {
-      setBusyId(commentId);
-      const response = await fetch(
-        `/api/obituaries/${documentId}/comments/${commentId}`,
-        {
-          method: "DELETE",
-        }
-      );
+    startTransition(async () => {
+      const result = await deleteCommentAction(documentId, commentId);
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        const errorMessage = typeof data?.error === 'string' 
-          ? data.error 
-          : data?.error?.message 
-          ? data.error.message 
-          : "Failed to delete comment";
-        throw new Error(errorMessage);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        setComments((prev) => {
+          const idsToRemove = new Set<string>();
+          const stack = [commentId];
+
+          while (stack.length > 0) {
+            const current = stack.pop()!;
+            if (idsToRemove.has(current)) continue;
+            idsToRemove.add(current);
+            prev
+              .filter((item) => item.parentId === current)
+              .forEach((child) => stack.push(child.id));
+          }
+
+          return prev.filter((comment) => !idsToRemove.has(comment.id));
+        });
+        toast.success("Comment removed");
       }
-
-      setComments((prev) => {
-        const idsToRemove = new Set<string>();
-        const stack = [commentId];
-
-        while (stack.length > 0) {
-          const current = stack.pop()!;
-          if (idsToRemove.has(current)) continue;
-          idsToRemove.add(current);
-          prev
-            .filter((item) => item.parentId === current)
-            .forEach((child) => stack.push(child.id));
-        }
-
-        return prev.filter((comment) => !idsToRemove.has(comment.id));
-      });
-      toast.success("Comment removed");
-    } catch (error) {
-      console.error(error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to delete comment"
-      );
-    } finally {
-      setBusyId(null);
-    }
+    });
   };
 
   const canEdit = (comment: SerializableComment) =>
@@ -360,7 +316,7 @@ export const ObituaryComments = ({
                     <Button
                       size="sm"
                       onClick={() => handleUpdate(node.id)}
-                      disabled={busyId === node.id}
+                      disabled={isPending}
                     >
                       Save
                     </Button>
@@ -380,9 +336,7 @@ export const ObituaryComments = ({
                   </div>
                 </div>
               ) : (
-                <p className="text-sm whitespace-pre-line">
-                  {node.content}
-                </p>
+                <CommentContent content={node.content} />
               )}
               <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                 {new Date(node.updatedAt).getTime() -
@@ -422,7 +376,7 @@ export const ObituaryComments = ({
                       type="button"
                       className="inline-flex items-center gap-1 text-destructive hover:text-destructive/80"
                       onClick={() => handleDelete(node.id)}
-                      disabled={busyId === node.id}
+                      disabled={isPending}
                     >
                       <Icon icon="lucide:trash-2" className="size-3" />
                       Delete
@@ -447,7 +401,7 @@ export const ObituaryComments = ({
                     <Button
                       size="sm"
                       onClick={() => handleCreate(node.id)}
-                      disabled={busyId === node.id}
+                      disabled={isPending}
                     >
                       Reply
                     </Button>
@@ -499,7 +453,7 @@ export const ObituaryComments = ({
           <div className="flex justify-end">
             <Button
               onClick={() => handleCreate(null)}
-              disabled={isPosting}
+              disabled={isPending}
             >
               Post Comment
             </Button>

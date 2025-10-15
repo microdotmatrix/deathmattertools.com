@@ -3,14 +3,17 @@ import { ActionButton } from "@/components/elements/action-button";
 import { EntryDetailsCard } from "@/components/sections/entries/details-card";
 import { EntryForm } from "@/components/sections/entries/entry-form";
 import { EntryImageUpload } from "@/components/sections/entries/entry-image-upload";
+import { EntryFeedbackPanel } from "@/components/sections/entry-feedback";
 import { EntryEditContentSkeleton } from "@/components/skeletons/entry";
+import { FeedbackSkeleton } from "@/components/skeletons/feedback";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { deleteDocumentById } from "@/lib/db/mutations/documents";
 import { getEntryImages } from "@/lib/db/queries";
 import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
-import { getEntryById, getEntryDetailsById } from "@/lib/db/queries/entries";
+import { getEntryDetailsById, getEntryWithAccess } from "@/lib/db/queries/entries";
 import { getUserGeneratedImages } from "@/lib/db/queries/media";
 import { format } from "date-fns";
 import { revalidatePath } from "next/cache";
@@ -26,11 +29,13 @@ interface PageProps {
 
 export default async function EntryEditPage({ params }: PageProps) {
   const { entryId } = await params;
-  const entry = await getEntryById(entryId);
+  const access = await getEntryWithAccess(entryId);
 
-  if (!entry) {
+  if (!access || !access.canView) {
     notFound();
   }
+
+  const { entry, canEdit, role } = access;
 
   // Fetch obituaries for this deceased person
   const obituaries = await getDocumentsByEntryId(entryId);
@@ -46,6 +51,8 @@ export default async function EntryEditPage({ params }: PageProps) {
             entry={entry}
             obituaries={obituaries}
             generatedImages={generatedImages}
+            canEdit={canEdit}
+            role={role}
           />
         </Suspense>
       </div>
@@ -57,10 +64,14 @@ const EntryEditContent = async ({
   entry,
   obituaries,
   generatedImages,
+  canEdit,
+  role,
 }: {
   entry: any;
   obituaries: any[];
   generatedImages: any[];
+  canEdit: boolean;
+  role: "owner" | "org_member";
 }) => {
   const entryDetails = await getEntryDetailsById(entry.id);
   const entryImagesResult = await getEntryImages(entry.id);
@@ -71,7 +82,7 @@ const EntryEditContent = async ({
   return (
     <div className="space-y-8 loading-fade">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between gap-4">
         <Link
           href="/dashboard"
           className={buttonVariants({ variant: "outline", size: "sm" })}
@@ -79,6 +90,12 @@ const EntryEditContent = async ({
           <Icon icon="mdi:arrow-left" className="w-4 h-4 mr-2" />
           Back to Dashboard
         </Link>
+        {role === "org_member" && (
+          <Badge variant="outline" className="flex items-center gap-1.5">
+            <Icon icon="mdi:account-group" className="w-4 h-4" />
+            Team Entry (View Only)
+          </Badge>
+        )}
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
@@ -89,7 +106,36 @@ const EntryEditContent = async ({
               <CardTitle>Commemoration Entry</CardTitle>
             </CardHeader>
             <CardContent>
-              <EntryForm entry={entry} />
+              {canEdit ? (
+                <EntryForm entry={entry} />
+              ) : (
+                <div className="space-y-4">
+                  <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Icon icon="mdi:information-outline" className="w-4 h-4" />
+                      You have view-only access to this entry. Only the creator can make edits.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium">Name:</span>
+                      <p className="text-muted-foreground">{entry.name}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium">Location Born:</span>
+                      <p className="text-muted-foreground">{entry.locationBorn || "—"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium">Location Died:</span>
+                      <p className="text-muted-foreground">{entry.locationDied || "—"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium">Cause of Death:</span>
+                      <p className="text-muted-foreground">{entry.causeOfDeath || "—"}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -118,6 +164,13 @@ const EntryEditContent = async ({
                 </div>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Entry Feedback Section */}
+          <div className="mt-6">
+            <Suspense fallback={<FeedbackSkeleton />}>
+              <EntryFeedbackPanel entryId={entry.id} />
+            </Suspense>
           </div>
         </div>
 
@@ -166,89 +219,97 @@ const EntryEditContent = async ({
                             >
                               <Icon icon="mdi:eye" className="w-4 h-4" />
                             </Link>
-                            <Link
-                              href={`/${entry.id}/obituaries/${obituary.id}`}
-                              className={buttonVariants({
-                                variant: "outline",
-                                size: "sm",
-                                className: "size-8 p-0 flex-shrink-0",
-                              })}
-                            >
-                              <Icon
-                                icon="mdi:pencil"
-                                className="w-4 h-4"
-                              />
-                            </Link>
-                            <ActionButton
-                              action={async () => {
-                                "use server";
-                                const result = await deleteDocumentById(
-                                  obituary.id
-                                );
-                                if (result.success) {
-                                  revalidatePath(`/${entry.id}`);
-                                  return { error: false };
-                                } else {
-                                  return { error: true, message: result.error };
-                                }
-                              }}
-                              requireAreYouSure={true}
-                              areYouSureDescription={`Are you sure you want to delete ${obituary.title}?`}
-                              variant="destructive"
-                              size="sm"
-                              className="size-8 p-0 flex-shrink-0"
-                            >
-                              <Icon icon="mdi:delete" className="w-4 h-4" />
-                            </ActionButton>
+                            {canEdit && (
+                              <>
+                                <Link
+                                  href={`/${entry.id}/obituaries/${obituary.id}`}
+                                  className={buttonVariants({
+                                    variant: "outline",
+                                    size: "sm",
+                                    className: "size-8 p-0 flex-shrink-0",
+                                  })}
+                                >
+                                  <Icon
+                                    icon="mdi:pencil"
+                                    className="w-4 h-4"
+                                  />
+                                </Link>
+                                <ActionButton
+                                  action={async () => {
+                                    "use server";
+                                    const result = await deleteDocumentById(
+                                      obituary.id
+                                    );
+                                    if (result.success) {
+                                      revalidatePath(`/${entry.id}`);
+                                      return { error: false };
+                                    } else {
+                                      return { error: true, message: result.error };
+                                    }
+                                  }}
+                                  requireAreYouSure={true}
+                                  areYouSureDescription={`Are you sure you want to delete ${obituary.title}?`}
+                                  variant="destructive"
+                                  size="sm"
+                                  className="size-8 p-0 flex-shrink-0"
+                                >
+                                  <Icon icon="mdi:delete" className="w-4 h-4" />
+                                </ActionButton>
+                              </>
+                            )}
                           </div>
                         </div>
                       ))}
                     </div>
-                    <div className="border-t pt-3">
-                      {obituaries.length >= 5 ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                          disabled
-                        >
-                          <Icon
-                            icon="mdi:do-not-disturb"
-                            className="w-4 h-4 mr-2"
-                          />
-                          Obituary Limit Reached
-                        </Button>
-                      ) : (
-                        <Link
-                          href={`/${entry.id}/obituaries/create`}
-                          className={buttonVariants({
-                            variant: "outline",
-                            size: "sm",
-                            className: "w-full",
-                          })}
-                        >
-                          <Icon icon="mdi:plus" className="w-4 h-4 mr-2" />
-                          Generate New Obituary
-                        </Link>
-                      )}
-                    </div>
+                    {canEdit && (
+                      <div className="border-t pt-3">
+                        {obituaries.length >= 5 ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            disabled
+                          >
+                            <Icon
+                              icon="mdi:do-not-disturb"
+                              className="w-4 h-4 mr-2"
+                            />
+                            Obituary Limit Reached
+                          </Button>
+                        ) : (
+                          <Link
+                            href={`/${entry.id}/obituaries/create`}
+                            className={buttonVariants({
+                              variant: "outline",
+                              size: "sm",
+                              className: "w-full",
+                            })}
+                          >
+                            <Icon icon="mdi:plus" className="w-4 h-4 mr-2" />
+                            Generate New Obituary
+                          </Link>
+                        )}
+                      </div>
+                    )}
                   </>
                 ) : (
                   <>
                     <p className="text-sm text-muted-foreground">
                       No obituaries generated yet.
                     </p>
-                    <Link
-                      href={`/${entry.id}/obituaries/create`}
-                      className={buttonVariants({
-                        variant: "outline",
-                        size: "sm",
-                        className: "w-full",
-                      })}
-                    >
-                      <Icon icon="mdi:plus" className="w-4 h-4 mr-2" />
-                      Generate Obituary
-                    </Link>
+                    {canEdit && (
+                      <Link
+                        href={`/${entry.id}/obituaries/create`}
+                        className={buttonVariants({
+                          variant: "outline",
+                          size: "sm",
+                          className: "w-full",
+                        })}
+                      >
+                        <Icon icon="mdi:plus" className="w-4 h-4 mr-2" />
+                        Generate Obituary
+                      </Link>
+                    )}
                   </>
                 )}
               </div>

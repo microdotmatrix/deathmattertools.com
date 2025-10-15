@@ -50,6 +50,34 @@
       "when": 1760485941981,
       "tag": "0006_hard_captain_america",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1760536609443,
+      "tag": "0007_silent_leo",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1760536652995,
+      "tag": "0008_complete_red_hulk",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1760542675604,
+      "tag": "0009_dizzy_blonde_phantom",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1760549117901,
+      "tag": "0010_freezing_mojo",
+      "breakpoints": true
     }
   ]
 }

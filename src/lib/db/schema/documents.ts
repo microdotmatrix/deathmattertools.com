@@ -74,6 +74,17 @@ export const DocumentCommentTable = pgTable(
     updatedAt: timestamp("updated_at")
       .$defaultFn(() => new Date())
       .notNull(),
+    
+    // Text anchor fields (nullable for backward compatibility)
+    anchorStart: integer("anchor_start"),
+    anchorEnd: integer("anchor_end"),
+    anchorText: text("anchor_text"),
+    anchorPrefix: text("anchor_prefix"),
+    anchorSuffix: text("anchor_suffix"),
+    anchorValid: boolean("anchor_valid").notNull().default(true),
+    anchorStatus: varchar("anchor_status", { 
+      enum: ["pending", "approved", "denied"] 
+    }).notNull().default("pending"),
   },
   (table) => [
     primaryKey({ columns: [table.id, table.createdAt] }),
@@ -142,3 +153,20 @@ export const SuggestionRelations = relations(SuggestionTable, ({ one }) => ({
 export type Document = typeof DocumentTable.$inferSelect;
 export type DocumentComment = typeof DocumentCommentTable.$inferSelect;
 export type Suggestion = typeof SuggestionTable.$inferSelect;
+
+// Anchor types
+export type AnchorStatus = "pending" | "approved" | "denied";
+
+export interface CommentAnchor {
+  start: number;
+  end: number;
+  text: string;
+  prefix: string;
+  suffix: string;
+  valid: boolean;
+  status: AnchorStatus;
+}
+
+export interface DocumentCommentWithAnchor extends DocumentComment {
+  anchor: CommentAnchor | null;
+}

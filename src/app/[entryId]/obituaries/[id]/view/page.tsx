@@ -1,6 +1,6 @@
 import { OrganizationCommentingSettings } from "@/components/sections/obituaries/commenting-settings";
 import { ObituaryComments } from "@/components/sections/obituaries/comments-panel";
-import { ObituaryViewer } from "@/components/sections/obituaries/viewer";
+import { ObituaryViewerWithComments } from "@/components/sections/obituaries/obituary-viewer-with-comments";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { getDocumentWithAccess, listDocumentComments } from "@/lib/db/queries";
-import { getEntryById } from "@/lib/db/queries/entries";
+import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import { auth } from "@clerk/nextjs/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import { format } from "date-fns";
@@ -41,6 +41,14 @@ const toSerializableComments = (comments: Awaited<
     parentId: item.comment.parentId,
     createdAt: item.comment.createdAt.toISOString(),
     updatedAt: item.comment.updatedAt.toISOString(),
+    // Anchor fields for text-anchored comments
+    anchorStart: item.comment.anchorStart,
+    anchorEnd: item.comment.anchorEnd,
+    anchorText: item.comment.anchorText,
+    anchorPrefix: item.comment.anchorPrefix,
+    anchorSuffix: item.comment.anchorSuffix,
+    anchorValid: item.comment.anchorValid,
+    anchorStatus: item.comment.anchorStatus,
     author: {
       id: item.author.id,
       name: item.author.name,
@@ -71,11 +79,13 @@ export default async function ObituaryViewPage({
     notFound();
   }
 
-  const entry = await getEntryById(entryId);
+  const entryAccess = await getEntryWithAccess(entryId);
 
-  if (!entry) {
+  if (!entryAccess || !entryAccess.canView) {
     notFound();
   }
+
+  const entry = entryAccess.entry;
 
   const clerk = await clerkClient();
 
@@ -217,9 +227,10 @@ export default async function ObituaryViewPage({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ObituaryViewer
-                id={access.document.id}
+              <ObituaryViewerWithComments
+                documentId={access.document.id}
                 content={access.document.content ?? ""}
+                canComment={access.canComment}
               />
             </CardContent>
           </Card>
