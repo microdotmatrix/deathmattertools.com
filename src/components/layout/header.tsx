@@ -25,6 +25,7 @@ import {
   UserButton,
   useUser,
 } from "@clerk/nextjs";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Separator } from "../ui/separator";
 
@@ -159,9 +160,9 @@ export const Header = () => {
 
         {/* Middle side: Logo */}
         <div className="flex md:hidden xl:flex items-center">
-          <a href="#" className="text-primary hover:text-primary/90">
-            <Icon icon="simple-icons:nextdotjs" className="size-8" />
-          </a>
+          <Link href="/" className="text-primary hover:text-primary/90">
+          <Icon icon="ph:skull-duotone" className="size-6 md:size-8" />
+          </Link>
         </div>
 
         {/* Right side: Actions */}

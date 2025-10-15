@@ -1,6 +1,7 @@
 import { AuthProvider } from "@/components/auth/provider";
 import { AppContext } from "@/components/context";
 import { HexPattern } from "@/components/elements/svg/hex-pattern";
+import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { meta } from "@/lib/config";
 import { code, display, text } from "@/lib/fonts";
@@ -55,6 +56,7 @@ export default function RootLayout({
               <Header />
             </Suspense>
             {children}
+            <Footer />
             <BackgroundPattern />
           </AppContext>
         </body>
