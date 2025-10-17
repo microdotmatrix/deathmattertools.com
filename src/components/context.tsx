@@ -22,7 +22,7 @@ export const AppContext = ({ children }: { children: React.ReactNode }) => {
           <UTSSR />
         </Suspense>
         <Toaster closeButton position="bottom-right" />
-        <ViewportSize />
+        {process.env.NODE_ENV === "development" && <ViewportSize />}
       </ThemeProvider>
     </StateProvider>
   );
