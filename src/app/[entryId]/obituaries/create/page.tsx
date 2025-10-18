@@ -4,9 +4,9 @@ import { buttonVariants } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import {
   getDocumentsByEntryId,
-  getEntryById,
   getEntryDetailsById,
 } from "@/lib/db/queries";
+import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import { getSavedQuotesByEntryId } from "@/lib/db/queries/quotes";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -38,17 +38,19 @@ export default async function ObituaryCreatePage({ params }: PageProps) {
 }
 
 const ObituaryCreateContent = async ({ entryId }: { entryId: string }) => {
-  const [entry, entryDetails, savedQuotes] = await Promise.all([
-    getEntryById(entryId),
+  const [entryAccess, entryDetails, savedQuotes] = await Promise.all([
+    getEntryWithAccess(entryId),
     getEntryDetailsById(entryId),
     getSavedQuotesByEntryId(entryId),
   ]);
 
   const documents = await getDocumentsByEntryId(entryId);
 
-  if (!entry) {
+  if (!entryAccess) {
     notFound();
   }
+
+  const { entry } = entryAccess;
 
   if (documents.length >= 5) {
     return (

@@ -1,4 +1,4 @@
-import { getEntryById, getEntryDetailsById } from "../db/queries/entries";
+import { getEntryWithAccess, getEntryDetailsById } from "../db/queries/entries";
 import { getSavedQuotesByEntryId } from "../db/queries/quotes";
 import { formatFamilyMembers, formatServices } from "../helpers";
 
@@ -76,14 +76,16 @@ export const createPromptFromEntryData = async (
   isReligious: boolean = false,
   selectedQuoteIds: string = ""
 ) => {
-  const [entry, entryDetails] = await Promise.all([
-    getEntryById(entryId),
+  const [entryAccess, entryDetails] = await Promise.all([
+    getEntryWithAccess(entryId),
     getEntryDetailsById(entryId),
   ]);
 
-  if (!entry || !entryDetails) {
+  if (!entryAccess || !entryDetails) {
     throw new Error("Entry not found");
   }
+
+  const { entry } = entryAccess;
 
   // Fetch selected quotes if any
   let quotesText = "";
@@ -220,14 +222,17 @@ export const createPromptFromFile = async (
   entryId: string,
   instructions?: string
 ) => {
-  const [entry, entryDetails] = await Promise.all([
-    getEntryById(entryId),
+  const [entryAccess, entryDetails] = await Promise.all([
+    getEntryWithAccess(entryId),
     getEntryDetailsById(entryId),
   ]);
 
-  if (!entry || !entryDetails) {
+  if (!entryAccess || !entryDetails) {
     throw new Error("Entry not found");
   }
+
+  const { entry } = entryAccess;
+
   return `
     Generate an obituary for the following person, using the content of the file provided by the user:
 

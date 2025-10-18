@@ -13,7 +13,7 @@ import {
   getMessagesByChatId,
 } from "@/lib/db/queries/chats";
 import { getDocumentById } from "@/lib/db/queries/documents";
-import { getEntryById } from "@/lib/db/queries/entries";
+import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import Link from "next/link";
@@ -87,11 +87,13 @@ const ObituaryPageContent = async ({
   entryId: string;
   id: string;
 }) => {
-  const entry = await getEntryById(entryId);
+  const entryAccess = await getEntryWithAccess(entryId);
 
-  if (!entry) {
+  if (!entryAccess) {
     notFound();
   }
+
+  const { entry } = entryAccess;
 
   const document = await getDocumentById(id);
 
