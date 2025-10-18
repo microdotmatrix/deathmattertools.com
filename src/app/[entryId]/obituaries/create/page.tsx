@@ -7,6 +7,7 @@ import {
   getEntryById,
   getEntryDetailsById,
 } from "@/lib/db/queries";
+import { getSavedQuotesByEntryId } from "@/lib/db/queries/quotes";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -37,9 +38,10 @@ export default async function ObituaryCreatePage({ params }: PageProps) {
 }
 
 const ObituaryCreateContent = async ({ entryId }: { entryId: string }) => {
-  const [entry, entryDetails] = await Promise.all([
+  const [entry, entryDetails, savedQuotes] = await Promise.all([
     getEntryById(entryId),
     getEntryDetailsById(entryId),
+    getSavedQuotesByEntryId(entryId),
   ]);
 
   const documents = await getDocumentsByEntryId(entryId);
@@ -60,5 +62,11 @@ const ObituaryCreateContent = async ({ entryId }: { entryId: string }) => {
     );
   }
 
-  return <GenerateObituary entry={entry} entryDetails={entryDetails!} />;
+  return (
+    <GenerateObituary 
+      entry={entry} 
+      entryDetails={entryDetails!} 
+      savedQuotes={savedQuotes}
+    />
+  );
 };

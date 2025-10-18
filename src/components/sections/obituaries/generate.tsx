@@ -3,6 +3,7 @@
 import { Response } from "@/components/ai/response";
 import { DirectionAwareTabs } from "@/components/elements/animated-tabs";
 import { Typewriter } from "@/components/elements/typewriter";
+import { QuoteSelector } from "@/components/quotes-scripture/quote-selector";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,7 @@ import {
   generateObituaryFromDocument,
 } from "@/lib/ai/actions";
 import { models } from "@/lib/ai/models";
-import type { Entry, EntryDetails } from "@/lib/db/schema";
+import type { Entry, EntryDetails, SavedQuote } from "@/lib/db/schema";
 import { convertFileToDataURL } from "@/lib/helpers";
 import { cn } from "@/lib/utils";
 import { readStreamableValue } from "@ai-sdk/rsc";
@@ -30,9 +31,11 @@ import { ObituaryOptions } from "./options";
 export const GenerateObituary = ({
   entry,
   entryDetails,
+  savedQuotes = [],
 }: {
   entry: Entry;
   entryDetails: EntryDetails;
+  savedQuotes?: SavedQuote[];
 }) => {
   const [isPending, startTransition] = useTransition();
 
@@ -43,6 +46,7 @@ export const GenerateObituary = ({
   const [isReligious, setIsReligious] = useState<boolean>(false);
   const [completed, setCompleted] = useState<boolean>(false);
   const [obituaryId, setObituaryId] = useState<string | undefined>(undefined);
+  const [selectedQuoteIds, setSelectedQuoteIds] = useState<number[]>([]);
 
   const [languageModel, setLanguageModel] = useState<LanguageModel>(
     models.openai
@@ -81,6 +85,7 @@ export const GenerateObituary = ({
       toInclude,
       toAvoid,
       isReligious: Boolean(),
+      selectedQuoteIds: selectedQuoteIds.join(","),
     }).forEach(([key, value]) => {
       formDataObj.append(key, String(value));
     });
@@ -131,6 +136,9 @@ export const GenerateObituary = ({
           toAvoid={toAvoid}
           isReligious={isReligious}
           handleInputChange={handleInputChange}
+          savedQuotes={savedQuotes}
+          selectedQuoteIds={selectedQuoteIds}
+          onQuoteSelectionChange={setSelectedQuoteIds}
         />
       ),
     },
@@ -248,6 +256,9 @@ const ObituaryForm = ({
   toAvoid,
   isReligious,
   handleInputChange,
+  savedQuotes,
+  selectedQuoteIds,
+  onQuoteSelectionChange,
 }: {
   entry: Entry;
   entryDetails: EntryDetails;
@@ -260,6 +271,9 @@ const ObituaryForm = ({
   toAvoid: string;
   isReligious: boolean;
   handleInputChange: (field: string, value: string) => void;
+  savedQuotes: SavedQuote[];
+  selectedQuoteIds: number[];
+  onQuoteSelectionChange: (ids: number[]) => void;
 }) => {
   // TODO: Add more advanced logic to validate entry details and determine if they are complete
   const needsMoreInfo = !entryDetails;
@@ -278,6 +292,17 @@ const ObituaryForm = ({
         isPending={isPending}
         handleInputChange={handleInputChange}
       />
+      
+      {savedQuotes.length > 0 && (
+        <div className="mt-6">
+          <QuoteSelector
+            quotes={savedQuotes}
+            selectedIds={selectedQuoteIds}
+            onSelectionChange={onQuoteSelectionChange}
+          />
+        </div>
+      )}
+      
       <section className="flex items-center gap-4 mt-12">
         <Button
           type="reset"

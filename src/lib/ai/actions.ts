@@ -1,6 +1,7 @@
 "use server";
 
 import { saveDocument } from "@/lib/db/mutations/documents";
+import { updateQuoteUsageAction } from "@/lib/db/mutations/quotes";
 import { createStreamableValue } from "@ai-sdk/rsc";
 import { auth } from "@clerk/nextjs/server";
 import { smoothStream, streamText } from "ai";
@@ -20,6 +21,7 @@ const ObitFormSchema = z.object({
   toInclude: z.string(),
   toAvoid: z.string(),
   isReligious: z.coerce.boolean().default(false),
+  selectedQuoteIds: z.string().optional().default(""),
 });
 
 export const generateObituary = async (
@@ -36,7 +38,7 @@ export const generateObituary = async (
   // let stream = createStreamableValue("");
 
   try {
-    const { name, style, tone, toInclude, toAvoid, isReligious } =
+    const { name, style, tone, toInclude, toAvoid, isReligious, selectedQuoteIds } =
       ObitFormSchema.parse(Object.fromEntries(data));
 
     const prompt = await createPromptFromEntryData(
@@ -45,7 +47,8 @@ export const generateObituary = async (
       tone,
       toInclude,
       toAvoid,
-      isReligious
+      isReligious,
+      selectedQuoteIds
     );
 
     let tokenUsage: number | undefined = 0;
@@ -72,6 +75,17 @@ export const generateObituary = async (
           userId,
           organizationId: orgId,
         });
+
+        // Mark selected quotes as used in obituary
+        if (selectedQuoteIds) {
+          const ids = selectedQuoteIds.split(",").map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+          for (const quoteId of ids) {
+            const formData = new FormData();
+            formData.append("id", quoteId.toString());
+            formData.append("usedInObituary", "true");
+            await updateQuoteUsageAction({} as any, formData);
+          }
+        }
       },
     });
 

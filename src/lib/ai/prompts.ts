@@ -1,4 +1,5 @@
 import { getEntryById, getEntryDetailsById } from "../db/queries/entries";
+import { getSavedQuotesByEntryId } from "../db/queries/quotes";
 import { formatFamilyMembers, formatServices } from "../helpers";
 
 export const systemPrompt = `
@@ -15,6 +16,14 @@ export const systemPrompt = `
   - Ensure the language is dignified and appropriate\n
   - Include a starting sentence and ending sentiment (e.g. "They will be dearly missed")\n
   - Do not add any information not provided in the user's request\n\n
+
+  QUOTES & SCRIPTURE GUIDELINES:\n
+  - If meaningful quotes or scripture are provided, incorporate them naturally into the obituary\n
+  - Weave quotes into the narrative where they fit contextually, don't just list them\n
+  - Use markdown blockquotes (>) to format quotes and scripture\n
+  - Include attribution (author or reference) when provided\n
+  - Quotes should enhance the story, not interrupt the flow\n
+  - Scripture should be included respectfully and appropriately based on religious context\n\n
 
   FORMAT GUIDELINES:\n
   - Use markdown to format the obituary text.\n
@@ -64,7 +73,8 @@ export const createPromptFromEntryData = async (
   tone: string,
   toInclude: string = "",
   toAvoid: string = "",
-  isReligious: boolean = false
+  isReligious: boolean = false,
+  selectedQuoteIds: string = ""
 ) => {
   const [entry, entryDetails] = await Promise.all([
     getEntryById(entryId),
@@ -73,6 +83,24 @@ export const createPromptFromEntryData = async (
 
   if (!entry || !entryDetails) {
     throw new Error("Entry not found");
+  }
+
+  // Fetch selected quotes if any
+  let quotesText = "";
+  if (selectedQuoteIds) {
+    const ids = selectedQuoteIds.split(",").map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+    if (ids.length > 0) {
+      const allQuotes = await getSavedQuotesByEntryId(entryId);
+      const selectedQuotes = allQuotes.filter(q => ids.includes(q.id));
+      
+      if (selectedQuotes.length > 0) {
+        quotesText = "\n\nMeaningful Quotes & Scripture to incorporate naturally:\n" +
+          selectedQuotes.map(q => {
+            const metadata = q.reference ? ` (${q.reference})` : q.citation ? ` - ${q.citation}` : "";
+            return `> "${q.quote}"${metadata}`;
+          }).join("\n");
+      }
+    }
   }
 
   let promptText = `
@@ -181,6 +209,8 @@ export const createPromptFromEntryData = async (
       toAvoid &&
       "Specific details, topics or themes to AVOID in this obituary: " + toAvoid
     }\n\n
+
+    ${quotesText}\n\n
   `;
 
   return promptText as string;
