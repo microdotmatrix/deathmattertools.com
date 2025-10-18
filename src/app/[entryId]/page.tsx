@@ -1,5 +1,5 @@
-// import { SavedQuotes } from "@/components/quotes/saved";
 import { ActionButton } from "@/components/elements/action-button";
+import { SavedQuotesList } from "@/components/quotes-scripture/saved-quotes-list";
 import { EntryDetailsCard } from "@/components/sections/entries/details-card";
 import { EntryForm } from "@/components/sections/entries/entry-form";
 import { EntryImageUpload } from "@/components/sections/entries/entry-image-upload";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
+import { Skeleton } from "@/components/ui/skeleton";
 import { deleteDocumentById } from "@/lib/db/mutations/documents";
 import { getEntryImages } from "@/lib/db/queries";
 import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
@@ -195,6 +196,17 @@ const EntryEditContent = async ({
             <Suspense fallback={<FeedbackSkeleton />}>
               <EntryFeedbackPanel entryId={entry.id} />
             </Suspense>
+          </div>
+
+          {/* Saved Quotes & Scripture Section */}
+          <div className="mt-6">
+            <Card>
+              <CardContent className="pt-6">
+                <Suspense fallback={<SavedQuotesSkeleton />}>
+                  <SavedQuotesList entryId={entry.id} />
+                </Suspense>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
