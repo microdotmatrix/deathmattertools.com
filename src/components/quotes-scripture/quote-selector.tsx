@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -58,14 +57,19 @@ export function QuoteSelector({ quotes, selectedIds, onSelectionChange }: QuoteS
           const isSelected = selectedIds.includes(quote.id);
 
           return (
-            <div
+            <label
               key={quote.id}
               className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
                 isSelected ? "bg-muted/50 border-primary" : "hover:bg-muted/30"
               }`}
-              onClick={() => handleToggle(quote.id)}
+              htmlFor={`quote-${quote.id}`}
             >
-              <Checkbox checked={isSelected} className="mt-1" />
+              <Checkbox 
+                id={`quote-${quote.id}`}
+                checked={isSelected} 
+                onCheckedChange={() => handleToggle(quote.id)}
+                className="mt-1" 
+              />
               <div className="flex-1 min-w-0">
                 <div className="flex items-start gap-2">
                   <Icon className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
@@ -84,7 +88,7 @@ export function QuoteSelector({ quotes, selectedIds, onSelectionChange }: QuoteS
                   </div>
                 </div>
               </div>
-            </div>
+            </label>
           );
         })}
       </CardContent>
