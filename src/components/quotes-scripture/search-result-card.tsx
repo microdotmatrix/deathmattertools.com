@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,41 +16,39 @@ interface SearchResultCardProps {
 }
 
 export function SearchResultCard({ result, entryId, onSaved }: SearchResultCardProps) {
-  const [saving, setSaving] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
 
-  const handleSave = async () => {
-    setSaving(true);
-    
-    const formData = new FormData();
-    formData.append("entryId", entryId);
-    formData.append("quote", result.content);
-    formData.append("citation", result.citation);
-    formData.append("source", result.source);
-    formData.append("type", result.type);
-    formData.append("length", result.length);
-    
-    if (result.metadata?.faith) {
-      formData.append("faith", result.metadata.faith);
-    }
-    if (result.metadata?.book) {
-      formData.append("book", result.metadata.book);
-    }
-    if (result.metadata?.reference) {
-      formData.append("reference", result.metadata.reference);
-    }
+  const handleSave = () => {
+    startTransition(async () => {
+      const formData = new FormData();
+      formData.append("entryId", entryId);
+      formData.append("quote", result.content);
+      formData.append("citation", result.citation);
+      formData.append("source", result.source);
+      formData.append("type", result.type);
+      formData.append("length", result.length);
+      
+      if (result.metadata?.faith) {
+        formData.append("faith", result.metadata.faith);
+      }
+      if (result.metadata?.book) {
+        formData.append("book", result.metadata.book);
+      }
+      if (result.metadata?.reference) {
+        formData.append("reference", result.metadata.reference);
+      }
 
-    const response = await saveQuoteAction({} as any, formData);
-    
-    setSaving(false);
-    
-    if (response.error) {
-      toast.error(response.error);
-    } else {
-      setSaved(true);
-      toast.success("Saved successfully!");
-      onSaved?.();
-    }
+      const response = await saveQuoteAction({} as any, formData);
+      
+      if (response.error) {
+        toast.error(response.error);
+      } else {
+        setSaved(true);
+        toast.success("Saved successfully!");
+        onSaved?.();
+      }
+    });
   };
 
   const icon = result.type === "scripture" ? BookOpen : Quote;
@@ -85,7 +83,7 @@ export function SearchResultCard({ result, entryId, onSaved }: SearchResultCardP
         <Button
           size="sm"
           onClick={handleSave}
-          disabled={saving || saved}
+          disabled={isPending || saved}
           className="ml-auto"
         >
           {saved ? (
@@ -94,7 +92,7 @@ export function SearchResultCard({ result, entryId, onSaved }: SearchResultCardP
               Saved
             </>
           ) : (
-            saving ? "Saving..." : "Save"
+            isPending ? "Saving..." : "Save"
           )}
         </Button>
       </CardFooter>

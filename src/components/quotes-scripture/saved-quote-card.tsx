@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,23 +24,21 @@ interface SavedQuoteCardProps {
 }
 
 export function SavedQuoteCard({ quote }: SavedQuoteCardProps) {
-  const [deleting, setDeleting] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const handleDelete = async () => {
-    setDeleting(true);
-    
-    const response = await deleteQuoteAction(quote.id, quote.entryId);
-    
-    if (response.error) {
-      toast.error(response.error);
-      setDeleting(false);
-    } else {
-      toast.success("Quote deleted successfully");
-      // The page will revalidate automatically
-    }
-    
-    setShowDeleteDialog(false);
+  const handleDelete = () => {
+    startTransition(async () => {
+      const response = await deleteQuoteAction(quote.id, quote.entryId);
+      
+      if (response.error) {
+        toast.error(response.error);
+      } else {
+        toast.success("Quote deleted successfully");
+        // The page will revalidate automatically
+        setShowDeleteDialog(false);
+      }
+    });
   };
 
   const icon = quote.type === "scripture" ? BookOpen : Quote;
@@ -100,7 +98,7 @@ export function SavedQuoteCard({ quote }: SavedQuoteCardProps) {
               variant="ghost"
               size="icon"
               onClick={() => setShowDeleteDialog(true)}
-              disabled={deleting}
+              disabled={isPending}
               className="shrink-0"
             >
               <Trash2 className="h-4 w-4 text-destructive" />
@@ -118,9 +116,9 @@ export function SavedQuoteCard({ quote }: SavedQuoteCardProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={deleting}>
-              {deleting ? "Deleting..." : "Delete"}
+            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={isPending}>
+              {isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

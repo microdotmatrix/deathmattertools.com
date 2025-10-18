@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import {
   Dialog,
   DialogContent,
@@ -27,27 +27,26 @@ export function SearchDialog({
   defaultType = "all",
 }: SearchDialogProps) {
   const [results, setResults] = useState<UnifiedSearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [hasSearched, setHasSearched] = useState(false);
 
-  const handleSearch = async (params: SearchParams) => {
-    setLoading(true);
+  const handleSearch = (params: SearchParams) => {
     setHasSearched(true);
     
-    try {
-      const searchResults = await searchContent(params);
-      setResults(searchResults);
-      
-      if (searchResults.length === 0) {
-        toast.info("No results found for your search");
+    startTransition(async () => {
+      try {
+        const searchResults = await searchContent(params);
+        setResults(searchResults);
+        
+        if (searchResults.length === 0) {
+          toast.info("No results found for your search");
+        }
+      } catch (error) {
+        console.error("Search failed:", error);
+        toast.error("Search failed. Please try again.");
+        setResults([]);
       }
-    } catch (error) {
-      console.error("Search failed:", error);
-      toast.error("Search failed. Please try again.");
-      setResults([]);
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   const handleQuoteSaved = () => {
@@ -69,7 +68,7 @@ export function SearchDialog({
           <SearchForm
             onSearch={handleSearch}
             defaultType={defaultType}
-            loading={loading}
+            loading={isPending}
           />
           
           {hasSearched && (
@@ -77,7 +76,7 @@ export function SearchDialog({
               <SearchResults
                 results={results}
                 entryId={entryId}
-                loading={loading}
+                loading={isPending}
                 onQuoteSaved={handleQuoteSaved}
               />
             </div>
