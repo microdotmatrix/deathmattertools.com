@@ -8,7 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SearchForm } from "./search-form";
+import { DirectionAwareTabs } from "@/components/elements/animated-tabs";
+import { QuotesSearchForm } from "./quotes-search-form";
+import { ScriptureSearchForm } from "./scripture-search-form";
 import { SearchResults } from "./search-results";
 import { searchContent, type SearchParams, type UnifiedSearchResult } from "@/lib/api/saved-content";
 import { toast } from "sonner";
@@ -17,14 +19,14 @@ interface SearchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   entryId: string;
-  defaultType?: "quote" | "scripture" | "all";
+  defaultType?: "quote" | "scripture";
 }
 
 export function SearchDialog({
   open,
   onOpenChange,
   entryId,
-  defaultType = "all",
+  defaultType = "quote",
 }: SearchDialogProps) {
   const [results, setResults] = useState<UnifiedSearchResult[]>([]);
   const [isPending, startTransition] = useTransition();
@@ -54,6 +56,55 @@ export function SearchDialog({
     // Could also close dialog after save
   };
 
+  const handleTabChange = () => {
+    // Reset search state when switching tabs
+    setResults([]);
+    setHasSearched(false);
+  };
+
+  const tabs = [
+    {
+      id: 0,
+      label: "Quotes",
+      content: (
+        <div className="space-y-6 pt-4">
+          <QuotesSearchForm onSearch={handleSearch} loading={isPending} />
+          
+          {hasSearched && (
+            <div className="overflow-hidden">
+              <SearchResults
+                results={results}
+                entryId={entryId}
+                loading={isPending}
+                onQuoteSaved={handleQuoteSaved}
+              />
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: 1,
+      label: "Scripture",
+      content: (
+        <div className="space-y-6 pt-4">
+          <ScriptureSearchForm onSearch={handleSearch} loading={isPending} />
+          
+          {hasSearched && (
+            <div className="overflow-hidden">
+              <SearchResults
+                results={results}
+                entryId={entryId}
+                loading={isPending}
+                onQuoteSaved={handleQuoteSaved}
+              />
+            </div>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
@@ -64,23 +115,8 @@ export function SearchDialog({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex-1 flex flex-col gap-6 overflow-hidden">
-          <SearchForm
-            onSearch={handleSearch}
-            defaultType={defaultType}
-            loading={isPending}
-          />
-          
-          {hasSearched && (
-            <div className="flex-1 overflow-hidden">
-              <SearchResults
-                results={results}
-                entryId={entryId}
-                loading={isPending}
-                onQuoteSaved={handleQuoteSaved}
-              />
-            </div>
-          )}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <DirectionAwareTabs tabs={tabs} className="mb-4" onChange={handleTabChange} />
         </div>
       </DialogContent>
     </Dialog>

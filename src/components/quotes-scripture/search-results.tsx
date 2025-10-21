@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { SearchResultCard } from "./search-result-card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ChevronDown } from "lucide-react";
 import type { UnifiedSearchResult } from "@/lib/api/saved-content";
 
 interface SearchResultsProps {
@@ -13,12 +15,16 @@ interface SearchResultsProps {
   onQuoteSaved?: () => void;
 }
 
+const RESULTS_PER_PAGE = 10;
+
 export function SearchResults({
   results,
   entryId,
   loading,
   onQuoteSaved,
 }: SearchResultsProps) {
+  const [visibleCount, setVisibleCount] = useState(RESULTS_PER_PAGE);
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -42,10 +48,18 @@ export function SearchResults({
     );
   }
 
+  const visibleResults = results.slice(0, visibleCount);
+  const hasMore = visibleCount < results.length;
+  const remainingCount = results.length - visibleCount;
+
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => Math.min(prev + RESULTS_PER_PAGE, results.length));
+  };
+
   return (
     <ScrollArea className="h-[400px] pr-4">
       <div className="space-y-4">
-        {results.map((result) => (
+        {visibleResults.map((result) => (
           <SearchResultCard
             key={result.id}
             result={result}
@@ -53,6 +67,20 @@ export function SearchResults({
             onSaved={onQuoteSaved}
           />
         ))}
+        
+        {hasMore && (
+          <div className="flex flex-col items-center gap-2 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLoadMore}
+              className="w-full"
+            >
+              <ChevronDown className="w-4 h-4 mr-2" />
+              Load More ({remainingCount} remaining)
+            </Button>
+          </div>
+        )}
       </div>
     </ScrollArea>
   );

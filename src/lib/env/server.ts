@@ -16,7 +16,6 @@ export const env = createEnv({
     RESEND_API_KEY: z.string().min(1),
     RESEND_EMAIL_FROM: z.string().min(1),
     RESEND_EMAIL_TO: z.string().min(1),
-    BIBLE_API_KEY: z.string().min(1),
   },
   emptyStringAsUndefined: true,
   experimental__runtimeEnv: process.env,

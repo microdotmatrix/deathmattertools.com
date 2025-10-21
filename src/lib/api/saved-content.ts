@@ -70,7 +70,7 @@ export async function searchContent(
     
     results.push(
       ...scripture.map((s) => ({
-        id: s.id,
+        id: crypto.randomUUID(),
         type: "scripture" as const,
         content: s.text,
         citation: s.ref,

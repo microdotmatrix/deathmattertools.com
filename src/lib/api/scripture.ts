@@ -1,4 +1,4 @@
-import { env } from "@/lib/env/server";
+import { env } from "@/lib/env/client";
 
 export interface ScriptureProps {
   id: string;
@@ -15,7 +15,7 @@ export const searchBibleText = async (keyword: string) => {
     `https://api.scripture.api.bible/v1/bibles/${bibleVersionID}/search?query=${keyword}&offset=${offset}`,
     {
       headers: {
-        "api-key": env.BIBLE_API_KEY!,
+        "api-key": env.NEXT_PUBLIC_BIBLE_API_KEY!,
         "Content-Type": "application/json",
       },
     }
