@@ -197,17 +197,6 @@ const EntryEditContent = async ({
               <EntryFeedbackPanel entryId={entry.id} />
             </Suspense>
           </div>
-
-          {/* Saved Quotes & Scripture Section */}
-          <div className="mt-6">
-            <Card>
-              <CardContent className="pt-6">
-                <Suspense fallback={<SavedQuotesSkeleton />}>
-                  <SavedQuotesList entryId={entry.id} />
-                </Suspense>
-              </CardContent>
-            </Card>
-          </div>
         </div>
 
         {/* Generated Content Sections - Takes up 1/3 */}
@@ -447,18 +436,18 @@ const EntryEditContent = async ({
             </CardContent>
           </Card>
 
-          {/* Saved Quotes */}
+          {/* Saved Quotes & Scripture */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Icon icon="mdi:format-quote-close" className="w-5 h-5" />
-                Saved Quotes
+                Saved Quotes & Scripture
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="min-h-[300px]">
-                <span>No saved quotes</span>
-              </div>
+              <Suspense fallback={<SavedQuotesSkeleton />}>
+                <SavedQuotesList entryId={entry.id} />
+              </Suspense>
             </CardContent>
           </Card>
 
