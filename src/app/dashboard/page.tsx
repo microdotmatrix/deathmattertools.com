@@ -17,7 +17,7 @@ import {
 import { deleteEntryAction } from "@/lib/db/mutations/entries";
 import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
 import { getOrganizationEntries, getUserUploads } from "@/lib/db/queries/entries";
-import { getUserGeneratedImages } from "@/lib/db/queries/media";
+import { getUserGeneratedImagesCount } from "@/lib/db/queries/media";
 import { Entry } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { differenceInYears, format } from "date-fns";
@@ -84,13 +84,13 @@ const PageContent = async () => {
   if (featuredEntry) {
     // const obituaries = await getDocumentsByEntryId(featuredEntry.id);
 
-    const [obituaries, generatedImages] = await Promise.all([
+    const [obituaries, imagesCount] = await Promise.all([
       getDocumentsByEntryId(featuredEntry.id),
-      getUserGeneratedImages(featuredEntry.userId!, featuredEntry.id),
+      getUserGeneratedImagesCount(featuredEntry.userId!, featuredEntry.id),
     ]);
     featuredEntryStats = {
       obituariesCount: obituaries.length,
-      imagesCount: generatedImages.length,
+      imagesCount: imagesCount,
     };
   }
 
