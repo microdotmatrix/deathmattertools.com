@@ -1,7 +1,8 @@
 "use client";
 
 import { ImageUpload } from "@/components/elements/form/image-upload";
-import { deleteEntryImage, uploadEntryImage } from "@/lib/db/mutations/images";
+import { useUploadThing } from "@/components/elements/uploads";
+import { deleteEntryImage } from "@/lib/db/mutations/images";
 import { setPrimaryImageAction } from "@/lib/db/mutations/entries";
 import { UserUpload } from "@/lib/db/schema";
 import { useRouter } from "next/navigation";
@@ -25,70 +26,41 @@ export const EntryImageUpload = ({
 }: EntryImageUploadProps) => {
   const router = useRouter();
   const [images, setImages] = useState<UserUpload[]>(initialImages);
-  const [uploading, setUploading] = useState(false);
   const [settingPrimary, setSettingPrimary] = useState(false);
 
   // Convert UserUpload objects to URL strings for ImageUpload component
   const imageUrls = images.map((img) => img.url);
 
+  const { startUpload, isUploading } = useUploadThing("entryGalleryImage", {
+    onClientUploadComplete: (res) => {
+      // Add newly uploaded images to local state
+      const newImages = res.map((file) => ({
+        id: file.serverData.id,
+        userId: "", // Will be filled by the server
+        entryId: entryId,
+        url: file.serverData.url,
+        key: file.key,
+        isPrimary: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }));
+
+      setImages((prev) => [...prev, ...newImages]);
+      toast.success(`Successfully uploaded ${res.length} image(s)`);
+      router.refresh();
+    },
+    onUploadError: (error) => {
+      console.error("Upload error:", error);
+      toast.error(error.message || "Failed to upload images");
+    },
+  });
+
   const handleUpload = async (files: File[]) => {
-    setUploading(true);
-    const uploadPromises = files.map(async (file) => {
-      try {
-        // Upload to a simple storage solution (you can replace this with your preferred service)
-        // For now, we'll use a data URL as a placeholder
-        const dataUrl = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (e) => resolve(e.target?.result as string);
-          reader.readAsDataURL(file);
-        });
-
-        const storageKey = `entry-${entryId}-${Date.now()}-${file.name}`;
-        const isPrimary = images.length === 0; // First image is primary
-
-        // Upload to database
-        const result = await uploadEntryImage(
-          entryId,
-          dataUrl, // In production, replace with actual file URL from storage service
-          storageKey,
-          isPrimary
-        );
-
-        if (result.success && result.imageId) {
-          // Add the new image to local state
-          const newImage: UserUpload = {
-            id: result.imageId,
-            userId: "", // Will be filled by the server
-            entryId: entryId,
-            url: dataUrl,
-            key: storageKey,
-            isPrimary,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          };
-
-          setImages((prev) => [...prev, newImage]);
-          return newImage;
-        } else {
-          throw new Error(result.error || "Upload failed");
-        }
-      } catch (error) {
-        console.error("Upload error:", error);
-        toast.error(`Failed to upload ${file.name}`);
-        return null;
-      }
-    });
-
     try {
-      const results = await Promise.all(uploadPromises);
-      const successCount = results.filter(Boolean).length;
-
-      if (successCount > 0) {
-        toast.success(`Successfully uploaded ${successCount} image(s)`);
-        router.refresh();
-      }
-    } finally {
-      setUploading(false);
+      await startUpload(files, { entryId });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload images");
     }
   };
 
@@ -142,7 +114,7 @@ export const EntryImageUpload = ({
       maxFiles={20}
       maxSize={10}
       className={className}
-      disabled={uploading || settingPrimary}
+      disabled={isUploading || settingPrimary}
       readOnly={readOnly}
     />
   );

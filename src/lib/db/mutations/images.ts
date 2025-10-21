@@ -6,6 +6,14 @@ import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
+/**
+ * @deprecated This function is no longer used. Image uploads are now handled by
+ * Uploadthing via the entryGalleryImage endpoint in uploadthing.ts.
+ * The upload automatically saves to the database with proper validation.
+ * 
+ * See: src/lib/services/uploadthing.ts (entryGalleryImage)
+ * Used in: src/components/sections/entries/entry-image-upload.tsx
+ */
 export const uploadEntryImage = async (
   entryId: string,
   fileUrl: string,

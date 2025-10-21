@@ -3,6 +3,7 @@ import { ImageResult } from "@/components/sections/memorials/image-results";
 import { Icon } from "@/components/ui/icon";
 import { createEpitaphs } from "@/lib/db/mutations";
 import { getEntryWithAccess } from "@/lib/db/queries/entries";
+import { getSavedQuotesByEntryId } from "@/lib/db/queries/quotes";
 import type { PlacidImage, PlacidRequest } from "@/lib/services/placid";
 import { fetchImage } from "@/lib/services/placid";
 import { auth } from "@clerk/nextjs/server";
@@ -59,6 +60,9 @@ export default async function Create({
 
   const deceased = access.entry;
 
+  // Fetch saved quotes for this entry
+  const savedQuotes = await getSavedQuotesByEntryId(entryId);
+
   // Create action wrapper that includes the entryId
   const createEpitaphsAction = async (formData: PlacidRequest) => {
     "use server";
@@ -73,6 +77,7 @@ export default async function Create({
           userId={userId}
           deceased={deceased}
           entryId={entryId}
+          savedQuotes={savedQuotes}
         />
       </aside>
       <article className="flex-1 lg:flex-2/3 px-4 order-1 lg:order-2 flex">

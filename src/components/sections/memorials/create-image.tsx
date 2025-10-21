@@ -1,12 +1,12 @@
 "use client";
 
 import { AnimatedInput } from "@/components/elements/form/animated-input";
+import { SavedQuoteSelector } from "@/components/quotes-scripture/saved-quote-selector";
+import { SearchDialog } from "@/components/quotes-scripture/search-dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import type { Entry } from "@/lib/db/schema";
+import type { Entry, SavedQuote } from "@/lib/db/schema";
 import type { PlacidRequest } from "@/lib/services/placid";
-// import type { Deceased } from "@/lib/db/schema";
-// import type { UnifiedQuote } from "@/types/quotes";
 import type { ActionState } from "@/lib/utils";
 import { format } from "date-fns";
 import Image from "next/image";
@@ -19,13 +19,14 @@ export function CreateImage({
   userId,
   deceased,
   entryId,
+  savedQuotes = [],
 }: {
   action: (formData: PlacidRequest, userId: string) => Promise<ActionState>;
   userId: string | null;
   deceased: Entry;
   entryId: string;
+  savedQuotes?: SavedQuote[];
 }) {
-  const [openQuotes, setOpenQuotes] = useState(false);
   const [formData, setFormData] = useState<PlacidRequest>({
     name: deceased.name,
     epitaph: "",
@@ -37,6 +38,7 @@ export function CreateImage({
 
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const router = useRouter();
 
   const handleChange = (
@@ -46,6 +48,20 @@ export function CreateImage({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleQuoteSelect = (quote: SavedQuote) => {
+    setFormData((prev) => ({
+      ...prev,
+      epitaph: quote.quote,
+      citation: quote.citation || "",
+    }));
+  };
+
+  const handleSearchDialogClose = (open: boolean) => {
+    setSearchDialogOpen(open);
+    // When dialog closes, the page will need to refresh to show newly saved quotes
+    // This happens automatically on navigation or we could add a refresh mechanism
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     startTransition(async () => {
@@ -53,6 +69,7 @@ export function CreateImage({
       //   toast("Please enter an epitaph");
       //   return;
       // }
+      console.log("Form data", formData);
       const result = await action(formData, userId!);
       if (result.error) {
         setError(result.error);
@@ -93,24 +110,49 @@ export function CreateImage({
           </div>
         </div>
 
-        <div className="relative">
-          <AnimatedInput
-            name="epitaph"
-            label="Epitaph"
-            type="textarea"
-            value={formData.epitaph}
-            onChange={handleChange}
-            placeholder="Is there a quote or phrase you'd like to remember them by?"
-          />
-        </div>
+        <div className="space-y-3">
+          <div className="relative">
+            <AnimatedInput
+              name="epitaph"
+              label="Epitaph"
+              type="textarea"
+              controlled={true}
+              value={formData.epitaph}
+              onChange={handleChange}
+              placeholder="Is there a quote or phrase you'd like to remember them by?"
+            />
+          </div>
 
-        <AnimatedInput
-          name="citation"
-          label="Citation"
-          value={formData.citation}
-          onChange={handleChange}
-          placeholder="Who said it?"
-        />
+          <AnimatedInput
+            name="citation"
+            label="Citation"
+            controlled={true}
+            value={formData.citation}
+            onChange={handleChange}
+            placeholder="Who said it?"
+          />
+
+          <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setSearchDialogOpen(true)}
+              disabled={isPending}
+            >
+              <Icon icon="mdi:magnify" className="w-4 h-4 mr-2" />
+              Search Quotes & Scripture
+            </Button>
+            
+            {savedQuotes.length > 0 && (
+              <SavedQuoteSelector
+                quotes={savedQuotes}
+                onSelect={handleQuoteSelect}
+                disabled={isPending}
+              />
+            )}
+          </div>
+        </div>
 
         {/* Hidden inputs for the form data that's auto-populated */}
         <input type="hidden" name="name" value={formData.name} />
@@ -158,6 +200,12 @@ export function CreateImage({
           </Link>
         </div>
       </form>
+
+      <SearchDialog
+        open={searchDialogOpen}
+        onOpenChange={handleSearchDialogClose}
+        entryId={entryId}
+      />
     </div>
   );
 }

@@ -67,7 +67,7 @@ export function SearchDialog({
       id: 0,
       label: "Quotes",
       content: (
-        <div className="space-y-6 pt-4">
+        <div className="space-y-6 pt-4 pb-2">
           <QuotesSearchForm onSearch={handleSearch} loading={isPending} />
           
           {hasSearched && (
@@ -87,7 +87,7 @@ export function SearchDialog({
       id: 1,
       label: "Scripture",
       content: (
-        <div className="space-y-6 pt-4">
+        <div className="space-y-6 pt-4 pb-2">
           <ScriptureSearchForm onSearch={handleSearch} loading={isPending} />
           
           {hasSearched && (
