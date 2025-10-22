@@ -1,13 +1,13 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { obituaryUpdateProcessingAtom } from "@/atoms/obituary-update";
 import { Response } from "@/components/ai/response";
+import { SelectionToolbar } from "@/components/annotations";
 import { Icon } from "@/components/ui/icon";
 import { useTextSelection } from "@/hooks/use-text-selection";
-import { SelectionToolbar } from "@/components/annotations";
-import { obituaryUpdateProcessingAtom } from "@/atoms/obituary-update";
+import { extractAnchorData, type AnchorData } from "@/lib/annotations";
 import { useAtomValue } from "jotai";
-import type { AnchorData } from "@/lib/annotations";
+import { useRef } from "react";
 
 interface ObituaryViewerSimpleProps {
   id?: string;
@@ -31,16 +31,16 @@ export const ObituaryViewerSimple = ({
   // Read processing state from Jotai atom
   const isProcessing = useAtomValue(obituaryUpdateProcessingAtom);
 
-  const handleCreateComment = useCallback(() => {
+  // React Compiler handles function stability - no useCallback needed
+  const handleCreateComment = () => {
     if (range && contentRef.current && onCreateQuotedComment) {
-      const { extractAnchorData } = require("@/lib/annotations");
       const anchor = extractAnchorData(range, contentRef.current);
       onCreateQuotedComment(anchor);
 
       // Clear selection after extracting
       window.getSelection()?.removeAllRanges();
     }
-  }, [range, onCreateQuotedComment]);
+  };
 
   return (
     <div className="relative">
@@ -54,7 +54,7 @@ export const ObituaryViewerSimple = ({
 
       {/* Processing overlay - shown when AI is updating the obituary */}
       {isProcessing && (
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg animate-in fade-in duration-200">
+        <div className="absolute inset-0 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg animate-in fade-in duration-200">
           <div className="flex flex-col items-center gap-3">
             <Icon 
               icon="mdi:loading" 

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { ObituaryViewerSimple } from "./obituary-viewer-simple";
-import { QuotedCommentForm } from "@/components/annotations/quoted-comment-form";
 import { createCommentAction } from "@/actions/comments";
+import { QuotedCommentForm } from "@/components/annotations/quoted-comment-form";
 import type { AnchorData } from "@/lib/annotations";
+import { useState } from "react";
+import { ObituaryViewerSimple } from "./obituary-viewer-simple";
 import {
   Dialog,
   DialogContent,
@@ -26,29 +26,27 @@ export const ObituaryViewerWithComments = ({
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [currentQuote, setCurrentQuote] = useState<AnchorData | null>(null);
 
-  const handleCreateQuotedComment = useCallback((anchor: AnchorData) => {
+  // React Compiler handles function stability - no useCallback needed
+  const handleCreateQuotedComment = (anchor: AnchorData) => {
     setCurrentQuote(anchor);
     setShowCommentForm(true);
-  }, []);
+  };
 
-  const handleCommentSuccess = useCallback(() => {
+  const handleCommentSuccess = () => {
     setShowCommentForm(false);
     setCurrentQuote(null);
     // Page will auto-refresh via revalidation
-  }, []);
+  };
 
-  const handleCommentCancel = useCallback(() => {
+  const handleCommentCancel = () => {
     setShowCommentForm(false);
     setCurrentQuote(null);
-  }, []);
+  };
 
   // Bind createCommentAction to this document
-  const boundCreateComment = useCallback(
-    async (formData: FormData) => {
-      return createCommentAction(documentId, {}, formData);
-    },
-    [documentId]
-  );
+  const boundCreateComment = async (formData: FormData) => {
+    return createCommentAction(documentId, {}, formData);
+  };
 
   return (
     <>
