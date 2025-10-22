@@ -108,7 +108,12 @@ export const getEntryImages = async (entryId: string) => {
     const images = await db
       .select()
       .from(UserUploadTable)
-      .where(eq(UserUploadTable.userId, userId))
+      .where(
+        and(
+          eq(UserUploadTable.userId, userId),
+          eq(UserUploadTable.entryId, entryId)
+        )
+      )
       .orderBy(UserUploadTable.createdAt);
 
     return { success: true, images };
