@@ -11,7 +11,9 @@ import { Icon } from "@/components/ui/icon";
 import { convertToUIMessages } from "@/lib/ai/utils";
 import { generateUUID } from "@/lib/utils";
 import { useChat } from "@ai-sdk/react";
+import { obituaryUpdateProcessingAtom } from "@/atoms/obituary-update";
 import { DefaultChatTransport } from "ai";
+import { useSetAtom } from "jotai";
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -50,6 +52,9 @@ export const FloatingChatBubble = ({
   const [input, setInput] = useState("");
   const [hasNewResponse, setHasNewResponse] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Jotai atom to coordinate loading state with ObituaryViewerSimple
+  const setObituaryUpdateProcessing = useSetAtom(obituaryUpdateProcessingAtom);
 
   // React Compiler handles memoization - no useMemo needed
   const chatId = initialChat?.id || generateUUID();
@@ -84,12 +89,16 @@ export const FloatingChatBubble = ({
       if (error instanceof Error) {
         toast.error(error.message);
       }
+      // Clear processing state on error
+      setObituaryUpdateProcessing(false);
     },
     onFinish: () => {
       router.refresh();
       if (!isExpanded) {
         setHasNewResponse(true);
       }
+      // Clear processing state when response completes
+      setObituaryUpdateProcessing(false);
     },
   });
 
@@ -111,6 +120,8 @@ export const FloatingChatBubble = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
+      // Set processing state to show loading overlay on obituary
+      setObituaryUpdateProcessing(true);
       sendMessage({ text: input });
       setInput("");
     }

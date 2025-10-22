@@ -2,8 +2,11 @@
 
 import { useRef, useCallback } from "react";
 import { Response } from "@/components/ai/response";
+import { Icon } from "@/components/ui/icon";
 import { useTextSelection } from "@/hooks/use-text-selection";
 import { SelectionToolbar } from "@/components/annotations";
+import { obituaryUpdateProcessingAtom } from "@/atoms/obituary-update";
+import { useAtomValue } from "jotai";
 import type { AnchorData } from "@/lib/annotations";
 
 interface ObituaryViewerSimpleProps {
@@ -24,6 +27,9 @@ export const ObituaryViewerSimple = ({
     contentRef as unknown as React.RefObject<HTMLElement>,
     canComment
   );
+  
+  // Read processing state from Jotai atom
+  const isProcessing = useAtomValue(obituaryUpdateProcessingAtom);
 
   const handleCreateComment = useCallback(() => {
     if (range && contentRef.current && onCreateQuotedComment) {
@@ -45,6 +51,21 @@ export const ObituaryViewerSimple = ({
       >
         <Response key={id}>{content}</Response>
       </div>
+
+      {/* Processing overlay - shown when AI is updating the obituary */}
+      {isProcessing && (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg animate-in fade-in duration-200">
+          <div className="flex flex-col items-center gap-3">
+            <Icon 
+              icon="mdi:loading" 
+              className="size-12 text-primary animate-spin" 
+            />
+            <p className="text-sm font-medium text-muted-foreground">
+              AI is updating your obituary...
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Selection toolbar */}
       {canComment && (
