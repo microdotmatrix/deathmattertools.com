@@ -14,7 +14,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface FloatingChatBubbleProps {
@@ -49,6 +49,7 @@ export const FloatingChatBubble = ({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [input, setInput] = useState("");
   const [hasNewResponse, setHasNewResponse] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // React Compiler handles memoization - no useMemo needed
   const chatId = initialChat?.id || generateUUID();
@@ -98,6 +99,13 @@ export const FloatingChatBubble = ({
       setHasNewResponse(false);
     }
   }, [isExpanded]);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesEndRef.current && isExpanded) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, isExpanded]);
 
   // React Compiler handles function stability - no useCallback needed
   const handleSubmit = (e: React.FormEvent) => {
@@ -151,7 +159,7 @@ export const FloatingChatBubble = ({
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.length > 0 ? (
+              {messages.length > 0 && (
                 messages.map((message) => (
                   <div
                     key={message.id}
@@ -195,21 +203,11 @@ export const FloatingChatBubble = ({
                         return null;
                       })}
                     </div>
-                  </div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground text-sm gap-3">
-                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10">
-                    <Icon icon="mdi:message-text-outline" className="size-8 text-primary/60" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Start a conversation</p>
-                    <p className="text-xs mt-1">
-                      Ask for tone adjustments, content additions, or any improvements
-                    </p>
-                  </div>
                 </div>
+                ))
               )}
+              
+              {/* Loading/Streaming Indicator */}
               {(status === "streaming" || status === "submitted") && (
                 <div className="flex justify-start">
                   <div className="bg-muted rounded-lg px-3 py-2 flex items-center gap-2">
@@ -231,11 +229,31 @@ export const FloatingChatBubble = ({
                   </div>
                 </div>
               )}
+              
+              {/* Error Message */}
               {error && (
                 <div className="text-center text-destructive text-sm bg-destructive/10 rounded-lg p-3">
                   {error.message}
                 </div>
               )}
+              
+              {/* Empty State - Only show when no messages and not processing */}
+              {messages.length === 0 && status === "ready" && !error && (
+                <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground text-sm gap-3">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10">
+                    <Icon icon="mdi:message-text-outline" className="size-8 text-primary/60" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Start a conversation</p>
+                    <p className="text-xs mt-1">
+                      Ask for tone adjustments, content additions, or any improvements
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Scroll anchor */}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Input */}
@@ -246,11 +264,12 @@ export const FloatingChatBubble = ({
                   value={input}
                   onChange={(e) => setInput(e.currentTarget.value)}
                   className="min-h-[60px] max-h-[120px]"
+                  disabled={status === "streaming" || status === "submitted"}
                 />
                 <div className="flex justify-end pt-2">
                   <PromptInputSubmit
                     status={status === "streaming" ? "streaming" : undefined}
-                    disabled={!input.trim() || status === "streaming"}
+                    disabled={!input.trim() || status === "streaming" || status === "submitted"}
                   />
                 </div>
               </PromptInput>
