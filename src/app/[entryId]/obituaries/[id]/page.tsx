@@ -1,6 +1,6 @@
-import { FloatingChatBubble } from "@/components/sections/obituaries/floating-chat-bubble";
 import { OrganizationCommentingSettings } from "@/components/sections/obituaries/commenting-settings";
 import { ObituaryComments } from "@/components/sections/obituaries/comments-panel";
+import { FloatingChatBubble } from "@/components/sections/obituaries/floating-chat-bubble";
 import { ObituaryViewerWithComments } from "@/components/sections/obituaries/obituary-viewer-with-comments";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -11,11 +11,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
+import { getDocumentWithAccess, listDocumentComments } from "@/lib/db/queries";
 import {
   getChatByDocumentId,
   getMessagesByChatId,
 } from "@/lib/db/queries/chats";
-import { getDocumentWithAccess, listDocumentComments } from "@/lib/db/queries";
 import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { format } from "date-fns";
@@ -191,7 +191,7 @@ export default async function ObituaryPage({
       </div>
 
       {/* Main Content Grid - Two Column Layout */}
-      <div className="grid gap-6 lg:grid-cols-[1fr,380px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
         {/* Left Column - Obituary Viewer (Wider) */}
         <Card>
           <CardHeader>
