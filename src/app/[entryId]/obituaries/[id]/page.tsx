@@ -187,71 +187,56 @@ export default async function ObituaryPage({
           <Icon icon="mdi:arrow-left" className="mr-2 size-4" />
           Back to entry
         </Link>
-        <div className="flex flex-wrap items-center gap-3">
-          <Badge variant="secondary">{roleLabel(access.role)}</Badge>
-          <span className="text-sm text-muted-foreground">
-            Created {createdAtLabel}
-          </span>
-        </div>
+        <Badge variant="secondary">{roleLabel(access.role)}</Badge>
       </div>
 
-      {/* Main Content Grid - Two columns on large screens, stacks on mobile */}
+      {/* Main Content Grid - Two Column Layout */}
       <div className="grid gap-6 lg:grid-cols-[1fr,380px]">
         {/* Left Column - Obituary Viewer (Wider) */}
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold">
-                {isOwner ? "Edit & Review" : "Memorial Overview"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ObituaryViewerWithComments
-                documentId={access.document.id}
-                content={access.document.content ?? ""}
-                canComment={access.canComment}
-              />
-            </CardContent>
-          </Card>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold">
+              {isOwner ? "Edit & Review" : "Memorial Overview"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ObituaryViewerWithComments
+              documentId={access.document.id}
+              content={access.document.content ?? ""}
+              canComment={access.canComment}
+            />
+          </CardContent>
+        </Card>
 
-        {/* Right Column - Details, Comments & Settings (Narrower) */}
+        {/* Right Column - Sidebar with Details, Comments & Settings */}
         <div className="space-y-6">
           {/* Obituary Details */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Icon icon="mdi:information-outline" className="size-4" />
+                <Icon icon="mdi:information-outline" className="size-5" />
                 Details
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
+            <CardContent className="space-y-3 text-sm">
               <div>
-                <span className="font-medium text-foreground">
-                  Title:
-                </span>
-                <p className="text-muted-foreground">
+                <span className="font-medium text-foreground">Title:</span>
+                <p className="text-muted-foreground mt-1">
                   {access.document.title}
                 </p>
               </div>
               <div>
-                <span className="font-medium text-foreground">
-                  Honoring:
-                </span>
-                <p className="text-muted-foreground">{entry.name}</p>
+                <span className="font-medium text-foreground">Honoring:</span>
+                <p className="text-muted-foreground mt-1">{entry.name}</p>
               </div>
               <div>
-                <span className="font-medium text-foreground">
-                  Entry ID:
-                </span>
-                <p className="text-muted-foreground text-xs break-all">
-                  {entry.id}
-                </p>
+                <span className="font-medium text-foreground">Created:</span>
+                <p className="text-muted-foreground mt-1">{createdAtLabel}</p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Comments */}
+          {/* Comments Panel */}
           <Card>
             <CardContent className="py-6">
               <ObituaryComments
