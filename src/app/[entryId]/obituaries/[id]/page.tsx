@@ -195,15 +195,34 @@ export default async function ObituaryPage({
         </div>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-        {/* Left Column - Obituary Content */}
-        <div className="space-y-6">
+      {/* Main Content Grid - Two columns on large screens, stacks on mobile */}
+      <div className="grid gap-6 lg:grid-cols-[1fr,380px]">
+        {/* Left Column - Obituary Viewer (Wider) */}
+        <div>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Icon icon="mdi:information-outline" className="size-5" />
-                Obituary Details
+              <CardTitle className="text-xl font-semibold">
+                {isOwner ? "Edit & Review" : "Memorial Overview"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ObituaryViewerWithComments
+                documentId={access.document.id}
+                content={access.document.content ?? ""}
+                canComment={access.canComment}
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - Details, Comments & Settings (Narrower) */}
+        <div className="space-y-6">
+          {/* Obituary Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Icon icon="mdi:information-outline" className="size-4" />
+                Details
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
@@ -225,31 +244,14 @@ export default async function ObituaryPage({
                 <span className="font-medium text-foreground">
                   Entry ID:
                 </span>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground text-xs break-all">
                   {entry.id}
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-xl font-semibold">
-                {isOwner ? "Edit & Review" : "Memorial Overview"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ObituaryViewerWithComments
-                documentId={access.document.id}
-                content={access.document.content ?? ""}
-                canComment={access.canComment}
-              />
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column - Comments & Settings */}
-        <div className="space-y-6">
+          {/* Comments */}
           <Card>
             <CardContent className="py-6">
               <ObituaryComments
