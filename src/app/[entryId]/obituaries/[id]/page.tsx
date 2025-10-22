@@ -191,7 +191,7 @@ export default async function ObituaryPage({
       </div>
 
       {/* Main Content Grid - Two Column Layout */}
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+      <div className="grid gap-6 xl:grid-cols-[1fr_640px]">
         {/* Left Column - Obituary Viewer (Wider) */}
         <Card>
           <CardHeader>
