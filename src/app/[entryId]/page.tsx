@@ -235,7 +235,7 @@ const EntryEditContent = async ({
                               </p>
                             </div>
                             <Link
-                              href={`/${entry.id}/obituaries/${obituary.id}/view`}
+                              href={`/${entry.id}/obituaries/${obituary.id}`}
                               className={buttonVariants({
                                 variant: "outline",
                                 size: "sm",
@@ -245,42 +245,27 @@ const EntryEditContent = async ({
                               <Icon icon="mdi:eye" className="w-4 h-4" />
                             </Link>
                             {canEdit && (
-                              <>
-                                <Link
-                                  href={`/${entry.id}/obituaries/${obituary.id}`}
-                                  className={buttonVariants({
-                                    variant: "outline",
-                                    size: "sm",
-                                    className: "size-8 p-0 flex-shrink-0",
-                                  })}
-                                >
-                                  <Icon
-                                    icon="mdi:pencil"
-                                    className="w-4 h-4"
-                                  />
-                                </Link>
-                                <ActionButton
-                                  action={async () => {
-                                    "use server";
-                                    const result = await deleteDocumentById(
-                                      obituary.id
-                                    );
-                                    if (result.success) {
-                                      revalidatePath(`/${entry.id}`);
-                                      return { error: false };
-                                    } else {
-                                      return { error: true, message: result.error };
-                                    }
-                                  }}
-                                  requireAreYouSure={true}
-                                  areYouSureDescription={`Are you sure you want to delete ${obituary.title}?`}
-                                  variant="destructive"
-                                  size="sm"
-                                  className="size-8 p-0 flex-shrink-0"
-                                >
-                                  <Icon icon="mdi:delete" className="w-4 h-4" />
-                                </ActionButton>
-                              </>
+                              <ActionButton
+                                action={async () => {
+                                  "use server";
+                                  const result = await deleteDocumentById(
+                                    obituary.id
+                                  );
+                                  if (result.success) {
+                                    revalidatePath(`/${entry.id}`);
+                                    return { error: false };
+                                  } else {
+                                    return { error: true, message: result.error };
+                                  }
+                                }}
+                                requireAreYouSure={true}
+                                areYouSureDescription={`Are you sure you want to delete ${obituary.title}?`}
+                                variant="destructive"
+                                size="sm"
+                                className="size-8 p-0 flex-shrink-0"
+                              >
+                                <Icon icon="mdi:delete" className="w-4 h-4" />
+                              </ActionButton>
                             )}
                           </div>
                         </div>
