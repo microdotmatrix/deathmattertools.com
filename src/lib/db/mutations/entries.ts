@@ -1,12 +1,13 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { EntryDetailsTable, EntryTable } from "@/lib/db/schema";
+import { EntryDetailsTable, EntryTable, UserTable } from "@/lib/db/schema";
 import { action } from "@/lib/utils";
 import { auth } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { upsertUser } from "./auth";
 
 const CreateEntrySchema = z.object({
   name: z.string().min(1).max(150),
@@ -24,7 +25,11 @@ export const createEntryAction = action(CreateEntrySchema, async (data) => {
   if (!userId) {
     return { error: "Unauthorized" };
   }
+  
   try {
+    // Ensure user exists in database (fallback if webhook failed)
+    await ensureUserExists(userId);
+    
     await db.insert(EntryTable).values({
       id: crypto.randomUUID(),
       name: data.name,
@@ -46,6 +51,33 @@ export const createEntryAction = action(CreateEntrySchema, async (data) => {
     revalidatePath("/dashboard");
   }
 });
+
+/**
+ * Ensures a user exists in the database.
+ * If the user doesn't exist, creates them using Clerk data (webhook fallback).
+ */
+async function ensureUserExists(userId: string) {
+  try {
+    const existingUser = await db.query.UserTable.findFirst({
+      where: eq(UserTable.id, userId),
+    });
+
+    if (!existingUser) {
+      console.log(`[Fallback] User ${userId} not found in database, creating from Clerk data...`);
+      const result = await upsertUser(userId);
+      
+      if (result) {
+        console.log(`[Fallback] Successfully created user ${userId} in database`);
+      } else {
+        console.error(`[Fallback] Failed to create user ${userId} in database`);
+        throw new Error("Failed to sync user data");
+      }
+    }
+  } catch (error) {
+    console.error(`[Fallback] Error ensuring user exists:`, error);
+    throw error;
+  }
+}
 
 const UpdateEntrySchema = z.object({
   id: z.string(),

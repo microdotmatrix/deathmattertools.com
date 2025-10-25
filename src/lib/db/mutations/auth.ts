@@ -52,9 +52,20 @@ export const upsertUserWebhook = async (user: User) => {
         target: [UserTable.id],
         set: user,
       });
+    
+    console.log(`[Webhook] Successfully synced user ${user.id} to database`);
+    return { success: true };
   } catch (error) {
-    console.error("Error upserting user:", error);
-    return null;
+    console.error("[Webhook] Error upserting user:", error);
+    
+    // Log detailed error information
+    if (error instanceof Error) {
+      console.error("[Webhook] Error name:", error.name);
+      console.error("[Webhook] Error message:", error.message);
+      console.error("[Webhook] Error stack:", error.stack);
+    }
+    
+    return { success: false, error };
   }
 }
 
