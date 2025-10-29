@@ -18,9 +18,11 @@ import { EntryDetailsForm } from "./details-form";
 export const EntryDetailsDialog = ({
   entry,
   initialData,
+  isOrgOwner = false,
 }: {
   entry: Entry;
   initialData?: any;
+  isOrgOwner?: boolean;
 }) => {
   const { openDetails, setOpenDetails } = useEntryDetailsForm();
 
