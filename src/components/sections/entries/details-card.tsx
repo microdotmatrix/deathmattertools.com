@@ -4,6 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { Separator } from "@/components/ui/separator";
@@ -16,6 +17,7 @@ interface DetailsCardProps {
   entryDetails: EntryDetails;
   collapsible?: boolean;
   canEdit?: boolean;
+  isOrgOwner?: boolean;
 }
 
 export const EntryDetailsCard = ({
@@ -23,15 +25,24 @@ export const EntryDetailsCard = ({
   entryDetails,
   collapsible = false,
   canEdit = true,
+  isOrgOwner = false,
 }: DetailsCardProps) => {
   return (
     <Card>
       <CardHeader className="flex justify-between items-center">
-        <CardTitle className="flex items-center gap-2">
-          <Icon icon="mdi:account-details" className="w-5 h-5" />
-          Obituary Details
-        </CardTitle>
-        {canEdit && <EntryDetailsDialog entry={entry} initialData={entryDetails} />}
+        <div className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2">
+            <Icon icon="mdi:account-details" className="w-5 h-5" />
+            Obituary Details
+          </CardTitle>
+          {isOrgOwner && (
+            <Badge variant="outline" className="ml-2">
+              <Icon icon="mdi:shield-account" className="w-3 h-3 mr-1" />
+              Admin
+            </Badge>
+          )}
+        </div>
+        {canEdit && <EntryDetailsDialog entry={entry} initialData={entryDetails} isOrgOwner={isOrgOwner} />}
       </CardHeader>
       <CardContent>
         {entryDetails ? (

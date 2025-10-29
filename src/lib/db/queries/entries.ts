@@ -5,6 +5,7 @@ import {
   UserUploadTable,
 } from "@/lib/db/schema";
 import type { Entry } from "@/lib/db/schema";
+import { isOrganizationOwner } from "@/lib/auth/organization-roles";
 import { auth } from "@clerk/nextjs/server";
 import { and, eq, isNotNull, or, sql } from "drizzle-orm";
 import { cache } from "react";
@@ -13,13 +14,14 @@ import { cache } from "react";
 // Types
 // ============================================================================
 
-export type EntryAccessRole = "owner" | "org_member";
+export type EntryAccessRole = "owner" | "org_admin" | "org_member";
 
 export interface EntryAccessResult {
   entry: Entry;
   role: EntryAccessRole;
   canEdit: boolean;
   canView: boolean;
+  isOrgOwner: boolean;
 }
 
 // ============================================================================
@@ -64,6 +66,8 @@ export const getCreatorEntries = getOrganizationEntries;
 /**
  * Get entry with access control - determines if user can view/edit
  * Returns null if user has no access to the entry
+ * 
+ * Now includes organization admin check - org admins can edit team member entries
  */
 export const getEntryWithAccess = cache(
   async (entryId: string): Promise<EntryAccessResult | null> => {
@@ -88,19 +92,36 @@ export const getEntryWithAccess = cache(
         role: "owner",
         canEdit: true,
         canView: true,
+        isOrgOwner: false, // Owner but not via org admin rights
       };
     }
 
-    // Organization member has view-only access
+    // Check if user is in the same organization
     const sameOrganization =
       entry.organizationId && orgId && entry.organizationId === orgId;
 
     if (sameOrganization) {
+      // Check if user is organization owner/admin
+      const isOrgAdmin = await isOrganizationOwner(entry.organizationId);
+
+      if (isOrgAdmin) {
+        // Organization admins can edit team member entries
+        return {
+          entry,
+          role: "org_admin",
+          canEdit: true,
+          canView: true,
+          isOrgOwner: true,
+        };
+      }
+
+      // Regular organization member - view only
       return {
         entry,
         role: "org_member",
         canEdit: false,
         canView: true,
+        isOrgOwner: false,
       };
     }
 

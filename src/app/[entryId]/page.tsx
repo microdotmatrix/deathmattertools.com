@@ -36,7 +36,7 @@ export default async function EntryEditPage({ params }: PageProps) {
     notFound();
   }
 
-  const { entry, canEdit, role } = access;
+  const { entry, canEdit, role, isOrgOwner } = access;
 
   // Fetch obituaries for this deceased person
   const obituaries = await getDocumentsByEntryId(entryId);
@@ -54,6 +54,7 @@ export default async function EntryEditPage({ params }: PageProps) {
             generatedImages={generatedImages}
             canEdit={canEdit}
             role={role}
+            isOrgOwner={isOrgOwner}
           />
         </Suspense>
       </div>
@@ -67,12 +68,14 @@ const EntryEditContent = async ({
   generatedImages,
   canEdit,
   role,
+  isOrgOwner,
 }: {
   entry: any;
   obituaries: any[];
   generatedImages: any[];
   canEdit: boolean;
-  role: "owner" | "org_member";
+  role: "owner" | "org_admin" | "org_member";
+  isOrgOwner: boolean;
 }) => {
   const entryDetails = await getEntryDetailsById(entry.id);
   const entryImagesResult = await getEntryImages(entry.id);
@@ -122,7 +125,7 @@ const EntryEditContent = async ({
                 {/* Edit Form or View-Only Content - Right side on desktop, bottom on mobile */}
                 <div className="flex-1">
                   {canEdit ? (
-                    <EntryForm entry={entry} />
+                    <EntryForm entry={entry} isOrgOwner={isOrgOwner} />
                   ) : (
                     <div className="space-y-4">
                       <div className="p-4 bg-muted/50 rounded-lg border border-border">
@@ -159,7 +162,7 @@ const EntryEditContent = async ({
           {/* Obituary Details Section */}
           <div className="grid md:grid-cols-2 gap-6 mt-6">
             {/* Obituary Details Card */}
-            <EntryDetailsCard entry={entry} entryDetails={entryDetails!} canEdit={canEdit} />
+            <EntryDetailsCard entry={entry} entryDetails={entryDetails!} canEdit={canEdit} isOrgOwner={isOrgOwner} />
 
             {/* Photos & Images Card */}
             <Card>

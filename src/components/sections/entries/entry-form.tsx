@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatedInput } from "@/components/elements/form/animated-input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Icon } from "@/components/ui/icon";
@@ -11,7 +12,13 @@ import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-export const EntryForm = ({ entry }: { entry: any }) => {
+export const EntryForm = ({ 
+  entry,
+  isOrgOwner = false 
+}: { 
+  entry: any;
+  isOrgOwner?: boolean;
+}) => {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     updateEntryAction,
     {
@@ -38,6 +45,18 @@ export const EntryForm = ({ entry }: { entry: any }) => {
 
   return (
     <form action={formAction} className="space-y-4">
+      {/* Admin editing indicator */}
+      {isOrgOwner && (
+        <Alert>
+          <Icon icon="mdi:shield-account" className="h-4 w-4" />
+          <AlertTitle>Editing as Organization Admin</AlertTitle>
+          <AlertDescription>
+            You are editing this entry with administrator permissions. 
+            This entry was created by another team member.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <input type="hidden" name="id" value={entry.id} />
 
       {/* Name */}

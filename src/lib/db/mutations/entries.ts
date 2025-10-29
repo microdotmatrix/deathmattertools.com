@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { EntryDetailsTable, EntryTable, UserTable } from "@/lib/db/schema";
+import { isOrganizationOwner } from "@/lib/auth/organization-roles";
 import { action } from "@/lib/utils";
 import { auth } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
@@ -91,12 +92,37 @@ const UpdateEntrySchema = z.object({
 });
 
 export const updateEntryAction = action(UpdateEntrySchema, async (data) => {
-  const { userId } = await auth();
+  const { userId, orgId } = await auth();
 
   if (!userId) {
     return { error: "Unauthorized" };
   }
+
   try {
+    // First, get the entry to check ownership and organization
+    const entry = await db.query.EntryTable.findFirst({
+      where: eq(EntryTable.id, data.id),
+    });
+
+    if (!entry) {
+      return { error: "Entry not found" };
+    }
+
+    // Check if user is the owner
+    const isOwner = entry.userId === userId;
+
+    // Check if user is organization admin
+    let isOrgAdmin = false;
+    if (entry.organizationId && orgId === entry.organizationId) {
+      isOrgAdmin = await isOrganizationOwner(entry.organizationId);
+    }
+
+    // Allow update if user is owner OR org admin
+    if (!isOwner && !isOrgAdmin) {
+      return { error: "You do not have permission to edit this entry" };
+    }
+
+    // Perform the update
     await db
       .update(EntryTable)
       .set({
@@ -107,30 +133,59 @@ export const updateEntryAction = action(UpdateEntrySchema, async (data) => {
         locationDied: data.deathLocation,
         image: data.image,
         causeOfDeath: data.causeOfDeath,
+        updatedAt: new Date(),
       })
-      .where(and(eq(EntryTable.id, data.id), eq(EntryTable.userId, userId)));
+      .where(eq(EntryTable.id, data.id));
 
     return { success: true };
   } catch (error) {
+    console.error("Error updating entry:", error);
     return { error: "Failed to update entry" };
   } finally {
-    revalidatePath(`/dashboard/${data.id}`);
+    revalidatePath(`/dashboard`);
+    revalidatePath(`/${data.id}`);
   }
 });
 
 export const deleteEntryAction = async (id: string) => {
-  const { userId } = await auth();
+  const { userId, orgId } = await auth();
 
   if (!userId) {
     return { error: true, message: "Unauthorized" };
   }
+
   try {
+    // First, get the entry to check ownership and organization
+    const entry = await db.query.EntryTable.findFirst({
+      where: eq(EntryTable.id, id),
+    });
+
+    if (!entry) {
+      return { error: true, message: "Entry not found" };
+    }
+
+    // Check if user is the owner
+    const isOwner = entry.userId === userId;
+
+    // Check if user is organization admin
+    let isOrgAdmin = false;
+    if (entry.organizationId && orgId === entry.organizationId) {
+      isOrgAdmin = await isOrganizationOwner(entry.organizationId);
+    }
+
+    // Allow deletion if user is owner OR org admin
+    if (!isOwner && !isOrgAdmin) {
+      return { error: true, message: "You do not have permission to delete this entry" };
+    }
+
+    // Perform the delete
     await db
       .delete(EntryTable)
-      .where(and(eq(EntryTable.id, id), eq(EntryTable.userId, userId)));
+      .where(eq(EntryTable.id, id));
 
     return { error: false };
   } catch (error) {
+    console.error("Error deleting entry:", error);
     return { error: true, message: "Failed to delete entry" };
   } finally {
     revalidatePath("/dashboard");
@@ -168,12 +223,37 @@ const UpdateEntryDetailsSchema = z.object({
 export const updateEntryDetailsAction = action(
   UpdateEntryDetailsSchema,
   async (data) => {
-    const { userId } = await auth();
+    const { userId, orgId } = await auth();
 
     if (!userId) {
       return { error: "Unauthorized" };
     }
+
     try {
+      // Get the entry to check ownership and organization
+      const entry = await db.query.EntryTable.findFirst({
+        where: eq(EntryTable.id, data.id),
+      });
+
+      if (!entry) {
+        return { error: "Entry not found" };
+      }
+
+      // Check if user is the owner
+      const isOwner = entry.userId === userId;
+
+      // Check if user is organization admin
+      let isOrgAdmin = false;
+      if (entry.organizationId && orgId === entry.organizationId) {
+        isOrgAdmin = await isOrganizationOwner(entry.organizationId);
+      }
+
+      // Allow update if user is owner OR org admin
+      if (!isOwner && !isOrgAdmin) {
+        return { error: "You do not have permission to edit this entry" };
+      }
+
+      // Perform the update
       await db
         .update(EntryDetailsTable)
         .set({
@@ -198,19 +278,19 @@ export const updateEntryDetailsAction = action(
           survivedBy: data.survivedBy,
           precededBy: data.precededBy,
           serviceDetails: data.serviceDetails,
+          donationRequests: data.donationRequests,
+          specialAcknowledgments: data.specialAcknowledgments,
+          additionalNotes: data.additionalNotes,
+          updatedAt: new Date(),
         })
-        .where(
-          and(
-            eq(EntryDetailsTable.entryId, data.id),
-            eq(EntryDetailsTable.entryId, data.id)
-          )
-        );
+        .where(eq(EntryDetailsTable.entryId, data.id));
 
       return { success: true };
     } catch (error) {
-      return { error: "Failed to update entry" };
+      console.error("Error updating entry details:", error);
+      return { error: "Failed to update entry details" };
     } finally {
-      revalidatePath(`/dashboard/${data.id}`);
+      revalidatePath(`/${data.id}`);
     }
   }
 );
