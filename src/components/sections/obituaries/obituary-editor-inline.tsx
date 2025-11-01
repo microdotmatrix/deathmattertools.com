@@ -1,10 +1,12 @@
 "use client";
 
+import { updateObituaryContent } from "@/actions/obituaries";
 import { Response } from "@/components/ai/response";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import "./tiptap-editor.css";
@@ -25,6 +27,8 @@ export const ObituaryEditorInline = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [content, setContent] = useState(initialContent);
+  const [retryCount, setRetryCount] = useState(0);
+  const router = useRouter();
 
   // Initialize TipTap editor
   const editor = useEditor({
@@ -53,11 +57,12 @@ export const ObituaryEditorInline = ({
       editor.setEditable(false);
       setContent(initialContent);
       setIsEditing(false);
+      setRetryCount(0);
     }
   };
 
-  // Save changes
-  const handleSave = async () => {
+  // Save changes with retry logic
+  const handleSave = async (isRetry = false) => {
     if (!editor) return;
 
     setIsSaving(true);
@@ -65,24 +70,80 @@ export const ObituaryEditorInline = ({
     try {
       const updatedContent = editor.getHTML();
 
-      // TODO: Phase 2 - Replace with actual server action
-      // const result = await updateObituaryContent({
-      //   documentId,
-      //   entryId,
-      //   content: updatedContent,
-      // });
+      // Validate content before saving
+      if (!updatedContent || updatedContent.trim().length === 0) {
+        toast.error("Content cannot be empty");
+        setIsSaving(false);
+        return;
+      }
 
-      // Simulate save for Phase 1
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Success - exit edit mode
+      // Call server action
+      const result = await updateObituaryContent({
+        documentId,
+        entryId,
+        content: updatedContent,
+      });
+
+      if (result.error) {
+        // Handle specific errors
+        if (result.error.includes("signed in")) {
+          toast.error("Session expired. Please sign in again.");
+          // Optionally redirect to sign-in
+          return;
+        }
+
+        if (result.error.includes("owner")) {
+          toast.error("You don't have permission to edit this obituary");
+          setIsEditing(false);
+          return;
+        }
+
+        // Generic error - offer retry
+        if (retryCount < 2) {
+          toast.error(result.error, {
+            action: {
+              label: "Retry",
+              onClick: () => {
+                setRetryCount((prev) => prev + 1);
+                handleSave(true);
+              },
+            },
+          });
+        } else {
+          toast.error(`${result.error} Please refresh the page and try again.`);
+          setRetryCount(0);
+        }
+        return;
+      }
+
+      // Success!
       editor.setEditable(false);
       setIsEditing(false);
       setContent(updatedContent);
+      setRetryCount(0);
+      
       toast.success("Changes saved successfully");
+      
+      // Refresh to ensure we have latest data
+      router.refresh();
     } catch (error) {
       console.error("Failed to save:", error);
-      toast.error("Failed to save changes. Please try again.");
+      
+      // Network or unexpected error - offer retry
+      if (retryCount < 2) {
+        toast.error("Failed to save changes", {
+          action: {
+            label: "Retry",
+            onClick: () => {
+              setRetryCount((prev) => prev + 1);
+              handleSave(true);
+            },
+          },
+        });
+      } else {
+        toast.error("Failed to save changes. Please check your connection and try again.");
+        setRetryCount(0);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -94,7 +155,7 @@ export const ObituaryEditorInline = ({
       // Cmd/Ctrl + S to save
       if ((e.metaKey || e.ctrlKey) && e.key === "s") {
         e.preventDefault();
-        handleSave();
+        void handleSave();
       }
       // Escape to cancel
       if (e.key === "Escape") {
@@ -292,7 +353,7 @@ export const ObituaryEditorInline = ({
               <Button
                 variant="default"
                 size="sm"
-                onClick={handleSave}
+                onClick={() => handleSave()}
                 disabled={isSaving}
               >
                 {isSaving ? (
