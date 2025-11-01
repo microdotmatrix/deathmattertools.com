@@ -1,8 +1,10 @@
 "use client";
 
 import { updateObituaryContent } from "@/actions/obituaries";
+import { Response } from "@/components/ai/response";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import { htmlToMarkdown, markdownToHtml } from "@/lib/markdown-converter";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useRouter } from "next/navigation";
@@ -30,12 +32,14 @@ export const ObituaryEditorInline = ({
   const router = useRouter();
 
   // Initialize TipTap editor
+  // Convert Markdown to HTML for TipTap on initialization
   const editor = useEditor({
     extensions: [StarterKit],
-    content: content,
+    content: markdownToHtml(initialContent),
     editable: false,
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
+      // Store as HTML internally while editing
       setContent(editor.getHTML());
     },
   });
@@ -51,8 +55,8 @@ export const ObituaryEditorInline = ({
   // Exit edit mode without saving
   const handleCancel = () => {
     if (editor) {
-      // Restore original content
-      editor.commands.setContent(initialContent);
+      // Restore original markdown content by converting to HTML
+      editor.commands.setContent(markdownToHtml(initialContent));
       editor.setEditable(false);
       setContent(initialContent);
       setIsEditing(false);
@@ -67,20 +71,23 @@ export const ObituaryEditorInline = ({
     setIsSaving(true);
 
     try {
-      const updatedContent = editor.getHTML();
+      const htmlContent = editor.getHTML();
+      
+      // Convert HTML back to Markdown for database storage
+      const markdownContent = htmlToMarkdown(htmlContent);
 
       // Validate content before saving
-      if (!updatedContent || updatedContent.trim().length === 0) {
+      if (!markdownContent || markdownContent.trim().length === 0) {
         toast.error("Content cannot be empty");
         setIsSaving(false);
         return;
       }
 
-      // Call server action
+      // Call server action with markdown content
       const result = await updateObituaryContent({
         documentId,
         entryId,
-        content: updatedContent,
+        content: markdownContent,
       });
 
       if (result.error) {
@@ -118,7 +125,7 @@ export const ObituaryEditorInline = ({
       // Success!
       editor.setEditable(false);
       setIsEditing(false);
-      setContent(updatedContent);
+      setContent(markdownContent); // Store as markdown for view mode
       setRetryCount(0);
       
       toast.success("Changes saved successfully");
@@ -177,11 +184,10 @@ export const ObituaryEditorInline = ({
       {/* View Mode */}
       {!isEditing && (
         <div className="space-y-4">
-          {/* Content Display - Render HTML directly */}
-          <div 
-            className="prose dark:prose-invert prose-md lg:prose-lg max-w-4xl"
-            dangerouslySetInnerHTML={{ __html: content }}
-          />
+          {/* Content Display - Render Markdown with Response component */}
+          <div className="prose dark:prose-invert prose-md lg:prose-lg max-w-4xl">
+            <Response>{content}</Response>
+          </div>
 
           {/* Edit Button (Owner Only) */}
           {canEdit && (
