@@ -1,7 +1,6 @@
 "use client";
 
 import { updateObituaryContent } from "@/actions/obituaries";
-import { Response } from "@/components/ai/response";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -178,10 +177,11 @@ export const ObituaryEditorInline = ({
       {/* View Mode */}
       {!isEditing && (
         <div className="space-y-4">
-          {/* Content Display */}
-          <div className="prose dark:prose-invert prose-md lg:prose-lg max-w-4xl">
-            <Response>{content}</Response>
-          </div>
+          {/* Content Display - Render HTML directly */}
+          <div 
+            className="prose dark:prose-invert prose-md lg:prose-lg max-w-4xl"
+            dangerouslySetInnerHTML={{ __html: content }}
+          />
 
           {/* Edit Button (Owner Only) */}
           {canEdit && (
