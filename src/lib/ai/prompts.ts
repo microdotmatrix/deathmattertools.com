@@ -1,6 +1,6 @@
-import { getEntryWithAccess, getEntryDetailsById } from "../db/queries/entries";
-import { getSavedQuotesByEntryId } from "../db/queries/quotes";
-import { formatFamilyMembers, formatServices } from "../helpers";
+import { getEntryDetailsById, getEntryWithAccess } from "@/lib/db/queries/entries";
+import { getSavedQuotesByEntryId } from "@/lib/db/queries/quotes";
+import { formatFamilyMembers, formatServices } from "@/lib/helpers";
 
 export const systemPrompt = `
   You are an compassionate and eloquent obituary writer. Your task is to write a respectful and heartfelt obituary based on the provided information.\n\n
@@ -18,12 +18,11 @@ export const systemPrompt = `
   - Do not add any information not provided in the user's request\n\n
 
   QUOTES & SCRIPTURE GUIDELINES:\n
-  - If meaningful quotes or scripture are provided, incorporate them naturally into the obituary\n
+  - If meaningful quotes are provided, incorporate them naturally into the obituary\n
   - Weave quotes into the narrative where they fit contextually, don't just list them\n
-  - Use markdown blockquotes (>) to format quotes and scripture\n
+  - Use markdown blockquotes (>) to format quotes\n
   - Include attribution (author or reference) when provided\n
   - Quotes should enhance the story, not interrupt the flow\n
-  - Scripture should be included respectfully and appropriately based on religious context\n\n
 
   FORMAT GUIDELINES:\n
   - Use markdown to format the obituary text.\n

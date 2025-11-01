@@ -10,4 +10,9 @@ export const models = {
   openai: openai("gpt-4o-mini"),
   anthropic: anthropic("claude-3-5-sonnet-20240620"),
   openrouter: openrouter("@preset/obituary-generator"),
+  writer: {
+    secular: openrouter("@preset/obituary-secular"),
+    religious: openrouter("@preset/obituary-religious"),
+  },
+  assistant: openrouter("@preset/obituary-assistant"),
 };

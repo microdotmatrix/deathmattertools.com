@@ -202,8 +202,10 @@ export default async function ObituaryPage({
           <CardContent>
             <ObituaryViewerWithComments
               documentId={access.document.id}
+              entryId={entryId}
               content={access.document.content ?? ""}
               canComment={access.canComment}
+              canEdit={isOwner}
             />
           </CardContent>
         </Card>

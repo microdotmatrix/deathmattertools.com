@@ -5,6 +5,7 @@ import { QuotedCommentForm } from "@/components/annotations/quoted-comment-form"
 import type { AnchorData } from "@/lib/annotations";
 import { useState } from "react";
 import { ObituaryViewerSimple } from "./obituary-viewer-simple";
+import { ObituaryEditorInline } from "./obituary-editor-inline";
 import {
   Dialog,
   DialogContent,
@@ -14,14 +15,18 @@ import {
 
 interface ObituaryViewerWithCommentsProps {
   documentId: string;
+  entryId: string;
   content: string;
   canComment: boolean;
+  canEdit?: boolean;
 }
 
 export const ObituaryViewerWithComments = ({
   documentId,
+  entryId,
   content,
   canComment,
+  canEdit = false,
 }: ObituaryViewerWithCommentsProps) => {
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [currentQuote, setCurrentQuote] = useState<AnchorData | null>(null);
@@ -50,12 +55,22 @@ export const ObituaryViewerWithComments = ({
 
   return (
     <>
-      <ObituaryViewerSimple
-        id={documentId}
-        content={content}
-        canComment={canComment}
-        onCreateQuotedComment={handleCreateQuotedComment}
-      />
+      {/* Use inline editor for owners, simple viewer for others */}
+      {canEdit ? (
+        <ObituaryEditorInline
+          documentId={documentId}
+          entryId={entryId}
+          initialContent={content}
+          canEdit={canEdit}
+        />
+      ) : (
+        <ObituaryViewerSimple
+          id={documentId}
+          content={content}
+          canComment={canComment}
+          onCreateQuotedComment={handleCreateQuotedComment}
+        />
+      )}
 
       {/* Comment Form Dialog */}
       <Dialog open={showCommentForm} onOpenChange={setShowCommentForm}>
