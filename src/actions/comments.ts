@@ -109,7 +109,7 @@ export async function createCommentAction(
 
     // Revalidate both the cache tag and the page path
     revalidateTag(documentCommentsTag(access.document.id));
-    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}/view`);
+    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}`);
 
     return { success: true, comment };
   } catch (error) {
@@ -312,7 +312,7 @@ export async function updateAnchorStatusAction(
     }
 
     revalidateTag(documentCommentsTag(access.document.id));
-    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}/view`);
+    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}`);
 
     return { success: true };
   } catch (error) {

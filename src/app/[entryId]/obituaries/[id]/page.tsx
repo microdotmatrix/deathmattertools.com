@@ -22,6 +22,9 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+// Force dynamic rendering to ensure fresh data after updates
+export const dynamic = 'force-dynamic';
+
 type PageParams = Promise<{ entryId: string; id: string }>;
 
 const roleLabel = (role: string) => {
