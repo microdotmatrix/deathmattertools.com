@@ -3,9 +3,8 @@
 import { createCommentAction } from "@/actions/comments";
 import { QuotedCommentForm } from "@/components/annotations/quoted-comment-form";
 import type { AnchorData } from "@/lib/annotations";
+import dynamic from "next/dynamic";
 import { useState } from "react";
-import { ObituaryViewerSimple } from "./obituary-viewer-simple";
-import { ObituaryEditorInline } from "./obituary-editor-inline";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +12,37 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
+// Dynamic imports with SSR disabled for client-only rendering
+const ObituaryViewerSimple = dynamic(
+  () => import("./obituary-viewer-simple").then((mod) => mod.ObituaryViewerSimple),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center py-12">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-sm text-muted-foreground">Loading obituary...</p>
+        </div>
+      </div>
+    ),
+  }
+);
+
+const ObituaryEditorInline = dynamic(
+  () => import("./obituary-editor-inline").then((mod) => mod.ObituaryEditorInline),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center py-12">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-sm text-muted-foreground">Loading editor...</p>
+        </div>
+      </div>
+    ),
+  }
+);
 
 interface ObituaryViewerWithCommentsProps {
   documentId: string;
