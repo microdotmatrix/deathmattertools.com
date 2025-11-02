@@ -12,8 +12,9 @@ import { convertToUIMessages } from "@/lib/ai/utils";
 import { generateUUID } from "@/lib/utils";
 import { useChat } from "@ai-sdk/react";
 import { obituaryUpdateProcessingAtom } from "@/atoms/obituary-update";
+import { isEditingObituaryAtom } from "@/lib/state";
 import { DefaultChatTransport } from "ai";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -55,6 +56,9 @@ export const FloatingChatBubble = ({
   
   // Jotai atom to coordinate loading state with ObituaryViewerSimple
   const setObituaryUpdateProcessing = useSetAtom(obituaryUpdateProcessingAtom);
+  
+  // Check if obituary is being edited - disable AI assistant during manual editing
+  const isEditingObituary = useAtomValue(isEditingObituaryAtom);
 
   // React Compiler handles memoization - no useMemo needed
   const chatId = initialChat?.id || generateUUID();
@@ -293,9 +297,15 @@ export const FloatingChatBubble = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.2 }}
-            onClick={() => setIsExpanded(true)}
-            className="relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200"
-            aria-label="Open AI editing assistant"
+            onClick={() => !isEditingObituary && setIsExpanded(true)}
+            disabled={isEditingObituary}
+            className={`relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg transition-all duration-200 ${
+              isEditingObituary 
+                ? "opacity-40 cursor-not-allowed" 
+                : "hover:shadow-xl hover:scale-105"
+            }`}
+            aria-label={isEditingObituary ? "AI assistant disabled while editing" : "Open AI editing assistant"}
+            title={isEditingObituary ? "Save your edits to use the AI assistant" : undefined}
           >
             <Icon icon="mdi:sparkles" className="size-6" />
             {hasNewResponse && (

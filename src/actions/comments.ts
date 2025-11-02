@@ -108,8 +108,8 @@ export async function createCommentAction(
     });
 
     // Revalidate both the cache tag and the page path
-    revalidateTag(documentCommentsTag(access.document.id));
-    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}/view`);
+    revalidateTag(documentCommentsTag(access.document.id), 'max');
+    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}`);
 
     return { success: true, comment };
   } catch (error) {
@@ -181,8 +181,8 @@ export async function updateCommentAction(
       return { error: "Unable to update comment" };
     }
 
-    revalidateTag(documentCommentsTag(access.document.id));
-    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}/view`);
+    revalidateTag(documentCommentsTag(access.document.id), 'max');
+    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}`);
 
     return { success: true, comment: updated };
   } catch (error) {
@@ -243,8 +243,8 @@ export async function deleteCommentAction(
       return { error: "Unable to delete comment" };
     }
 
-    revalidateTag(documentCommentsTag(access.document.id));
-    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}/view`);
+    revalidateTag(documentCommentsTag(access.document.id), 'max');
+    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}`);
 
     return { success: true };
   } catch (error) {
@@ -311,8 +311,8 @@ export async function updateAnchorStatusAction(
       return { error: "Unable to update anchor status" };
     }
 
-    revalidateTag(documentCommentsTag(access.document.id));
-    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}/view`);
+    revalidateTag(documentCommentsTag(access.document.id), 'max');
+    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}`);
 
     return { success: true };
   } catch (error) {

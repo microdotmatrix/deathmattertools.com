@@ -5,6 +5,8 @@ import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Icon } from "@/components/ui/icon";
+import { isEditingObituaryAtom } from "@/lib/state";
+import { useAtomValue } from "jotai";
 import type { AnchorData } from "@/lib/annotations";
 
 interface QuotedCommentFormProps {
@@ -18,12 +20,14 @@ interface QuotedCommentFormProps {
 
 function SubmitButton({ hasQuote, disabled }: { hasQuote: boolean; disabled: boolean }) {
   const { pending } = useFormStatus();
+  const isEditingObituary = useAtomValue(isEditingObituaryAtom);
   
   return (
     <Button
       type="submit"
       size="sm"
-      disabled={pending || disabled}
+      disabled={pending || disabled || isEditingObituary}
+      title={isEditingObituary ? "Save your edits before posting comments" : undefined}
     >
       {pending ? (
         <>

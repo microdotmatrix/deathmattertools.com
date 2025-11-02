@@ -1,0 +1,93 @@
+/* TipTap Editor Styles */
+
+.ProseMirror {
+  outline: none;
+  min-height: 400px;
+}
+
+/* Match prose paragraph spacing (1.25em = 20px at base 16px) */
+.ProseMirror p {
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+}
+
+/* First paragraph has no top margin */
+.ProseMirror > p:first-child {
+  margin-top: 0;
+}
+
+/* Last paragraph has no bottom margin */
+.ProseMirror > p:last-child {
+  margin-bottom: 0;
+}
+
+/* Ensure proper spacing for lists */
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 1.625em;
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+}
+
+.ProseMirror ul li,
+.ProseMirror ol li {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+/* Blockquote styling */
+.ProseMirror blockquote {
+  border-left: 0.25rem solid hsl(var(--border));
+  padding-left: 1em;
+  margin-top: 1.6em;
+  margin-bottom: 1.6em;
+  font-style: italic;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+/* Heading styles */
+.ProseMirror h1 {
+  font-size: 2.25em;
+  font-weight: 800;
+  line-height: 1.111;
+  margin-top: 0;
+  margin-bottom: 0.889em;
+}
+
+.ProseMirror h2 {
+  font-size: 1.5em;
+  font-weight: 700;
+  line-height: 1.333;
+  margin-top: 2em;
+  margin-bottom: 1em;
+}
+
+.ProseMirror h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  line-height: 1.6;
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+}
+
+/* Horizontal rule */
+.ProseMirror hr {
+  border: none;
+  border-top: 2px solid hsl(var(--border));
+  margin: 2rem 0;
+}
+
+/* Code styling */
+.ProseMirror code {
+  background-color: hsl(var(--muted));
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-family: monospace;
+}
+
+/* Selection color */
+.ProseMirror ::selection {
+  background-color: hsl(var(--primary) / 0.2);
+}

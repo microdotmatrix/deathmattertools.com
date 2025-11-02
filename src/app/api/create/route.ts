@@ -1,7 +1,7 @@
+import { updateObituaryContent } from "@/actions/obituaries";
 import { models } from "@/lib/ai/models";
 import { assistantPrompt, updateDocumentPrompt } from "@/lib/ai/prompts";
 import { convertToUIMessages } from "@/lib/ai/utils";
-import { updateDocumentContent } from "@/lib/db/mutations/documents";
 import {
   getChatById,
   getMessageCountByUserId,
@@ -20,6 +20,9 @@ import {
 } from "ai";
 import { NextRequest } from "next/server";
 import { z } from "zod";
+
+// Force dynamic rendering to ensure fresh data
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   const {
@@ -72,7 +75,7 @@ export async function POST(request: NextRequest) {
     differenceInHours: 24,
   });
 
-  if (messageCount >= 10) {
+  if (messageCount >= 50) {
     return new Response("You have reached the message limit", { status: 403 });
   }
 
@@ -98,7 +101,7 @@ export async function POST(request: NextRequest) {
   const stream = createUIMessageStream({
     execute: ({ writer }) => {
       const result = streamText({
-        model: models.openai,
+        model: models.openrouter,
         system: assistantPrompt,
         messages: [
           {
@@ -134,13 +137,11 @@ export async function POST(request: NextRequest) {
                 data: { changeDescription, status: "loading" },
               });
 
-              // Save the updated document
-              const result = await updateDocumentContent({
-                id: document.id,
-                title: document.title,
+              // Use Server Action for update (handles revalidation properly)
+              const result = await updateObituaryContent({
+                documentId: document.id,
                 entryId: document.entryId,
                 content: revisedContent,
-                tokenUsage: document.tokenUsage || 0,
               });
 
               if (result.error) {
