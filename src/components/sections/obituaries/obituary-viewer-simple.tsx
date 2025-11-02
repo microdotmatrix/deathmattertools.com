@@ -52,18 +52,16 @@ export const ObituaryViewerSimple = ({
         <Response key={id}>{content}</Response>
       </div>
 
-      {/* Processing overlay - shown when AI is updating the obituary */}
+      {/* Processing indicator - shown when AI is updating the obituary */}
       {isProcessing && (
-        <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] rounded-lg z-10 animate-in fade-in duration-200">
-          <div className="absolute top-4 right-4 flex items-center gap-2 bg-primary/10 backdrop-blur-sm px-3 py-2 rounded-full border border-primary/20">
-            <Icon 
-              icon="mdi:loading" 
-              className="size-5 text-primary animate-spin" 
-            />
-            <p className="text-xs font-medium text-primary">
-              Updating...
-            </p>
-          </div>
+        <div className="absolute top-4 right-4 flex items-center gap-2 bg-primary/10 backdrop-blur-sm px-3 py-2 rounded-full border border-primary/20 z-10 animate-in fade-in duration-200">
+          <Icon 
+            icon="mdi:loading" 
+            className="size-5 text-primary animate-spin" 
+          />
+          <p className="text-xs font-medium text-primary">
+            Updating...
+          </p>
         </div>
       )}
 
