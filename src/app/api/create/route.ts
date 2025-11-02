@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     differenceInHours: 24,
   });
 
-  if (messageCount >= 10) {
+  if (messageCount >= 50) {
     return new Response("You have reached the message limit", { status: 403 });
   }
 
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
   const stream = createUIMessageStream({
     execute: ({ writer }) => {
       const result = streamText({
-        model: models.openai,
+        model: models.openrouter,
         system: assistantPrompt,
         messages: [
           {

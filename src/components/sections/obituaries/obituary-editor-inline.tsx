@@ -1,6 +1,7 @@
 "use client";
 
 import { updateObituaryContent } from "@/actions/obituaries";
+import { obituaryUpdateProcessingAtom } from "@/atoms/obituary-update";
 import { Response } from "@/components/ai/response";
 import { SelectionToolbar } from "@/components/annotations";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import { htmlToMarkdown, markdownToHtml } from "@/lib/markdown-converter";
 import { isEditingObituaryAtom } from "@/lib/state";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -41,6 +42,9 @@ export const ObituaryEditorInline = ({
   const router = useRouter();
   const contentRef = useRef<HTMLDivElement>(null);
   const setIsEditingGlobal = useSetAtom(isEditingObituaryAtom);
+  
+  // Read processing state from Jotai atom for AI updates
+  const isProcessing = useAtomValue(obituaryUpdateProcessingAtom);
   
   // Sync local editing state with global atom
   useEffect(() => {
@@ -218,7 +222,7 @@ export const ObituaryEditorInline = ({
     <div className="relative" onKeyDown={handleKeyDown}>
       {/* View Mode */}
       {!isEditing && (
-        <div className="space-y-4 animate-in fade-in duration-300">
+        <div className="relative space-y-4 animate-in fade-in duration-300">
           {/* Content Display - Render Markdown with Response component */}
           <div 
             ref={contentRef}
@@ -226,6 +230,21 @@ export const ObituaryEditorInline = ({
           >
             <Response>{content}</Response>
           </div>
+          
+          {/* Processing overlay - shown when AI is updating the obituary */}
+          {isProcessing && (
+            <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] rounded-lg z-10 animate-in fade-in duration-200">
+              <div className="absolute top-4 right-4 flex items-center gap-2 bg-primary/10 backdrop-blur-sm px-3 py-2 rounded-full border border-primary/20">
+                <Icon 
+                  icon="mdi:loading" 
+                  className="size-5 text-primary animate-spin" 
+                />
+                <p className="text-xs font-medium text-primary">
+                  Updating...
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Edit Button (Owner Only) */}
           {canEdit && (
