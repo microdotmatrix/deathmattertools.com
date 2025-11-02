@@ -1,7 +1,7 @@
+import { updateObituaryContent } from "@/actions/obituaries";
 import { models } from "@/lib/ai/models";
 import { assistantPrompt, updateDocumentPrompt } from "@/lib/ai/prompts";
 import { convertToUIMessages } from "@/lib/ai/utils";
-import { updateDocumentContent } from "@/lib/db/mutations/documents";
 import {
   getChatById,
   getMessageCountByUserId,
@@ -18,9 +18,11 @@ import {
   createUIMessageStreamResponse,
   streamText,
 } from "ai";
-import { revalidatePath } from "next/cache";
 import { NextRequest } from "next/server";
 import { z } from "zod";
+
+// Force dynamic rendering to ensure fresh data
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   const {
@@ -135,13 +137,11 @@ export async function POST(request: NextRequest) {
                 data: { changeDescription, status: "loading" },
               });
 
-              // Save the updated document
-              const result = await updateDocumentContent({
-                id: document.id,
-                title: document.title,
+              // Use Server Action for update (handles revalidation properly)
+              const result = await updateObituaryContent({
+                documentId: document.id,
                 entryId: document.entryId,
                 content: revisedContent,
-                tokenUsage: document.tokenUsage || 0,
               });
 
               if (result.error) {
@@ -152,9 +152,6 @@ export async function POST(request: NextRequest) {
                 });
                 return { error: result.error };
               }
-
-              // Revalidate the obituary page to show updated content
-              revalidatePath(`/${document.entryId}/obituaries/${document.id}`);
 
               writer.write({
                 type: "data-updateDocument",
