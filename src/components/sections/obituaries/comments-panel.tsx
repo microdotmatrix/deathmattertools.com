@@ -18,6 +18,8 @@ import {
   updateCommentAction,
   deleteCommentAction,
 } from "@/actions/comments";
+import { isEditingObituaryAtom } from "@/lib/state";
+import { useAtomValue } from "jotai";
 
 type SerializableComment = {
   id: string;
@@ -126,6 +128,8 @@ export const ObituaryComments = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  
+  const isEditingObituary = useAtomValue(isEditingObituaryAtom);
 
   const commentTree = useMemo(
     () => buildCommentTree(optimisticComments),
