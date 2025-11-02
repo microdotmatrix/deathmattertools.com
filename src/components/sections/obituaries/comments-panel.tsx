@@ -457,7 +457,8 @@ export const ObituaryComments = ({
           <div className="flex justify-end">
             <Button
               onClick={() => handleCreate(null)}
-              disabled={isPending}
+              disabled={isPending || isEditingObituary}
+              title={isEditingObituary ? "Save your edits before posting comments" : undefined}
             >
               Post Comment
             </Button>

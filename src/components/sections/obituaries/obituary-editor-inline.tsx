@@ -13,7 +13,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import "./tiptap-editor.css";
 
@@ -35,9 +35,9 @@ export const ObituaryEditorInline = ({
   onCreateQuotedComment,
 }: ObituaryEditorInlineProps) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [content, setContent] = useState(initialContent);
   const [retryCount, setRetryCount] = useState(0);
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const contentRef = useRef<HTMLDivElement>(null);
   const setIsEditingGlobal = useSetAtom(isEditingObituaryAtom);
@@ -86,95 +86,97 @@ export const ObituaryEditorInline = ({
     }
   };
 
-  // Save changes with retry logic
-  const handleSave = async (isRetry = false) => {
+  // Save changes with retry logic using React 19 useTransition pattern
+  const handleSave = () => {
     if (!editor) return;
 
-    setIsSaving(true);
+    const htmlContent = editor.getHTML();
+    const markdownContent = htmlToMarkdown(htmlContent);
 
-    try {
-      const htmlContent = editor.getHTML();
-      
-      // Convert HTML back to Markdown for database storage
-      const markdownContent = htmlToMarkdown(htmlContent);
-
-      // Validate content before saving
-      if (!markdownContent || markdownContent.trim().length === 0) {
-        toast.error("Content cannot be empty");
-        setIsSaving(false);
-        return;
-      }
-
-      // Call server action with markdown content
-      const result = await updateObituaryContent({
-        documentId,
-        entryId,
-        content: markdownContent,
-      });
-
-      if (result.error) {
-        // Handle specific errors
-        if (result.error.includes("signed in")) {
-          toast.error("Session expired. Please sign in again.");
-          // Optionally redirect to sign-in
-          return;
-        }
-
-        if (result.error.includes("owner")) {
-          toast.error("You don't have permission to edit this obituary");
-          setIsEditing(false);
-          return;
-        }
-
-        // Generic error - offer retry
-        if (retryCount < 2) {
-          toast.error(result.error, {
-            action: {
-              label: "Retry",
-              onClick: () => {
-                setRetryCount((prev) => prev + 1);
-                handleSave(true);
-              },
-            },
-          });
-        } else {
-          toast.error(`${result.error} Please refresh the page and try again.`);
-          setRetryCount(0);
-        }
-        return;
-      }
-
-      // Success!
-      editor.setEditable(false);
-      setIsEditing(false);
-      setContent(markdownContent); // Store as markdown for view mode
-      setRetryCount(0);
-      
-      toast.success("Changes saved successfully");
-      
-      // Refresh to ensure we have latest data
-      router.refresh();
-    } catch (error) {
-      console.error("Failed to save:", error);
-      
-      // Network or unexpected error - offer retry
-      if (retryCount < 2) {
-        toast.error("Failed to save changes", {
-          action: {
-            label: "Retry",
-            onClick: () => {
-              setRetryCount((prev) => prev + 1);
-              handleSave(true);
-            },
-          },
-        });
-      } else {
-        toast.error("Failed to save changes. Please check your connection and try again.");
-        setRetryCount(0);
-      }
-    } finally {
-      setIsSaving(false);
+    // Validate content before saving
+    if (!markdownContent || markdownContent.trim().length === 0) {
+      toast.error("Content cannot be empty");
+      return;
     }
+
+    // Use startTransition for async server action (React 19 pattern)
+    startTransition(async () => {
+      try {
+        // Call server action with markdown content
+        const result = await updateObituaryContent({
+          documentId,
+          entryId,
+          content: markdownContent,
+        });
+
+        // State updates after await must be wrapped in startTransition
+        startTransition(() => {
+          if (result.error) {
+            // Handle specific errors
+            if (result.error.includes("signed in")) {
+              toast.error("Session expired. Please sign in again.");
+              return;
+            }
+
+            if (result.error.includes("owner")) {
+              toast.error("You don't have permission to edit this obituary");
+              setIsEditing(false);
+              return;
+            }
+
+            // Generic error - offer retry
+            if (retryCount < 2) {
+              toast.error(result.error, {
+                action: {
+                  label: "Retry",
+                  onClick: () => {
+                    setRetryCount((prev) => prev + 1);
+                    handleSave();
+                  },
+                },
+              });
+            } else {
+              toast.error(`${result.error} Please refresh the page and try again.`);
+              setRetryCount(0);
+            }
+            return;
+          }
+
+          // Success! Update state after successful save
+          if (editor) {
+            editor.setEditable(false);
+          }
+          setIsEditing(false);
+          setContent(markdownContent);
+          setRetryCount(0);
+          
+          toast.success("Changes saved successfully");
+          
+          // Refresh to ensure we have latest data
+          router.refresh();
+        });
+      } catch (error) {
+        console.error("Failed to save:", error);
+        
+        // Handle errors in nested transition
+        startTransition(() => {
+          if (retryCount < 2) {
+            toast.error("Failed to save changes", {
+              action: {
+                label: "Retry",
+                onClick: () => {
+                  setRetryCount((prev) => prev + 1);
+                  handleSave();
+                },
+              },
+            });
+          } else {
+            toast.error("Failed to save changes. Please check your connection and try again.");
+            setRetryCount(0);
+          }
+        });
+      }
+    });
   };
 
   // Handle creating quoted comment from text selection
@@ -422,7 +424,7 @@ export const ObituaryEditorInline = ({
                 variant="ghost"
                 size="sm"
                 onClick={handleCancel}
-                disabled={isSaving}
+                disabled={isPending}
               >
                 Cancel
               </Button>
@@ -430,9 +432,9 @@ export const ObituaryEditorInline = ({
                 variant="default"
                 size="sm"
                 onClick={() => handleSave()}
-                disabled={isSaving}
+                disabled={isPending}
               >
-                {isSaving ? (
+                {isPending ? (
                   <>
                     <Icon icon="mdi:loading" className="mr-2 size-4 animate-spin" />
                     Saving...
