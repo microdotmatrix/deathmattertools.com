@@ -21,6 +21,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { format } from "date-fns";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { Suspense } from "react";
 
 // Force dynamic rendering to ensure fresh data after updates
 export const dynamic = 'force-dynamic';
@@ -203,13 +204,16 @@ export default async function ObituaryPage({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ObituaryViewerWithComments
-              documentId={access.document.id}
-              entryId={entryId}
-              content={access.document.content ?? ""}
-              canComment={access.canComment}
-              canEdit={isOwner}
-            />
+            <Suspense fallback={<div>Loading...</div>}>
+              <ObituaryViewerWithComments
+                key={`${access.document.id}-${(access.document.content ?? "").length}`}
+                documentId={access.document.id}
+                entryId={entryId}
+                content={access.document.content ?? ""}
+                canComment={access.canComment}
+                canEdit={isOwner}
+              />
+            </Suspense>
           </CardContent>
         </Card>
 
