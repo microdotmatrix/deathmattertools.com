@@ -8,10 +8,12 @@ import { Icon } from "@/components/ui/icon";
 import { useTextSelection } from "@/hooks/use-text-selection";
 import { extractAnchorData, type AnchorData } from "@/lib/annotations";
 import { htmlToMarkdown, markdownToHtml } from "@/lib/markdown-converter";
+import { isEditingObituaryAtom } from "@/lib/state";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import "./tiptap-editor.css";
 
@@ -38,6 +40,12 @@ export const ObituaryEditorInline = ({
   const [retryCount, setRetryCount] = useState(0);
   const router = useRouter();
   const contentRef = useRef<HTMLDivElement>(null);
+  const setIsEditingGlobal = useSetAtom(isEditingObituaryAtom);
+  
+  // Sync local editing state with global atom
+  useEffect(() => {
+    setIsEditingGlobal(isEditing);
+  }, [isEditing, setIsEditingGlobal]);
   
   // Text selection for comments - only enabled in view mode
   const { range, text } = useTextSelection(

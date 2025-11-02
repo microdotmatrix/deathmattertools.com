@@ -36,3 +36,10 @@ export const useEntryDetailsForm = () => {
     setOpenDetails,
   };
 };
+
+/**
+ * Tracks whether the obituary text editor is currently active.
+ * When true, the AI assistant and comment submissions are disabled
+ * to prevent conflicts with manual editing.
+ */
+export const isEditingObituaryAtom = atom<boolean>(false);
