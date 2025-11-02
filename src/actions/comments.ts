@@ -182,7 +182,7 @@ export async function updateCommentAction(
     }
 
     revalidateTag(documentCommentsTag(access.document.id), 'max');
-    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}/view`);
+    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}`);
 
     return { success: true, comment: updated };
   } catch (error) {
@@ -244,7 +244,7 @@ export async function deleteCommentAction(
     }
 
     revalidateTag(documentCommentsTag(access.document.id), 'max');
-    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}/view`);
+    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}`);
 
     return { success: true };
   } catch (error) {
