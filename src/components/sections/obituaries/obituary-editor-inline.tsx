@@ -2,13 +2,16 @@
 
 import { updateObituaryContent } from "@/actions/obituaries";
 import { Response } from "@/components/ai/response";
+import { SelectionToolbar } from "@/components/annotations";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import { useTextSelection } from "@/hooks/use-text-selection";
+import { extractAnchorData, type AnchorData } from "@/lib/annotations";
 import { htmlToMarkdown, markdownToHtml } from "@/lib/markdown-converter";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import "./tiptap-editor.css";
 
@@ -17,6 +20,8 @@ interface ObituaryEditorInlineProps {
   entryId: string;
   initialContent: string;
   canEdit: boolean;
+  canComment?: boolean;
+  onCreateQuotedComment?: (anchor: AnchorData) => void;
 }
 
 export const ObituaryEditorInline = ({
@@ -24,12 +29,21 @@ export const ObituaryEditorInline = ({
   entryId,
   initialContent,
   canEdit,
+  canComment = false,
+  onCreateQuotedComment,
 }: ObituaryEditorInlineProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [content, setContent] = useState(initialContent);
   const [retryCount, setRetryCount] = useState(0);
   const router = useRouter();
+  const contentRef = useRef<HTMLDivElement>(null);
+  
+  // Text selection for comments - only enabled in view mode
+  const { range, text } = useTextSelection(
+    contentRef as unknown as React.RefObject<HTMLElement>,
+    canComment && !isEditing // Disable selection when editing
+  );
 
   // Initialize TipTap editor
   // Convert Markdown to HTML for TipTap on initialization
@@ -155,6 +169,17 @@ export const ObituaryEditorInline = ({
     }
   };
 
+  // Handle creating quoted comment from text selection
+  const handleCreateComment = () => {
+    if (range && contentRef.current && onCreateQuotedComment) {
+      const anchor = extractAnchorData(range, contentRef.current);
+      onCreateQuotedComment(anchor);
+      
+      // Clear selection after extracting
+      window.getSelection()?.removeAllRanges();
+    }
+  };
+
   // Keyboard shortcuts
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (isEditing) {
@@ -183,9 +208,12 @@ export const ObituaryEditorInline = ({
     <div className="relative" onKeyDown={handleKeyDown}>
       {/* View Mode */}
       {!isEditing && (
-        <div className="space-y-4">
+        <div className="space-y-4 animate-in fade-in duration-300">
           {/* Content Display - Render Markdown with Response component */}
-          <div className="prose dark:prose-invert prose-md lg:prose-lg max-w-4xl">
+          <div 
+            ref={contentRef}
+            className="prose dark:prose-invert prose-md lg:prose-lg max-w-4xl"
+          >
             <Response>{content}</Response>
           </div>
 
@@ -202,133 +230,167 @@ export const ObituaryEditorInline = ({
               </Button>
             </div>
           )}
+          
+          {/* Selection toolbar for comments (only in view mode) */}
+          {canComment && (
+            <SelectionToolbar
+              range={range}
+              onCreateComment={handleCreateComment}
+              enabled={!!text}
+            />
+          )}
         </div>
       )}
 
       {/* Edit Mode */}
       {isEditing && (
-        <div className="space-y-4">
+        <div className="space-y-4 animate-in fade-in duration-300">
           {/* Toolbar */}
-          <div className="flex flex-wrap items-center gap-1 p-2 border border-border rounded-lg bg-muted/30">
+          <div className="flex flex-wrap items-center gap-0.5 p-2.5 border border-border rounded-lg bg-muted/30 shadow-sm">
             {/* Text Formatting */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor.chain().focus().toggleBold().run()}
-              disabled={!editor.can().chain().focus().toggleBold().run()}
-              className={editor.isActive("bold") ? "bg-accent" : ""}
-            >
-              <Icon icon="mdi:format-bold" className="size-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor.chain().focus().toggleItalic().run()}
-              disabled={!editor.can().chain().focus().toggleItalic().run()}
-              className={editor.isActive("italic") ? "bg-accent" : ""}
-            >
-              <Icon icon="mdi:format-italic" className="size-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor.chain().focus().toggleStrike().run()}
-              disabled={!editor.can().chain().focus().toggleStrike().run()}
-              className={editor.isActive("strike") ? "bg-accent" : ""}
-            >
-              <Icon icon="mdi:format-strikethrough" className="size-4" />
-            </Button>
+            <div className="flex items-center gap-0.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => editor.chain().focus().toggleBold().run()}
+                disabled={!editor.can().chain().focus().toggleBold().run()}
+                className={editor.isActive("bold") ? "bg-accent hover:bg-accent/80" : "hover:bg-accent/50"}
+                title="Bold (Ctrl+B)"
+              >
+                <Icon icon="mdi:format-bold" className="size-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => editor.chain().focus().toggleItalic().run()}
+                disabled={!editor.can().chain().focus().toggleItalic().run()}
+                className={editor.isActive("italic") ? "bg-accent hover:bg-accent/80" : "hover:bg-accent/50"}
+                title="Italic (Ctrl+I)"
+              >
+                <Icon icon="mdi:format-italic" className="size-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => editor.chain().focus().toggleStrike().run()}
+                disabled={!editor.can().chain().focus().toggleStrike().run()}
+                className={editor.isActive("strike") ? "bg-accent hover:bg-accent/80" : "hover:bg-accent/50"}
+                title="Strikethrough"
+              >
+                <Icon icon="mdi:format-strikethrough" className="size-4" />
+              </Button>
+            </div>
 
-            <div className="w-px h-6 bg-border mx-1" />
+            <div className="w-px h-6 bg-border mx-2" />
 
             {/* Headings */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-              className={editor.isActive("heading", { level: 1 }) ? "bg-accent" : ""}
-            >
-              H1
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-              className={editor.isActive("heading", { level: 2 }) ? "bg-accent" : ""}
-            >
-              H2
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-              className={editor.isActive("heading", { level: 3 }) ? "bg-accent" : ""}
-            >
-              H3
-            </Button>
+            <div className="flex items-center gap-0.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                className={editor.isActive("heading", { level: 1 }) ? "bg-accent hover:bg-accent/80" : "hover:bg-accent/50"}
+                title="Heading 1"
+              >
+                <span className="text-xs font-semibold">H1</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                className={editor.isActive("heading", { level: 2 }) ? "bg-accent hover:bg-accent/80" : "hover:bg-accent/50"}
+                title="Heading 2"
+              >
+                <span className="text-xs font-semibold">H2</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                className={editor.isActive("heading", { level: 3 }) ? "bg-accent hover:bg-accent/80" : "hover:bg-accent/50"}
+                title="Heading 3"
+              >
+                <span className="text-xs font-semibold">H3</span>
+              </Button>
+            </div>
 
-            <div className="w-px h-6 bg-border mx-1" />
+            <div className="w-px h-6 bg-border mx-2" />
 
             {/* Lists */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor.chain().focus().toggleBulletList().run()}
-              className={editor.isActive("bulletList") ? "bg-accent" : ""}
-            >
-              <Icon icon="mdi:format-list-bulleted" className="size-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              className={editor.isActive("orderedList") ? "bg-accent" : ""}
-            >
-              <Icon icon="mdi:format-list-numbered" className="size-4" />
-            </Button>
+            <div className="flex items-center gap-0.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => editor.chain().focus().toggleBulletList().run()}
+                className={editor.isActive("bulletList") ? "bg-accent hover:bg-accent/80" : "hover:bg-accent/50"}
+                title="Bullet List"
+              >
+                <Icon icon="mdi:format-list-bulleted" className="size-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                className={editor.isActive("orderedList") ? "bg-accent hover:bg-accent/80" : "hover:bg-accent/50"}
+                title="Numbered List"
+              >
+                <Icon icon="mdi:format-list-numbered" className="size-4" />
+              </Button>
+            </div>
 
-            <div className="w-px h-6 bg-border mx-1" />
+            <div className="w-px h-6 bg-border mx-2" />
 
             {/* Other Formatting */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              className={editor.isActive("blockquote") ? "bg-accent" : ""}
-            >
-              <Icon icon="mdi:format-quote-close" className="size-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor.chain().focus().setHorizontalRule().run()}
-            >
-              <Icon icon="mdi:minus" className="size-4" />
-            </Button>
+            <div className="flex items-center gap-0.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                className={editor.isActive("blockquote") ? "bg-accent hover:bg-accent/80" : "hover:bg-accent/50"}
+                title="Blockquote"
+              >
+                <Icon icon="mdi:format-quote-close" className="size-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => editor.chain().focus().setHorizontalRule().run()}
+                className="hover:bg-accent/50"
+                title="Horizontal Rule"
+              >
+                <Icon icon="mdi:minus" className="size-4" />
+              </Button>
+            </div>
 
-            <div className="w-px h-6 bg-border mx-1" />
+            <div className="w-px h-6 bg-border mx-2" />
 
             {/* Undo/Redo */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor.chain().focus().undo().run()}
-              disabled={!editor.can().chain().focus().undo().run()}
-            >
-              <Icon icon="mdi:undo" className="size-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => editor.chain().focus().redo().run()}
-              disabled={!editor.can().chain().focus().redo().run()}
-            >
-              <Icon icon="mdi:redo" className="size-4" />
-            </Button>
+            <div className="flex items-center gap-0.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => editor.chain().focus().undo().run()}
+                disabled={!editor.can().chain().focus().undo().run()}
+                className="hover:bg-accent/50 disabled:opacity-40"
+                title="Undo (Ctrl+Z)"
+              >
+                <Icon icon="mdi:undo" className="size-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => editor.chain().focus().redo().run()}
+                disabled={!editor.can().chain().focus().redo().run()}
+                className="hover:bg-accent/50 disabled:opacity-40"
+                title="Redo (Ctrl+Shift+Z)"
+              >
+                <Icon icon="mdi:redo" className="size-4" />
+              </Button>
+            </div>
           </div>
 
           {/* Editor Content */}
-          <div className="border border-border rounded-lg p-6 bg-background min-h-[400px]">
+          <div className="border border-border rounded-lg p-6 bg-background min-h-[400px] shadow-sm focus-within:border-primary/50 focus-within:shadow-md transition-all duration-200">
             <EditorContent
               editor={editor}
               className="prose dark:prose-invert prose-md lg:prose-lg max-w-4xl focus:outline-none"
@@ -378,9 +440,9 @@ export const ObituaryEditorInline = ({
           </div>
 
           {/* Info Banner */}
-          <div className="flex items-start gap-2 p-3 text-sm text-muted-foreground bg-muted/30 border border-border rounded-lg">
-            <Icon icon="mdi:information-outline" className="size-5 mt-0.5 shrink-0" />
-            <p>
+          <div className="flex items-start gap-3 p-3.5 text-sm text-muted-foreground bg-muted/40 border border-border rounded-lg shadow-sm">
+            <Icon icon="mdi:information-outline" className="size-5 mt-0.5 shrink-0 text-primary" />
+            <p className="leading-relaxed">
               While editing, text selection for comments and the AI assistant are temporarily
               disabled. Save your changes to re-enable these features.
             </p>

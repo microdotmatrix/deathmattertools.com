@@ -62,6 +62,8 @@ export const ObituaryViewerWithComments = ({
           entryId={entryId}
           initialContent={content}
           canEdit={canEdit}
+          canComment={canComment}
+          onCreateQuotedComment={handleCreateQuotedComment}
         />
       ) : (
         <ObituaryViewerSimple
