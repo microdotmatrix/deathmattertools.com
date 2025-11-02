@@ -18,6 +18,7 @@ import {
   createUIMessageStreamResponse,
   streamText,
 } from "ai";
+import { revalidatePath } from "next/cache";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 
@@ -151,6 +152,9 @@ export async function POST(request: NextRequest) {
                 });
                 return { error: result.error };
               }
+
+              // Revalidate the obituary page to show updated content
+              revalidatePath(`/${document.entryId}/obituaries/${document.id}`);
 
               writer.write({
                 type: "data-updateDocument",
