@@ -9,6 +9,7 @@ import { ObituaryEditorInline } from "./obituary-editor-inline";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -81,6 +82,11 @@ export const ObituaryViewerWithComments = ({
             <DialogTitle>
               {currentQuote ? "Reply to Selection" : "Add Comment"}
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              {currentQuote 
+                ? "Add a comment referencing the selected text from the obituary"
+                : "Add a general comment to this obituary"}
+            </DialogDescription>
           </DialogHeader>
           
           <QuotedCommentForm
