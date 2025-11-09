@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { DocumentTable, SuggestionTable } from "@/lib/db/schema";
+import { ChatTable, DocumentTable, SuggestionTable } from "@/lib/db/schema";
 import { and, eq, gt } from "drizzle-orm";
 import "server-only";
 
@@ -136,6 +136,13 @@ export const updateDocumentOrganizationCommenting = async ({
 
 export const deleteDocumentById = async (id: string) => {
   try {
+    // First, remove document references from any chats that reference this document
+    await db
+      .update(ChatTable)
+      .set({ documentId: null, documentCreatedAt: null })
+      .where(eq(ChatTable.documentId, id));
+
+    // Then delete the document itself
     await db.delete(DocumentTable).where(eq(DocumentTable.id, id));
     return { success: true };
   } catch (error) {

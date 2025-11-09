@@ -56,7 +56,7 @@ export const generateObituary = async (
     let id = crypto.randomUUID();
 
     const { textStream } = streamText({
-      model: models.openai,
+      model: models.openrouter,
       system: systemPrompt,
       messages: [{ role: "user", content: prompt }],
       maxOutputTokens: 1000,
