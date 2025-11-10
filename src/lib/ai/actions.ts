@@ -6,11 +6,13 @@ import { createStreamableValue } from "@ai-sdk/rsc";
 import { auth } from "@clerk/nextjs/server";
 import { smoothStream, streamText } from "ai";
 import { z } from "zod";
+import { selectExamples } from "./few-shot-examples";
 import { models } from "./models";
 import {
   analyzeDocumentPrompt,
   createPromptFromEntryData,
   createPromptFromFile,
+  fewShotSystemPrompt,
   systemPrompt,
 } from "./prompts";
 
@@ -51,14 +53,34 @@ export const generateObituary = async (
       selectedQuoteIds
     );
 
+    // Select relevant few-shot examples based on user criteria
+    const examples = selectExamples({
+      tone,
+      style,
+      isReligious,
+      hasQuotes: !!selectedQuoteIds,
+      hasMilitaryService: false, // TODO: detect from entry data if needed
+    });
+
+    // Build message history with examples (few-shot learning)
+    const messages = [
+      // Add examples as conversation pairs (user facts -> assistant obituary)
+      ...examples.flatMap(ex => [
+        { role: "user" as const, content: ex.facts },
+        { role: "assistant" as const, content: ex.obituary }
+      ]),
+      // Add the actual request
+      { role: "user" as const, content: prompt }
+    ];
+
     let tokenUsage: number | undefined = 0;
     let generatedContent = "";
     let id = crypto.randomUUID();
 
     const { textStream } = streamText({
       model: models.openrouter,
-      system: systemPrompt,
-      messages: [{ role: "user", content: prompt }],
+      system: fewShotSystemPrompt, // Use few-shot system prompt
+      messages, // Use message history instead of single message
       maxOutputTokens: 1000,
       experimental_transform: smoothStream({ chunking: "word" }),
       onFinish: async ({ usage, text }) => {
@@ -105,7 +127,7 @@ export const generateObituary = async (
 const ObitFromFileSchema = z.object({
   name: z.string(),
   instructions: z.string().optional(),
-  file: z.string().base64(),
+  file: z.base64(),
 });
 
 export const generateObituaryFromDocument = async (
