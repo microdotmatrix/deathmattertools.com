@@ -13,19 +13,16 @@ import {
   generateObituary,
   generateObituaryFromDocument,
 } from "@/lib/ai/actions";
-import { models } from "@/lib/ai/models";
 import type { Entry, EntryDetails, SavedQuote } from "@/lib/db/schema";
 import { convertFileToDataURL } from "@/lib/helpers";
 import { cn } from "@/lib/utils";
 import { readStreamableValue } from "@ai-sdk/rsc";
-import { LanguageModel } from "ai";
 import Link from "next/link";
 import { useCallback, useRef, useState, useTransition } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { EntryDetailsCard } from "../entries/details-card";
 import { EntryCard } from "../entries/entry-card";
-import { ModelSelector } from "./model-selector";
 import { ObituaryOptions } from "./options";
 
 export const GenerateObituary = ({
@@ -47,10 +44,6 @@ export const GenerateObituary = ({
   const [completed, setCompleted] = useState<boolean>(false);
   const [obituaryId, setObituaryId] = useState<string | undefined>(undefined);
   const [selectedQuoteIds, setSelectedQuoteIds] = useState<number[]>([]);
-
-  const [languageModel, setLanguageModel] = useState<LanguageModel>(
-    models.openai
-  );
   const [content, setContent] = useState<string | undefined>(undefined);
 
   const [mode, setMode] = useState(0);
@@ -173,8 +166,6 @@ export const GenerateObituary = ({
           are optional, because we understand that some will have incomplete
           information.
         </p>
-
-        <ModelSelector />
 
         <DirectionAwareTabs tabs={tabs} onChange={handleModeChange} />
       </aside>
