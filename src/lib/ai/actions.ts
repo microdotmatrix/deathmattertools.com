@@ -149,30 +149,49 @@ export const generateObituaryFromDocument = async (
 
     const prompt = await createPromptFromFile(entryId, instructions);
 
+    // Select few-shot examples to establish output quality and structure
+    // Use generic criteria since we don't have style/tone from document upload
+    const examples = selectExamples({
+      tone: "reverent", // Default to reverent tone
+      style: "traditional", // Default to traditional style
+      isReligious: false,
+      hasQuotes: false,
+      hasMilitaryService: false,
+    }, 2); // Use only 2 examples to save tokens with large document content
+
+    // Build message history with text-only examples first
+    const messages = [
+      // Add examples as conversation pairs (text-only)
+      ...examples.flatMap(ex => [
+        { role: "user" as const, content: ex.facts },
+        { role: "assistant" as const, content: ex.obituary }
+      ]),
+      // Add the actual request with document
+      {
+        role: "user" as const,
+        content: [
+          {
+            type: "text" as const,
+            text: prompt,
+          },
+          {
+            type: "file" as const,
+            filename: name,
+            mediaType: "application/pdf",
+            data: file,
+          },
+        ],
+      },
+    ];
+
     let tokenUsage: number | undefined = 0;
 
     const id = crypto.randomUUID();
 
     const result = streamText({
       model: models.anthropic,
-      system: analyzeDocumentPrompt,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: prompt,
-            },
-            {
-              type: "file",
-              filename: name,
-              mediaType: "application/pdf",
-              data: file,
-            },
-          ],
-        },
-      ],
+      system: fewShotSystemPrompt, // Use few-shot system prompt instead of analyzeDocumentPrompt
+      messages,
       maxOutputTokens: 1000,
       experimental_transform: smoothStream({ chunking: "word" }),
       onFinish: async ({ usage, text }) => {
