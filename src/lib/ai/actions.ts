@@ -9,11 +9,9 @@ import { z } from "zod";
 import { selectExamples } from "./few-shot-examples";
 import { models } from "./models";
 import {
-  analyzeDocumentPrompt,
   createPromptFromEntryData,
   createPromptFromFile,
-  fewShotSystemPrompt,
-  systemPrompt,
+  fewShotSystemPrompt
 } from "./prompts";
 
 const ObitFormSchema = z.object({
@@ -78,7 +76,7 @@ export const generateObituary = async (
     let id = crypto.randomUUID();
 
     const { textStream } = streamText({
-      model: models.openrouter,
+      model: models.writer,
       system: fewShotSystemPrompt, // Use few-shot system prompt
       messages, // Use message history instead of single message
       maxOutputTokens: 1000,

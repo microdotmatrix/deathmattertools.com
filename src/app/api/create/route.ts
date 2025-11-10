@@ -1,7 +1,7 @@
 import { updateObituaryContent } from "@/actions/obituaries";
 import { models } from "@/lib/ai/models";
 import { assistantPrompt, updateDocumentPrompt } from "@/lib/ai/prompts";
-import { convertToUIMessages } from "@/lib/ai/utils";
+import { convertToModelMessages, convertToUIMessages } from "@/lib/ai/utils";
 import {
   getChatById,
   getMessageCountByUserId,
@@ -13,7 +13,6 @@ import { getDocumentById } from "@/lib/db/queries/documents";
 import { generateUUID } from "@/lib/utils";
 import { auth } from "@clerk/nextjs/server";
 import {
-  convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
   streamText,
@@ -101,7 +100,7 @@ export async function POST(request: NextRequest) {
   const stream = createUIMessageStream({
     execute: ({ writer }) => {
       const result = streamText({
-        model: models.openrouter,
+        model: models.assistant,
         system: assistantPrompt,
         messages: [
           {
