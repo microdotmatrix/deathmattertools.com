@@ -24,6 +24,32 @@ const ObitFormSchema = z.object({
   selectedQuoteIds: z.string().optional().default(""),
 });
 
+/**
+ * Generate a descriptive title for the obituary based on style, tone, and religious content
+ * @param style - The style of the obituary (e.g., "traditional", "modern", "personal")
+ * @param tone - The tone of the obituary (e.g., "reverent", "celebratory", "contemporary")
+ * @param isReligious - Whether religious content is included
+ * @returns A formatted title string
+ */
+function generateObituaryTitle(style: string, tone: string, isReligious: boolean): string {
+  // Capitalize first letter of each word
+  const capitalizeWords = (str: string) => 
+    str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+  
+  const formattedStyle = capitalizeWords(style);
+  const formattedTone = capitalizeWords(tone);
+  
+  // Build the title with style and tone
+  let title = `${formattedStyle} ${formattedTone} Obituary`;
+  
+  // Add religious indicator as a badge
+  if (isReligious) {
+    title += " 🕊️"; // Adding a dove emoji as a visual indicator
+  }
+  
+  return title;
+}
+
 export const generateObituary = async (
   entryId: string,
   // languageModel: LanguageModel = models.openai,
@@ -79,7 +105,7 @@ export const generateObituary = async (
       model: models.writer,
       system: fewShotSystemPrompt, // Use few-shot system prompt
       messages, // Use message history instead of single message
-      maxOutputTokens: 1000,
+      maxOutputTokens: 1500,
       experimental_transform: smoothStream({ chunking: "word" }),
       onFinish: async ({ usage, text }) => {
         const { totalTokens } = usage;
@@ -87,7 +113,7 @@ export const generateObituary = async (
         tokenUsage = totalTokens;
         await saveDocument({
           id,
-          title: `Obituary for ${name}`,
+          title: generateObituaryTitle(style, tone, isReligious),
           content: text,
           tokenUsage,
           kind: "obituary",
@@ -190,7 +216,7 @@ export const generateObituaryFromDocument = async (
       model: models.anthropic,
       system: fewShotSystemPrompt, // Use few-shot system prompt instead of analyzeDocumentPrompt
       messages,
-      maxOutputTokens: 1000,
+      maxOutputTokens: 1500,
       experimental_transform: smoothStream({ chunking: "word" }),
       onFinish: async ({ usage, text }) => {
         const { totalTokens } = usage;
@@ -198,7 +224,7 @@ export const generateObituaryFromDocument = async (
         tokenUsage = totalTokens;
         await saveDocument({
           id,
-          title: `Obituary for ${name}`,
+          title: generateObituaryTitle("traditional", "reverent", false), // Default values for document-based generation
           content: text,
           tokenUsage,
           kind: "obituary",
