@@ -152,7 +152,7 @@ export const ObituaryOptions = ({
       <section className="flex items-center gap-4 my-6">
         <Checkbox
           id="isReligious"
-          defaultChecked={isReligious || false}
+          checked={isReligious}
           onCheckedChange={(checked) =>
             handleInputChange("isReligious", checked ? "true" : "false")
           }

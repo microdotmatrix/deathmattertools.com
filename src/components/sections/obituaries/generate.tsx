@@ -61,6 +61,8 @@ export const GenerateObituary = ({
       setToInclude(value);
     } else if (field === "toAvoid") {
       setToAvoid(value);
+    } else if (field === "isReligious") {
+      setIsReligious(value === "true");
     }
   };
 
@@ -77,7 +79,7 @@ export const GenerateObituary = ({
       tone,
       toInclude,
       toAvoid,
-      isReligious: Boolean(),
+      isReligious: isReligious,
       selectedQuoteIds: selectedQuoteIds.join(","),
     }).forEach(([key, value]) => {
       formDataObj.append(key, String(value));

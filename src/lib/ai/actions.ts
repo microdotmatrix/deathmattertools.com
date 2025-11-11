@@ -20,7 +20,10 @@ const ObitFormSchema = z.object({
   tone: z.string(),
   toInclude: z.string(),
   toAvoid: z.string(),
-  isReligious: z.coerce.boolean().default(false),
+  isReligious: z
+    .string()
+    .default("false")
+    .transform((val) => val === "true"),
   selectedQuoteIds: z.string().optional().default(""),
 });
 
@@ -40,7 +43,7 @@ function generateObituaryTitle(style: string, tone: string, isReligious: boolean
   const formattedTone = capitalizeWords(tone);
   
   // Build the title with style and tone
-  let title = `${formattedStyle} ${formattedTone} Obituary`;
+  let title = `${formattedStyle} ${formattedTone}`;
   
   // Add religious indicator as a badge
   if (isReligious) {
@@ -105,7 +108,6 @@ export const generateObituary = async (
       model: models.writer,
       system: fewShotSystemPrompt, // Use few-shot system prompt
       messages, // Use message history instead of single message
-      maxOutputTokens: 1500,
       experimental_transform: smoothStream({ chunking: "word" }),
       onFinish: async ({ usage, text }) => {
         const { totalTokens } = usage;
@@ -216,7 +218,6 @@ export const generateObituaryFromDocument = async (
       model: models.anthropic,
       system: fewShotSystemPrompt, // Use few-shot system prompt instead of analyzeDocumentPrompt
       messages,
-      maxOutputTokens: 1500,
       experimental_transform: smoothStream({ chunking: "word" }),
       onFinish: async ({ usage, text }) => {
         const { totalTokens } = usage;
