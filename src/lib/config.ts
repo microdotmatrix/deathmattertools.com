@@ -27,3 +27,5 @@ export const navigationLinks = [
   { href: "/dashboard", label: "Dashboard", icon: ZapIcon },
   { href: "/contact", label: "Contact", icon: InboxIcon },
 ];
+
+export const obitLimit = 10;

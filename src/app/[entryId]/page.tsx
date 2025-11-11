@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
-import { Skeleton } from "@/components/ui/skeleton";
+import { obitLimit } from "@/lib/config";
 import { deleteDocumentById } from "@/lib/db/mutations/documents";
 import { getEntryImages } from "@/lib/db/queries";
 import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
@@ -276,7 +276,7 @@ const EntryEditContent = async ({
                     </div>
                     {canEdit && (
                       <div className="border-t pt-3">
-                        {obituaries.length >= 5 ? (
+                        {obituaries.length >= obitLimit ? (
                           <Button
                             variant="outline"
                             size="sm"

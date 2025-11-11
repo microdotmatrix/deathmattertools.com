@@ -2,6 +2,7 @@ import { GenerateObituary } from "@/components/sections/obituaries/generate";
 import { ObituaryCreateSkeleton } from "@/components/skeletons/obituary";
 import { buttonVariants } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import { obitLimit } from "@/lib/config";
 import {
   getDocumentsByEntryId,
   getEntryDetailsById,
@@ -52,7 +53,7 @@ const ObituaryCreateContent = async ({ entryId }: { entryId: string }) => {
 
   const { entry } = entryAccess;
 
-  if (documents.length >= 5) {
+  if (documents.length >= obitLimit) {
     return (
       <div>
         <p className="text-center">
