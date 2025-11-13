@@ -13,16 +13,20 @@ export const useCreateForm = () => {
 
 export const entryImageAtom = atom<string | null>(null);
 export const entryImageUploadingAtom = atom<boolean>(false);
+export const entryImagesAtom = atom<string[]>([]);
 
 export const useEntryImage = () => {
   const [image, setImage] = useAtom(entryImageAtom);
   const [uploading, setUploading] = useAtom(entryImageUploadingAtom);
+  const [images, setImages] = useAtom(entryImagesAtom);
 
   return {
     image,
     setImage,
     uploading,
     setUploading,
+    images,
+    setImages,
   };
 };
 

@@ -15,8 +15,6 @@ export const ObituaryOptions = ({
   toInclude,
   toAvoid,
   isReligious,
-  completed,
-  isPending,
   handleInputChange,
 }: {
   entry: Entry;
@@ -26,8 +24,6 @@ export const ObituaryOptions = ({
   toInclude: string;
   toAvoid: string;
   isReligious: boolean;
-  completed: boolean;
-  isPending: boolean;
   handleInputChange: (field: string, value: string) => void;
 }) => {
   const setOpenDetails = useSetAtom(entryDetailsFormAtom);

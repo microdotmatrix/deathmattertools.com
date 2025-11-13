@@ -11,7 +11,8 @@ import { models } from "./models";
 import {
   createPromptFromEntryData,
   createPromptFromFile,
-  fewShotSystemPrompt
+  fewShotSystemPrompt,
+  systemPrompt
 } from "./prompts";
 
 const ObitFormSchema = z.object({
@@ -106,7 +107,7 @@ export const generateObituary = async (
 
     const { textStream } = streamText({
       model: models.writer,
-      system: fewShotSystemPrompt, // Use few-shot system prompt
+      system: systemPrompt, // Use few-shot system prompt
       messages, // Use message history instead of single message
       experimental_transform: smoothStream({ chunking: "word" }),
       onFinish: async ({ usage, text }) => {

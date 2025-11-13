@@ -11,6 +11,6 @@ export const models = {
   openai: openai("gpt-4o-mini"),
   anthropic: anthropic("claude-3-5-sonnet-20240620"),
   openrouter: openrouter("google/gemini-2.5-pro"),
-  writer: openrouter("openai/gpt-4o-mini"),
-  assistant: openrouter("openai/gpt-4o-mini"), // Use Claude via OpenRouter with ID truncation
+  writer: openrouter("@preset/obituary-writer"),
+  assistant: openrouter("@preset/obituary-assistant"), // Use Claude via OpenRouter with ID truncation
 };

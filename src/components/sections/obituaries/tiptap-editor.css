@@ -1,8 +1,31 @@
 /* TipTap Editor Styles */
 
+/* Override any parent styles that might interfere */
+.ProseMirror,
+.ProseMirror *,
+.ProseMirror > * {
+  /* Ensure text selection is enabled */
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+}
+
 .ProseMirror {
   outline: none;
   min-height: 400px;
+  /* Ensure cursor is visible - using OKLCH from theme */
+  caret-color: oklch(var(--foreground)) !important;
+  /* Prevent any focus styles from hiding selection */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Additional specificity for cursor visibility */
+.ProseMirror[contenteditable="true"] {
+  caret-color: oklch(var(--foreground)) !important;
+}
+
+.ProseMirror * {
+  caret-color: inherit !important;
 }
 
 /* Match prose paragraph spacing (1.25em = 20px at base 16px) */
@@ -87,7 +110,69 @@
   font-family: monospace;
 }
 
-/* Selection color */
+/* Selection color - ensure it's visible in both light and dark modes */
+/* Using OKLCH with alpha channel for Tailwind v4 */
 .ProseMirror ::selection {
-  background-color: hsl(var(--primary) / 0.2);
+  background-color: oklch(from var(--primary) l c h / 0.25) !important;
+  color: inherit !important;
+  text-shadow: none !important;
+}
+
+.ProseMirror::selection {
+  background-color: oklch(from var(--primary) l c h / 0.25) !important;
+  color: inherit !important;
+}
+
+/* Alternative selector for better browser support */
+.ProseMirror *::selection {
+  background-color: oklch(from var(--primary) l c h / 0.25) !important;
+  color: inherit !important;
+}
+
+/* Ensure selections are visible even in focused state */
+.ProseMirror:focus ::selection,
+.ProseMirror:focus-within ::selection {
+  background-color: oklch(from var(--primary) l c h / 0.3) !important;
+}
+
+/* Override prose classes that might interfere */
+.prose .ProseMirror ::selection,
+.prose-md .ProseMirror ::selection,
+.prose-lg .ProseMirror ::selection,
+.dark .prose .ProseMirror ::selection,
+.dark .prose-md .ProseMirror ::selection,
+.dark .prose-lg .ProseMirror ::selection {
+  background-color: oklch(from var(--primary) l c h / 0.25) !important;
+  color: inherit !important;
+}
+
+/* Ensure editor content wrapper doesn't block selection */
+.tiptap-editor-content {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure EditorContent div doesn't interfere */
+.tiptap-editor-content > div {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+}
+
+/* CRITICAL: Only when editor is editable (contenteditable="true") */
+/* Force all selection and cursor styles to be visible */
+.ProseMirror[contenteditable="true"]::selection,
+.ProseMirror[contenteditable="true"] ::selection,
+.ProseMirror[contenteditable="true"] *::selection {
+  background-color: oklch(from var(--primary) l c h / 0.25) !important;
+  color: inherit !important;
+}
+
+/* Ensure all child elements are selectable when editor is editable */
+.ProseMirror[contenteditable="true"] * {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
 }

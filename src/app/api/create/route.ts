@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
           },
         },
         onFinish: async ({ toolResults }) => {
-          console.log(toolResults);
+          console.log("Obituary updated successfully");
         },
       });
       writer.merge(result.toUIMessageStream());

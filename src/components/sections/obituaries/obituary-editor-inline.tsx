@@ -64,6 +64,13 @@ export const ObituaryEditorInline = ({
     content: markdownToHtml(initialContent),
     editable: false,
     immediatelyRender: false,
+    editorProps: {
+      attributes: {
+        class: 'prose dark:prose-invert prose-md lg:prose-lg max-w-4xl focus:outline-none',
+        // Ensure selection is enabled
+        style: 'user-select: text; -webkit-user-select: text; -moz-user-select: text;',
+      },
+    },
     onUpdate: ({ editor }) => {
       // Store as HTML internally while editing
       setContent(editor.getHTML());
@@ -420,7 +427,7 @@ export const ObituaryEditorInline = ({
           <div className="border border-border rounded-lg p-6 bg-background min-h-[400px] shadow-sm focus-within:border-primary/50 focus-within:shadow-md transition-all duration-200">
             <EditorContent
               editor={editor}
-              className="prose dark:prose-invert prose-md lg:prose-lg max-w-4xl focus:outline-none"
+              className="tiptap-editor-content"
             />
           </div>
 

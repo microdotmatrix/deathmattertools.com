@@ -49,7 +49,7 @@ export const ObituaryViewerSimple = ({
         ref={contentRef}
         className="loading-fade prose dark:prose-invert prose-md lg:prose-lg max-w-4xl"
       >
-        <Response key={id}>{content}</Response>
+        <Response key={id} isAnimating={isProcessing}>{content}</Response>
       </div>
 
       {/* Processing indicator - shown when AI is updating the obituary */}
