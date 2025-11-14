@@ -9,6 +9,7 @@ import {
 import {
   Message,
   MessageContent,
+  MessageResponse,
 } from "@/components/ai-elements/message";
 import {
   PromptInput,
@@ -17,7 +18,6 @@ import {
 } from "@/components/ai-elements/prompt-input"; // Replaced with AI Elements version
 import { MessageActions } from "@/components/ai/message-actions";
 import { MessageFeedback } from "@/components/ai/message-feedback";
-import { Response } from "@/components/ai/response";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { convertToUIMessages } from "@/lib/ai/utils";
@@ -225,7 +225,7 @@ export const FloatingChatBubble = ({
                               if (part.type === "text") {
                                 return (
                                   <div key={index}>
-                                    <Response>{part.text}</Response>
+                                    <MessageResponse>{part.text}</MessageResponse>
                                   </div>
                                 );
                               }
@@ -306,14 +306,14 @@ export const FloatingChatBubble = ({
             {/* Input */}
             <div className="border-t border-border bg-background p-3">
               <PromptInput onSubmit={(message, event) => handleSubmit(event)}>
-                <PromptInputTextarea
-                  placeholder="Ask AI to edit your obituary..."
-                  value={input}
-                  onChange={(e) => setInput(e.currentTarget.value)}
-                  className="min-h-[60px] max-h-[120px]"
-                  disabled={status === "streaming" || status === "submitted"}
-                />
-                <div className="flex justify-end pt-2">
+                <div className="flex items-end gap-2">
+                  <PromptInputTextarea
+                    placeholder="Ask AI to edit your obituary..."
+                    value={input}
+                    onChange={(e) => setInput(e.currentTarget.value)}
+                    className="flex-1 min-h-[44px] max-h-[120px]"
+                    disabled={status === "streaming" || status === "submitted"}
+                  />
                   <PromptInputSubmit
                     status={status === "streaming" ? "streaming" : undefined}
                     disabled={!input.trim() || status === "streaming" || status === "submitted"}
