@@ -220,6 +220,13 @@ export const FloatingChatBubble = ({
                             return null;
                           })}
                         </MessageContent>
+                        {/* Show feedback only for assistant messages and not during streaming */}
+                        {message.role === "assistant" && status !== "streaming" && status !== "submitted" && (
+                          <MessageFeedback
+                            messageId={message.id}
+                            chatId={chatId}
+                          />
+                        )}
                       </Message>
                     ))}
                     
