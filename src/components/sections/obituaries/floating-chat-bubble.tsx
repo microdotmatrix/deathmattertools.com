@@ -310,12 +310,12 @@ export const FloatingChatBubble = ({
                   placeholder="Ask AI to edit your obituary..."
                   value={input}
                   onChange={(e) => setInput(e.currentTarget.value)}
-                  className="min-h-[60px] max-h-[120px]"
                   disabled={status === "streaming" || status === "submitted"}
                 />
                 <PromptInputSubmit
                   status={status === "streaming" ? "streaming" : undefined}
                   disabled={!input.trim() || status === "streaming" || status === "submitted"}
+                  className="mr-2"
                 />
               </PromptInput>
             </div>
