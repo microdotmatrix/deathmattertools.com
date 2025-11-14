@@ -306,19 +306,17 @@ export const FloatingChatBubble = ({
             {/* Input */}
             <div className="border-t border-border bg-background p-3">
               <PromptInput onSubmit={(message, event) => handleSubmit(event)}>
-                <div className="flex items-end gap-2">
-                  <PromptInputTextarea
-                    placeholder="Ask AI to edit your obituary..."
-                    value={input}
-                    onChange={(e) => setInput(e.currentTarget.value)}
-                    className="flex-1 min-h-[44px] max-h-[120px]"
-                    disabled={status === "streaming" || status === "submitted"}
-                  />
-                  <PromptInputSubmit
-                    status={status === "streaming" ? "streaming" : undefined}
-                    disabled={!input.trim() || status === "streaming" || status === "submitted"}
-                  />
-                </div>
+                <PromptInputTextarea
+                  placeholder="Ask AI to edit your obituary..."
+                  value={input}
+                  onChange={(e) => setInput(e.currentTarget.value)}
+                  className="min-h-[60px] max-h-[120px]"
+                  disabled={status === "streaming" || status === "submitted"}
+                />
+                <PromptInputSubmit
+                  status={status === "streaming" ? "streaming" : undefined}
+                  disabled={!input.trim() || status === "streaming" || status === "submitted"}
+                />
               </PromptInput>
             </div>
           </motion.div>
