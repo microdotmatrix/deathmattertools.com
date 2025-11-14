@@ -1,5 +1,6 @@
 "use client";
 
+import { obituaryUpdateProcessingAtom } from "@/atoms/obituary-update";
 import {
   PromptInput,
   PromptInputSubmit,
@@ -9,15 +10,14 @@ import { Response } from "@/components/ai/response";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { convertToUIMessages } from "@/lib/ai/utils";
+import { isEditingObituaryAtom } from "@/lib/state";
 import { generateUUID } from "@/lib/utils";
 import { useChat } from "@ai-sdk/react";
-import { obituaryUpdateProcessingAtom } from "@/atoms/obituary-update";
-import { isEditingObituaryAtom } from "@/lib/state";
 import { DefaultChatTransport } from "ai";
 import { useAtomValue, useSetAtom } from "jotai";
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface FloatingChatBubbleProps {
@@ -52,7 +52,6 @@ export const FloatingChatBubble = ({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [input, setInput] = useState("");
   const [hasNewResponse, setHasNewResponse] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Jotai atom to coordinate loading state with ObituaryViewerSimple
   const setObituaryUpdateProcessing = useSetAtom(obituaryUpdateProcessingAtom);
@@ -113,13 +112,6 @@ export const FloatingChatBubble = ({
     }
   }, [isExpanded]);
 
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    if (messagesEndRef.current && isExpanded) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages, isExpanded]);
-
   // React Compiler handles function stability - no useCallback needed
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,7 +138,7 @@ export const FloatingChatBubble = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2 }}
-            className="flex flex-col w-[400px] h-[560px] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden"
+            className="flex flex-col w-[550px] h-[700px] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
@@ -172,104 +164,89 @@ export const FloatingChatBubble = ({
               by chatting below.
             </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.length > 0 && (
-                messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${
-                      message.role === "user" ? "justify-end" : "justify-start"
-                    }`}
-                  >
-                    <div
-                      className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
-                        message.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted text-foreground"
-                      }`}
-                    >
-                      {message.parts.map((part, index) => {
-                        if (part.type === "text") {
-                          return (
-                            <div key={index} className="flex items-start gap-2">
-                              <Response>{part.text}</Response>
-                            </div>
-                          );
-                        }
-                        // Handle custom data parts (AI SDK v5 pattern)
-                        if ("data" in part && typeof part.data === "object" && part.data !== null) {
-                          const data = part.data as Record<string, unknown>;
-                          if ("changeDescription" in data && typeof data.changeDescription === "string") {
-                            return (
-                              <div
-                                key={index}
-                                className="flex items-start gap-2 text-xs"
-                              >
-                                <Icon
-                                  icon="mdi:robot-outline"
-                                  className="size-4 mt-0.5 flex-shrink-0"
-                                />
-                                <p>{data.changeDescription}</p>
-                              </div>
-                            );
-                          }
-                        }
-                        return null;
-                      })}
-                    </div>
-                </div>
-                ))
-              )}
-              
-              {/* Loading/Streaming Indicator */}
-              {(status === "streaming" || status === "submitted") && (
-                <div className="flex justify-start">
-                  <div className="bg-muted rounded-lg px-3 py-2 flex items-center gap-2">
-                    <div className="flex gap-1">
-                      <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:-0.3s]" />
-                      <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:-0.15s]" />
-                      <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" />
-                    </div>
-                    {status === "streaming" && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={stop}
-                        className="h-6 px-2 text-xs"
-                      >
-                        Stop
-                      </Button>
+            {/* Messages - Using AI Elements Conversation */}
+            <Conversation className="flex-1">
+              <ConversationContent>
+                {messages.length === 0 && status === "ready" && !error ? (
+                  <ConversationEmptyState
+                    title="AI Editing Assistant"
+                    description="Request suggestions, revisions, and make changes to your obituary by chatting below."
+                    icon={
+                      <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10">
+                        <Icon icon="mdi:message-text-outline" className="size-8 text-primary/60" />
+                      </div>
+                    }
+                  />
+                ) : (
+                  <>
+                    {messages.map((message) => (
+                      <Message key={message.id} from={message.role}>
+                        <MessageContent>
+                          {message.parts.map((part, index) => {
+                            if (part.type === "text") {
+                              return (
+                                <div key={index}>
+                                  <Response>{part.text}</Response>
+                                </div>
+                              );
+                            }
+                            // Handle custom data parts (AI SDK v5 pattern)
+                            if ("data" in part && typeof part.data === "object" && part.data !== null) {
+                              const data = part.data as Record<string, unknown>;
+                              if ("changeDescription" in data && typeof data.changeDescription === "string") {
+                                return (
+                                  <div
+                                    key={index}
+                                    className="flex items-start gap-2 text-xs"
+                                  >
+                                    <Icon
+                                      icon="mdi:robot-outline"
+                                      className="size-4 mt-0.5 flex-shrink-0"
+                                    />
+                                    <p>{data.changeDescription}</p>
+                                  </div>
+                                );
+                              }
+                            }
+                            return null;
+                          })}
+                        </MessageContent>
+                      </Message>
+                    ))}
+                    
+                    {/* Loading/Streaming Indicator */}
+                    {(status === "streaming" || status === "submitted") && (
+                      <div className="flex justify-start">
+                        <div className="bg-muted rounded-lg px-3 py-2 flex items-center gap-2">
+                          <div className="flex gap-1">
+                            <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:-0.3s]" />
+                            <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:-0.15s]" />
+                            <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" />
+                          </div>
+                          {status === "streaming" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={stop}
+                              className="h-6 px-2 text-xs"
+                            >
+                              Stop
+                            </Button>
+                          )}
+                        </div>
+                      </div>
                     )}
-                  </div>
-                </div>
-              )}
-              
-              {/* Error Message */}
-              {error && (
-                <div className="text-center text-destructive text-sm bg-destructive/10 rounded-lg p-3">
-                  {error.message}
-                </div>
-              )}
-              
-              {/* Empty State - Only show when no messages and not processing */}
-              {messages.length === 0 && status === "ready" && !error && (
-                <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground text-sm gap-3">
-                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10">
-                    <Icon icon="mdi:message-text-outline" className="size-8 text-primary/60" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Start a conversation</p>
-                    <p className="text-xs mt-1">
-                      Ask for tone adjustments, content additions, or any improvements
-                    </p>
-                  </div>
-                </div>
-              )}
-              
-              {/* Scroll anchor */}
-              <div ref={messagesEndRef} />
-            </div>
+                    
+                    {/* Error Message */}
+                    {error && (
+                      <div className="text-center text-destructive text-sm bg-destructive/10 rounded-lg p-3">
+                        {error.message}
+                      </div>
+                    )}
+                  </>
+                )}
+              </ConversationContent>
+            </Conversation>
 
             {/* Input */}
             <div className="border-t border-border bg-background p-3">
