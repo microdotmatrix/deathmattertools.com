@@ -14,7 +14,7 @@ import {
   PromptInput,
   PromptInputSubmit,
   PromptInputTextarea,
-} from "@/components/ai/prompt-input";
+} from "@/components/ai-elements/prompt-input"; // Replaced with AI Elements version
 import { Response } from "@/components/ai/response";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
