@@ -1,12 +1,15 @@
 import { CreateImage } from "@/components/sections/memorials/create-image";
 import { ImageResult } from "@/components/sections/memorials/image-results";
 import { Icon } from "@/components/ui/icon";
+import { db } from "@/lib/db";
 import { createEpitaphs } from "@/lib/db/mutations";
 import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import { getSavedQuotesByEntryId } from "@/lib/db/queries/quotes";
+import { UserUploadTable } from "@/lib/db/schema";
 import type { PlacidImage, PlacidRequest } from "@/lib/services/placid";
 import { fetchImage } from "@/lib/services/placid";
 import { auth } from "@clerk/nextjs/server";
+import { eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -63,6 +66,12 @@ export default async function Create({
   // Fetch saved quotes for this entry
   const savedQuotes = await getSavedQuotesByEntryId(entryId);
 
+  // Fetch user uploaded photos for this entry
+  const userUploads = await db
+    .select()
+    .from(UserUploadTable)
+    .where(eq(UserUploadTable.entryId, entryId));
+
   // Create action wrapper that includes the entryId
   const createEpitaphsAction = async (formData: PlacidRequest) => {
     "use server";
@@ -78,6 +87,7 @@ export default async function Create({
           deceased={deceased}
           entryId={entryId}
           savedQuotes={savedQuotes}
+          userUploads={userUploads}
         />
       </aside>
       <article className="flex-1 lg:flex-2/3 px-4 order-1 lg:order-2 flex">

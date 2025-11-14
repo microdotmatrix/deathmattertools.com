@@ -5,9 +5,10 @@ import { SavedQuoteSelector } from "@/components/quotes-scripture/saved-quote-se
 import { SearchDialog } from "@/components/quotes-scripture/search-dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import type { Entry, SavedQuote } from "@/lib/db/schema";
+import type { Entry, SavedQuote, UserUpload } from "@/lib/db/schema";
 import type { PlacidRequest } from "@/lib/services/placid";
 import type { ActionState } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
@@ -20,12 +21,14 @@ export function CreateImage({
   deceased,
   entryId,
   savedQuotes = [],
+  userUploads = [],
 }: {
   action: (formData: PlacidRequest, userId: string) => Promise<ActionState>;
   userId: string | null;
   deceased: Entry;
   entryId: string;
   savedQuotes?: SavedQuote[];
+  userUploads?: UserUpload[];
 }) {
   const [formData, setFormData] = useState<PlacidRequest>({
     name: deceased.name,
@@ -36,6 +39,7 @@ export function CreateImage({
     portrait: deceased.image!,
   });
 
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string>(deceased.image!);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
@@ -53,6 +57,14 @@ export function CreateImage({
       ...prev,
       epitaph: quote.quote,
       citation: quote.citation || "",
+    }));
+  };
+
+  const handleImageSelect = (imageUrl: string) => {
+    setSelectedImageUrl(imageUrl);
+    setFormData((prev) => ({
+      ...prev,
+      portrait: imageUrl,
     }));
   };
 
@@ -96,11 +108,11 @@ export function CreateImage({
             </p>
           </div>
 
-          {/* Display the deceased's image */}
+          {/* Display the selected image */}
           <div className="flex justify-center">
-            <div className="relative w-48 h-48 rounded-lg overflow-hidden border-2 border-gray-200">
+            <div className="relative w-48 h-48 rounded-lg overflow-hidden border-2 border-primary shadow-lg">
               <Image
-                src={deceased.image!}
+                src={selectedImageUrl}
                 alt={deceased.name}
                 fill
                 className="object-cover"
@@ -108,6 +120,63 @@ export function CreateImage({
               />
             </div>
           </div>
+
+          {/* Thumbnail gallery for uploaded photos */}
+          {userUploads.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm text-center text-muted-foreground">
+                Select a different photo:
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {/* Default entry image thumbnail - only show if not already in uploads */}
+                {!userUploads.some((upload) => upload.url === deceased.image) && (
+                  <button
+                    type="button"
+                    onClick={() => handleImageSelect(deceased.image!)}
+                    className={cn(
+                      "relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all hover:scale-105",
+                      selectedImageUrl === deceased.image
+                        ? "border-primary ring-2 ring-primary ring-offset-2"
+                        : "border-gray-300 hover:border-primary"
+                    )}
+                    title="Default entry photo"
+                  >
+                    <Image
+                      src={deceased.image!}
+                      alt={`${deceased.name} - Default`}
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                    />
+                  </button>
+                )}
+
+                {/* User-uploaded photo thumbnails */}
+                {userUploads.map((upload) => (
+                  <button
+                    key={upload.id}
+                    type="button"
+                    onClick={() => handleImageSelect(upload.url)}
+                    className={cn(
+                      "relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all hover:scale-105",
+                      selectedImageUrl === upload.url
+                        ? "border-primary ring-2 ring-primary ring-offset-2"
+                        : "border-gray-300 hover:border-primary"
+                    )}
+                    title={`Uploaded ${format(upload.createdAt, "MMM d, yyyy")}`}
+                  >
+                    <Image
+                      src={upload.url}
+                      alt={`${deceased.name} - Photo ${format(upload.createdAt, "MMM d")}`}
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-3">
@@ -181,6 +250,7 @@ export function CreateImage({
                 death: format(deceased.dateOfDeath!, "MMMM d, yyyy"),
                 portrait: deceased.image!,
               });
+              setSelectedImageUrl(deceased.image!);
               setError(null);
               router.replace(`/${entryId}/images/create`);
             }}
