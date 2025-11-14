@@ -133,6 +133,22 @@ export const FloatingChatBubble = ({
     }
   };
 
+  const handleRegenerate = () => {
+    // Find the last user message
+    const lastUserMessage = [...messages].reverse().find(m => m.role === "user");
+    if (lastUserMessage) {
+      const text = lastUserMessage.parts
+        .filter(p => p.type === "text")
+        .map(p => (p as { type: "text"; text: string }).text)
+        .join(" ");
+      
+      if (text) {
+        setObituaryUpdateProcessing(true);
+        sendMessage({ text });
+      }
+    }
+  };
+
   const positionClasses = {
     "bottom-right": "bottom-6 right-6",
     "bottom-left": "bottom-6 left-6",
@@ -189,47 +205,68 @@ export const FloatingChatBubble = ({
                   />
                 ) : (
                   <>
-                    {messages.map((message) => (
-                      <Message key={message.id} from={message.role}>
-                        <MessageContent>
-                          {message.parts.map((part, index) => {
-                            if (part.type === "text") {
-                              return (
-                                <div key={index}>
-                                  <Response>{part.text}</Response>
-                                </div>
-                              );
-                            }
-                            // Handle custom data parts (AI SDK v5 pattern)
-                            if ("data" in part && typeof part.data === "object" && part.data !== null) {
-                              const data = part.data as Record<string, unknown>;
-                              if ("changeDescription" in data && typeof data.changeDescription === "string") {
+                    {messages.map((message, messageIndex) => {
+                      // Extract text content for actions
+                      const messageText = message.parts
+                        .filter(p => p.type === "text")
+                        .map(p => (p as { type: "text"; text: string }).text)
+                        .join("\n");
+                      
+                      // Check if this is the last assistant message
+                      const assistantMessages = messages.filter(m => m.role === "assistant");
+                      const isLastAssistantMessage = message.role === "assistant" && 
+                        assistantMessages[assistantMessages.length - 1]?.id === message.id;
+
+                      return (
+                        <Message key={message.id} from={message.role}>
+                          <MessageContent>
+                            {message.parts.map((part, index) => {
+                              if (part.type === "text") {
                                 return (
-                                  <div
-                                    key={index}
-                                    className="flex items-start gap-2 text-xs"
-                                  >
-                                    <Icon
-                                      icon="mdi:robot-outline"
-                                      className="size-4 mt-0.5 flex-shrink-0"
-                                    />
-                                    <p>{data.changeDescription}</p>
+                                  <div key={index}>
+                                    <Response>{part.text}</Response>
                                   </div>
                                 );
                               }
-                            }
-                            return null;
-                          })}
-                        </MessageContent>
-                        {/* Show feedback only for assistant messages and not during streaming */}
-                        {message.role === "assistant" && status !== "streaming" && status !== "submitted" && (
-                          <MessageFeedback
-                            messageId={message.id}
-                            chatId={chatId}
-                          />
-                        )}
-                      </Message>
-                    ))}
+                              // Handle custom data parts (AI SDK v5 pattern)
+                              if ("data" in part && typeof part.data === "object" && part.data !== null) {
+                                const data = part.data as Record<string, unknown>;
+                                if ("changeDescription" in data && typeof data.changeDescription === "string") {
+                                  return (
+                                    <div
+                                      key={index}
+                                      className="flex items-start gap-2 text-xs"
+                                    >
+                                      <Icon
+                                        icon="mdi:robot-outline"
+                                        className="size-4 mt-0.5 flex-shrink-0"
+                                      />
+                                      <p>{data.changeDescription}</p>
+                                    </div>
+                                  );
+                                }
+                              }
+                              return null;
+                            })}
+                          </MessageContent>
+                          {/* Show actions and feedback for assistant messages, not during streaming */}
+                          {message.role === "assistant" && status !== "streaming" && status !== "submitted" && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <MessageActions
+                                messageText={messageText}
+                                messageId={message.id}
+                                isLastMessage={isLastAssistantMessage}
+                                onRegenerate={handleRegenerate}
+                              />
+                              <MessageFeedback
+                                messageId={message.id}
+                                chatId={chatId}
+                              />
+                            </div>
+                          )}
+                        </Message>
+                      );
+                    })}
                     
                     {/* Loading/Streaming Indicator */}
                     {(status === "streaming" || status === "submitted") && (
