@@ -2,6 +2,15 @@
 
 import { obituaryUpdateProcessingAtom } from "@/atoms/obituary-update";
 import {
+  Conversation,
+  ConversationContent,
+  ConversationEmptyState,
+} from "@/components/ai-elements/conversation";
+import {
+  Message,
+  MessageContent,
+} from "@/components/ai-elements/message";
+import {
   PromptInput,
   PromptInputSubmit,
   PromptInputTextarea,
