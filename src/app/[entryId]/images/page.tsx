@@ -70,7 +70,7 @@ const PageContent = async ({
 
   if (images.length === 0) {
     return (
-      <main className="flex flex-col items-center justify-center h-64 gap-4">
+      <div className="flex flex-col items-center justify-center h-64 gap-4">
         <p className="text-muted-foreground">No images generated yet.</p>
         {isOwner && (
           <Link
@@ -83,12 +83,12 @@ const PageContent = async ({
             Create Your First Image <Icon icon="mdi:plus" className="ml-2 size-4" />
           </Link>
         )}
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="space-y-8 px-2 lg:px-4 mt-12">
+    <div className="space-y-8">
       {/* Most recent images - full width grid at top */}
       {sortedDates.length > 0 && (
         <div className="space-y-4">
@@ -152,7 +152,7 @@ const PageContent = async ({
           ))}
         </div>
       )}
-    </main>
+    </div>
   );
 };
 

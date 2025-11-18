@@ -79,8 +79,8 @@ export default async function Create({
   };
 
   return (
-    <main className="flex flex-col lg:flex-row items-center lg:items-start relative pb-12 lg:pb-24">
-      <aside className="flex-none lg:flex-1/3 sticky lg:top-32 mt-12 order-2 lg:order-1">
+    <div className="flex flex-col lg:flex-row items-center lg:items-start relative pb-12 lg:pb-24">
+      <aside className="flex-none lg:flex-1/3 sticky lg:top-32 mt-4 order-2 lg:order-1">
         <CreateImage
           action={createEpitaphsAction}
           userId={userId}
@@ -124,6 +124,6 @@ export default async function Create({
           )}
         </Suspense>
       </article>
-    </main>
+    </div>
   );
 }

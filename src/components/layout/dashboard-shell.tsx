@@ -6,20 +6,20 @@ import { type ReactNode } from "react";
 
 import { Icon } from "@/components/ui/icon";
 import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarGroup,
-    SidebarGroupLabel,
-    SidebarHeader,
-    SidebarInset,
-    SidebarMenu,
-    SidebarMenuBadge,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarProvider,
-    SidebarSeparator,
-    SidebarTrigger,
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarSeparator,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { OrganizationSwitcher, SignedIn } from "@clerk/nextjs";
 
@@ -73,8 +73,8 @@ export const DashboardShell = ({ children }: DashboardShellProps) => {
       <Sidebar>
         <DashboardSidebar />
       </Sidebar>
-      <SidebarInset>
-        <div className="flex min-h-svh flex-1 flex-col bg-background">
+      <SidebarInset className="bg-transparent">
+        <div className="flex min-h-svh flex-1 flex-col">
           <div className="flex flex-1 flex-col gap-8 px-4 pb-10 pt-6 md:px-8 lg:px-10">
             {children}
           </div>

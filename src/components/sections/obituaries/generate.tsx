@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  generateObituary,
-  generateObituaryFromDocument,
+    generateObituary,
+    generateObituaryFromDocument,
 } from "@/lib/ai/actions";
 import type { Entry, EntryDetails, SavedQuote } from "@/lib/db/schema";
 import { convertFileToDataURL } from "@/lib/helpers";
@@ -153,7 +153,7 @@ export const GenerateObituary = ({
   ];
 
   return (
-    <div className="grid md:grid-cols-6 gap-4 px-4 xl:px-8 loading-fade">
+    <div className="grid md:grid-cols-6 gap-4 loading-fade">
       <aside className="md:col-span-3 2xl:col-span-2 space-y-4 order-2 md:order-1">
         <EntryCard entry={entry} />
         <EntryDetailsCard

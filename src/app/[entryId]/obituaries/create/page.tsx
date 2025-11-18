@@ -4,8 +4,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { obitLimit } from "@/lib/config";
 import {
-  getDocumentsByEntryId,
-  getEntryDetailsById,
+    getDocumentsByEntryId,
+    getEntryDetailsById,
 } from "@/lib/db/queries";
 import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import { getSavedQuotesByEntryId } from "@/lib/db/queries/quotes";
@@ -21,8 +21,8 @@ export default async function ObituaryCreatePage({ params }: PageProps) {
   const { entryId } = await params;
 
   return (
-    <main>
-      <div className="flex items-center gap-4 px-4 lg:px-8 mt-8 mb-4">
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
         <Link
           href={`/${entryId}`}
           className={buttonVariants({ variant: "outline", size: "sm" })}
@@ -34,7 +34,7 @@ export default async function ObituaryCreatePage({ params }: PageProps) {
       <Suspense fallback={<ObituaryCreateSkeleton />}>
         <ObituaryCreateContent entryId={entryId} />
       </Suspense>
-    </main>
+    </div>
   );
 }
 

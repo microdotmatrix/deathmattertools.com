@@ -45,20 +45,16 @@ export default async function EntryEditPage({ params }: PageProps) {
   const generatedImages = await getUserGeneratedImages(entry.userId!, entryId);
 
   return (
-    <main>
-      <div className="container mx-auto px-4 py-6">
-        <Suspense fallback={<EntryEditContentSkeleton />}>
-          <EntryEditContent
-            entry={entry}
-            obituaries={obituaries}
-            generatedImages={generatedImages}
-            canEdit={canEdit}
-            role={role}
-            isOrgOwner={isOrgOwner}
-          />
-        </Suspense>
-      </div>
-    </main>
+    <Suspense fallback={<EntryEditContentSkeleton />}>
+      <EntryEditContent
+        entry={entry}
+        obituaries={obituaries}
+        generatedImages={generatedImages}
+        canEdit={canEdit}
+        role={role}
+        isOrgOwner={isOrgOwner}
+      />
+    </Suspense>
   );
 }
 
