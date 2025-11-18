@@ -1,4 +1,5 @@
 import { ActionButton } from "@/components/elements/action-button";
+import { DashboardHeader, DashboardShell } from "@/components/layout/dashboard-shell";
 import { CreatePortal } from "@/components/sections/dashboard/create-dialog";
 import { CreateEntryForm } from "@/components/sections/dashboard/create-form";
 import { CreateEntryImage } from "@/components/sections/dashboard/create-image";
@@ -44,13 +45,11 @@ export default async function DashboardPage() {
   }
 
   return (
-    <main className="grid h-full place-items-center">
-      <div className="max-w-screen-2xl w-full mx-auto py-8">
-        <Suspense fallback={<PageContentSkeleton />}>
-          <PageContent />
-        </Suspense>
-      </div>
-    </main>
+    <DashboardShell>
+      <Suspense fallback={<PageContentSkeleton />}>
+        <PageContent />
+      </Suspense>
+    </DashboardShell>
   );
 }
 
@@ -59,12 +58,18 @@ const PageContent = async () => {
   const entries = await getOrganizationEntries();
   const uploads = await getUserUploads();
   const hasEntries = entries.length > 0;
+
+  if (!userId) {
+    return null;
+  }
   
   // Separate owned entries from team entries
   const myEntries = entries.filter((entry) => entry.userId === userId);
   const teamEntries = entries.filter((entry) => entry.userId !== userId);
   
-  const [featuredEntry, ...remainingEntries] = entries;
+  const [featuredEntry, ...libraryEntries] = entries;
+  const myLibraryEntries = libraryEntries.filter((entry) => entry.userId === userId);
+  const teamLibraryEntries = libraryEntries.filter((entry) => entry.userId !== userId);
 
   // Calculate server-side date stats to avoid hydration mismatch
   const now = new Date();
@@ -94,101 +99,80 @@ const PageContent = async () => {
     };
   }
 
+  const header = (
+    <DashboardHeader
+      title="Dashboard"
+      description={
+        hasEntries
+          ? "Review your latest memorial activity and keep your workspace organized."
+          : "Create your first memorial entry to start building your workspace."
+      }
+      actions={<CreatePortal />}
+    />
+  );
+
   if (!hasEntries) {
     return (
-      <div className="flex flex-col lg:flex-row gap-8 items-start lg:items-center loading-fade">
-        <div className="w-full lg:w-1/3">
-          <CreateEntryForm />
-        </div>
-        <div className="w-full lg:w-2/3">
-          <CreateEntryImage />
+      <div className="space-y-8">
+        {header}
+        <div className="grid items-start gap-8 lg:grid-cols-2">
+          <Card className="border-dashed">
+            <CardContent className="p-6">
+              <CreateEntryForm />
+            </CardContent>
+          </Card>
+          <div className="rounded-2xl border border-dashed bg-muted/30 p-4">
+            <CreateEntryImage />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 px-4 lg:px-8 loading-fade">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <CreatePortal />
-      </div>
+    <div className="space-y-8">
+      {header}
 
-      {/* Featured Entry - Large Section */}
-      <section className="min-h-[50vh]">
+      <section className="rounded-3xl border bg-card/60 shadow-sm">
         <FeaturedEntryCard entry={featuredEntry} stats={featuredEntryStats} />
       </section>
 
-      {/* Two Column Layout */}
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Left Column - Previous Entries (2/3 width) */}
-        <div className="lg:col-span-2 space-y-6">
-          <h2 className="text-xl font-semibold">All Entries</h2>
-          {remainingEntries.length > 0 ? (
-            <Tabs defaultValue="all" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="all">
-                  All ({remainingEntries.length})
-                </TabsTrigger>
-                <TabsTrigger value="my-entries">
-                  My Entries ({myEntries.length - 1})
-                </TabsTrigger>
-                <TabsTrigger value="team-entries">
-                  Team Entries ({teamEntries.length})
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="all" className="space-y-4 mt-4">
-                {remainingEntries.map((entry) => (
-                  <PreviousEntryCard 
-                    key={entry.id} 
-                    entry={entry}
-                    isOwnEntry={entry.userId === userId}
-                  />
-                ))}
-              </TabsContent>
-              
-              <TabsContent value="my-entries" className="space-y-4 mt-4">
-                {myEntries.slice(1).length > 0 ? (
-                  myEntries.slice(1).map((entry) => (
-                    <PreviousEntryCard 
-                      key={entry.id} 
-                      entry={entry}
-                      isOwnEntry={true}
-                    />
-                  ))
-                ) : (
-                  <p className="text-sm text-muted-foreground py-8 text-center">
-                    No additional entries yet.
-                  </p>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="team-entries" className="space-y-4 mt-4">
-                {teamEntries.length > 0 ? (
-                  teamEntries.map((entry) => (
-                    <PreviousEntryCard 
-                      key={entry.id} 
-                      entry={entry}
-                      isOwnEntry={false}
-                    />
-                  ))
-                ) : (
-                  <p className="text-sm text-muted-foreground py-8 text-center">
-                    No team entries yet. Entries created by your organization members will appear here.
-                  </p>
-                )}
-              </TabsContent>
-            </Tabs>
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                Entries
+              </p>
+              <h2 className="text-xl font-semibold">Workspace Library</h2>
+            </div>
+            <Badge variant="secondary" className="rounded-full px-3 py-1 text-[0.75rem]">
+              {entries.length} Total
+            </Badge>
+          </div>
+          {libraryEntries.length > 0 ? (
+            <EntryListTabs
+              userId={userId}
+              allEntries={libraryEntries}
+              myEntries={myLibraryEntries}
+              teamEntries={teamLibraryEntries}
+            />
           ) : (
-            <p className="text-muted-foreground">No previous entries yet.</p>
+            <Card className="border-dashed">
+              <CardContent className="py-10 text-center text-sm text-muted-foreground">
+                No additional entries yet. Create a new entry to grow your workspace.
+              </CardContent>
+            </Card>
           )}
         </div>
 
-        {/* Right Column - User Stats (1/3 width) */}
         <div className="space-y-6">
-          <h2 className="text-xl font-semibold">Statistics</h2>
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+              Insights
+            </p>
+            <h2 className="text-xl font-semibold">Workspace Stats</h2>
+          </div>
           <UserStats
             entries={entries}
             uploads={uploads}
@@ -213,9 +197,9 @@ const FeaturedEntryCard = async ({
   return (
     <Card className="border-0 shadow-xl grid md:grid-cols-2 min-h-fit p-4">
       {/* Image Section - Left Half */}
-      <figure className="relative shadow-xl dark:shadow-foreground/5 transition-shadow duration-200 rounded-lg overflow-clip aspect-auto 3xl:aspect-[4/3] max-w-full">
+      <figure className="relative shadow-xl dark:shadow-foreground/5 transition-shadow duration-200 rounded-lg overflow-clip aspect-auto max-h-120 md:max-h-136 3xl:max-h-none 3xl:aspect-4/3 max-w-full">
         <Image
-          src={entry.image!}
+          src={entry.image ?? "/images/create-entry_portrait-01.png"}
           alt={entry.name}
           height={1280}
           width={1280}
@@ -322,7 +306,7 @@ const FeaturedEntryCard = async ({
             </>
           )}
         </div>
-        <div className="flex-shrink-0 flex flex-col gap-2 pr-4">
+        <div className="shrink-0 flex flex-col gap-2 pr-4">
           {isOwnEntry ? (
             <ActionButtons entry={entry} />
           ) : (
@@ -344,89 +328,153 @@ const FeaturedEntryCard = async ({
   );
 };
 
-const PreviousEntryCard = ({ 
-  entry,
-  isOwnEntry,
-}: { 
-  entry: Entry;
-  isOwnEntry: boolean;
+const EntryListTabs = ({
+  allEntries,
+  myEntries,
+  teamEntries,
+  userId,
+}: {
+  allEntries: Entry[];
+  myEntries: Entry[];
+  teamEntries: Entry[];
+  userId: string;
 }) => {
+  const tabs = [
+    {
+      value: "all",
+      label: "All Entries",
+      description: "Everything across your workspace, newest to oldest.",
+      entries: allEntries,
+      emptyMessage: "No additional entries yet."
+    },
+    {
+      value: "my-entries",
+      label: "My Entries",
+      description: "Entries you created personally.",
+      entries: myEntries,
+      emptyMessage: "You haven’t created any other entries yet."
+    },
+    {
+      value: "team-entries",
+      label: "Team Entries",
+      description: "Entries created by organization members.",
+      entries: teamEntries,
+      emptyMessage: "No team entries yet. They’ll appear here once your team contributes."
+    },
+  ];
+
   return (
-    <Card className="hover:shadow-xl dark:shadow-foreground/5 transition-shadow duration-200 p-0">
-      <CardContent className="p-0">
-        <div className="flex flex-col md:flex-row items-center gap-4">
-          {/* Small thumbnail on the left */}
-          <div className="relative w-full md:size-40 rounded-lg overflow-hidden flex-shrink-0">
+    <Tabs defaultValue="all" className="w-full">
+      <TabsList className="flex w-full flex-wrap gap-2 rounded-2xl bg-muted/60 p-1">
+        {tabs.map((tab) => (
+          <TabsTrigger
+            key={tab.value}
+            value={tab.value}
+            className="flex min-w-32 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-4 py-3 text-center text-sm font-semibold leading-tight data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            <span>{tab.label} ({tab.entries.length})</span>
+          </TabsTrigger>
+        ))}
+      </TabsList>
+      {tabs.map((tab) => (
+        <TabsContent key={tab.value} value={tab.value} className="mt-5 space-y-3">
+          <p className="text-sm text-muted-foreground">{tab.description}</p>
+          <EntryList
+            entries={tab.entries}
+            emptyMessage={tab.emptyMessage}
+            userId={userId}
+          />
+        </TabsContent>
+      ))}
+    </Tabs>
+  );
+};
+
+const EntryList = ({
+  entries,
+  emptyMessage,
+  userId,
+}: {
+  entries: Entry[];
+  emptyMessage: string;
+  userId: string;
+}) => {
+  if (entries.length === 0) {
+    return (
+      <Card className="border-dashed">
+        <CardContent className="py-12 text-center text-sm text-muted-foreground">
+          {emptyMessage}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {entries.map((entry) => (
+        <EntryRow key={entry.id} entry={entry} isOwnEntry={entry.userId === userId} />
+      ))}
+    </div>
+  );
+};
+
+const EntryRow = ({ entry, isOwnEntry }: { entry: Entry; isOwnEntry: boolean }) => {
+  return (
+    <div className="rounded-2xl border border-border/70 bg-card/60 p-4 shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition hover:border-border">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex w-full items-center gap-4">
+          <div className="relative h-16 w-16 overflow-hidden rounded-xl bg-muted shrink-0">
             <Image
-              src={entry.image!}
+              src={entry.image ?? "/images/create-entry_portrait-01.png"}
               alt={entry.name}
-              width={420}
-              height={420}
-              className="size-full object-cover"
+              fill
+              className="object-cover"
             />
           </div>
-
-          {/* Name and dates in the middle */}
-          <div className="flex-grow min-w-0 w-full pl-4 md:pl-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-lg truncate">{entry.name}</h3>
-              {!isOwnEntry && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Badge variant="outline" className="flex items-center gap-1 flex-shrink-0 cursor-help">
-                        <Icon icon="mdi:account-group" className="w-3 h-3" />
-                        Team
-                      </Badge>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Created by a member of your organization</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
+          <div className="min-w-0 space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <Link href={`/${entry.id}`} className="font-semibold leading-tight">
+                {entry.name}
+              </Link>
+              <Badge variant={isOwnEntry ? "default" : "outline"} className="text-xs">
+                {isOwnEntry ? "My Entry" : "Team"}
+              </Badge>
             </div>
             {entry.locationBorn && (
               <p className="text-sm text-muted-foreground truncate">
                 {entry.locationBorn}
               </p>
             )}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-              <span>
-                {entry.dateOfBirth
-                  ? format(new Date(entry.dateOfBirth), "MMM d, yyyy")
-                  : ""}
-              </span>
-              <span>-</span>
-              <span>
-                {entry.dateOfDeath
-                  ? format(new Date(entry.dateOfDeath), "MMM d, yyyy")
-                  : ""}
-              </span>
+            <div className="text-sm text-muted-foreground">
+              {entry.dateOfBirth
+                ? format(new Date(entry.dateOfBirth), "MMM d, yyyy")
+                : ""}
+              <span className="px-1">—</span>
+              {entry.dateOfDeath
+                ? format(new Date(entry.dateOfDeath), "MMM d, yyyy")
+                : ""}
             </div>
-            {isOwnEntry ? (
-              <div className="mt-4 pb-4 md:pb-0">
-                <ActionButtons entry={entry} />
-              </div>
-            ) : (
-              <div className="mt-4 pb-4 md:pb-0">
-                <Link
-                  href={`/${entry.id}`}
-                  className={buttonVariants({
-                    variant: "outline",
-                    size: "sm",
-                    className: "w-full",
-                  })}
-                >
-                  <Icon icon="mdi:eye" className="w-4 h-4 mr-2" />
-                  View Entry
-                </Link>
-              </div>
-            )}
           </div>
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex flex-col gap-2 md:items-end">
+          {isOwnEntry ? (
+            <ActionButtons entry={entry} />
+          ) : (
+            <Link
+              href={`/${entry.id}`}
+              className={buttonVariants({
+                variant: "outline",
+                size: "sm",
+                className: "w-full md:w-auto",
+              })}
+            >
+              <Icon icon="mdi:eye" className="mr-2 size-4" />
+              View Entry
+            </Link>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -441,48 +489,86 @@ const UserStats = ({
 }) => {
   const totalEntries = entries.length;
   const totalUploads = uploads.length;
-
   const stats = [
     {
       label: "Total Entries",
       value: totalEntries,
       icon: "mdi:account-multiple",
-      color: "text-blue-600",
     },
     {
       label: "This Month",
       value: entriesThisMonth,
       icon: "mdi:calendar-month",
-      color: "text-green-600",
     },
     {
-      label: "Total Uploads",
+      label: "Uploads",
       value: totalUploads,
       icon: "mdi:cloud-upload",
-      color: "text-orange-600",
     },
   ];
 
+  const latestEntry = entries[0];
+  const latestUpload = uploads[0];
+  const helperText = entriesThisMonth
+    ? "Great work—keep the momentum going this month."
+    : "No entries yet this month. Create one to stay on track.";
+
   return (
-    <div className="space-y-4">
-      {stats.map((stat, index) => (
-        <Card key={index} className="hover:shadow-md transition-shadow">
-          <CardContent className="px-4">
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg bg-muted/50 ${stat.color}`}>
-                <Icon icon={stat.icon} className="size-8" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  {stat.label}
+    <Card className="rounded-3xl border bg-card/80 shadow-sm">
+      <CardContent className="space-y-6 p-6">
+        <div className="grid gap-4 sm:grid-cols-3">
+          {stats.map((stat) => (
+            <div
+              key={stat.label}
+              className="rounded-2xl border border-border/60 bg-background/70 p-4 @container [@container(min-width:16rem)]:grid [@container(min-width:16rem)]:grid-rows-[auto_auto] [@container(min-width:16rem)]:gap-3"
+            >
+              <div className="flex items-center gap-3 [@container(min-width:16rem)]:grid [@container(min-width:16rem)]:grid-cols-[auto_auto] [@container(min-width:16rem)]:items-start [@container(min-width:16rem)]:gap-6">
+                <div className="rounded-full bg-muted/70 p-2">
+                  <Icon icon={stat.icon} className="size-5 text-muted-foreground" />
+                </div>
+                <p className="text-2xl font-semibold [@container(min-width:16rem)]:text-3xl [@container(min-width:20rem)]:text-4xl">
+                  {stat.value}
                 </p>
-                <p className="text-md font-semibold">{stat.value}</p>
               </div>
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground [@container(min-width:16rem)]:col-span-2 [@container(min-width:16rem)]:text-center [@container(min-width:16rem)]:justify-self-center [@container(min-width:16rem)]:mt-1">
+                {stat.label}
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+          ))}
+        </div>
+
+        <div className="rounded-2xl border border-dashed border-border/70 bg-muted/20 p-4">
+          <p className="text-xs font-medium uppercase tracking-[0.3em] text-muted-foreground">
+            Activity Highlights
+          </p>
+          <div className="mt-3 grid gap-4 text-sm sm:grid-cols-2">
+            <div>
+              <p className="text-muted-foreground">Newest Entry</p>
+              <p className="font-medium">{latestEntry?.name ?? "—"}</p>
+              <p className="text-xs text-muted-foreground">
+                {latestEntry?.createdAt
+                  ? format(new Date(latestEntry.createdAt), "MMM d, yyyy")
+                  : "Add an entry to see activity"}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Latest Upload</p>
+              <p className="font-medium">
+                {latestUpload?.fileName ?? `${totalUploads} files in library`}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {latestUpload?.createdAt
+                  ? format(new Date(latestUpload.createdAt), "MMM d, yyyy")
+                  : "Uploads appear here"}
+              </p>
+            </div>
+          </div>
+          <p className="mt-4 rounded-xl bg-background/80 px-3 py-2 text-xs text-muted-foreground">
+            {helperText}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

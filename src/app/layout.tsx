@@ -55,7 +55,9 @@ export default function RootLayout({
             <Suspense>
               <Header />
             </Suspense>
-            {children}
+            <div className="pt-20 md:pt-24 flex-1">
+              {children}
+            </div>
             <Footer />
             <BackgroundPattern />
           </AppContext>
