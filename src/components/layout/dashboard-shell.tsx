@@ -48,6 +48,11 @@ const sidebarLinks: SidebarLink[] = [
     icon: "mdi:view-dashboard-outline",
   },
   {
+    label: "Feedback",
+    href: "/dashboard/feedback",
+    icon: "mdi:message-text-outline",
+  },
+  {
     label: "Feedback Surveys",
     href: "/dashboard/feedback-surveys",
     icon: "mdi:clipboard-text-outline",
