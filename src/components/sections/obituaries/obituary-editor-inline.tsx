@@ -1,7 +1,6 @@
 "use client";
 
 import { updateObituaryContent } from "@/actions/obituaries";
-import { obituaryUpdateProcessingAtom } from "@/atoms/obituary-update";
 import { Response } from "@/components/ai/response";
 import { SelectionToolbar } from "@/components/annotations";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { Icon } from "@/components/ui/icon";
 import { useTextSelection } from "@/hooks/use-text-selection";
 import { extractAnchorData, type AnchorData } from "@/lib/annotations";
 import { htmlToMarkdown, markdownToHtml } from "@/lib/markdown-converter";
-import { isEditingObituaryAtom } from "@/lib/state";
+import { isEditingObituaryAtom, obituaryUpdateProcessingAtom } from "@/lib/state";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useAtomValue, useSetAtom } from "jotai";

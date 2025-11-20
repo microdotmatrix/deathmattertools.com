@@ -1,11 +1,11 @@
 "use client";
 
-import { obituaryUpdateProcessingAtom } from "@/atoms/obituary-update";
 import { Response } from "@/components/ai/response";
 import { SelectionToolbar } from "@/components/annotations";
 import { Icon } from "@/components/ui/icon";
 import { useTextSelection } from "@/hooks/use-text-selection";
 import { extractAnchorData, type AnchorData } from "@/lib/annotations";
+import { obituaryUpdateProcessingAtom } from "@/lib/state";
 import { useAtomValue } from "jotai";
 import { useRef } from "react";
 

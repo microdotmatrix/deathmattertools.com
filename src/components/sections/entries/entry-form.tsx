@@ -69,7 +69,7 @@ export const EntryForm = ({
       />
 
       {/* Locations */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+      <div className="grid grid-cols-1 @lg:grid-cols-2 gap-4 mt-8">
         <AnimatedInput
           label="Birth Location"
           name="birthLocation"
@@ -87,7 +87,7 @@ export const EntryForm = ({
       </div>
 
       {/* Dates */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 @lg:grid-cols-2 gap-4 mb-8">
         <div className="space-y-0.5">
           <Label
             htmlFor="dateOfBirth"

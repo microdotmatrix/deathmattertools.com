@@ -1,11 +1,9 @@
 "use client";
 
+import { AnimatedInput } from "@/components/elements/form/animated-input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { emailAction } from "@/lib/api/email";
 import { ActionState } from "@/lib/utils";
 import { useActionState } from "react";
@@ -29,33 +27,28 @@ export const ContactSection = () => {
         </Alert>
       ) : (
         <>
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              name="name"
-              type="text"
-              placeholder="Your name"
-              defaultValue={state.name}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              name="email"
-              type="email"
-              placeholder="your@email.com"
-              defaultValue={state.email}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="message">Message</Label>
-            <Textarea
-              name="message"
-              placeholder="Your message..."
-              className="min-h-32"
-              defaultValue={state.message}
-            />
-          </div>
+          <AnimatedInput
+            name="name"
+            label="Name"
+            type="text"
+            placeholder="Your name"
+            defaultValue={state.name}
+          />
+          <AnimatedInput
+            name="email"
+            label="Email"
+            type="email"
+            placeholder="your@email.com"
+            defaultValue={state.email}
+          />
+          <AnimatedInput
+            name="message"
+            label="Message"
+            type="textarea"
+            placeholder="Your message..."
+            className="min-h-32"
+            defaultValue={state.message}
+          />
           <div className="flex items-center gap-1">
             <Button type="submit" className="flex-1" disabled={pending}>
               {pending ? (

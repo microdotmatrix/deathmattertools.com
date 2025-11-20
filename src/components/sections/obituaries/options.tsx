@@ -15,6 +15,8 @@ export const ObituaryOptions = ({
   toInclude,
   toAvoid,
   isReligious,
+  completed,
+  isPending,
   handleInputChange,
 }: {
   entry: Entry;
@@ -24,6 +26,8 @@ export const ObituaryOptions = ({
   toInclude: string;
   toAvoid: string;
   isReligious: boolean;
+  completed: boolean;
+  isPending: boolean;
   handleInputChange: (field: string, value: string) => void;
 }) => {
   const setOpenDetails = useSetAtom(entryDetailsFormAtom);
@@ -67,6 +71,7 @@ export const ObituaryOptions = ({
       <Label htmlFor="style">Style</Label>
       <RadioGroup
         defaultValue={style}
+        disabled={isPending}
         onValueChange={(value) => handleInputChange("style", value)}
         className="flex flex-row gap-8 my-4"
       >
@@ -83,6 +88,7 @@ export const ObituaryOptions = ({
       <Label htmlFor="tone">Desired Tone</Label>
       <RadioGroup
         defaultValue={tone}
+        disabled={isPending}
         onValueChange={(value) => handleInputChange("tone", value)}
         className="grid xl:grid-cols-2 mt-4"
       >
@@ -149,6 +155,7 @@ export const ObituaryOptions = ({
         <Checkbox
           id="isReligious"
           checked={isReligious}
+          disabled={isPending}
           onCheckedChange={(checked) =>
             handleInputChange("isReligious", checked ? "true" : "false")
           }

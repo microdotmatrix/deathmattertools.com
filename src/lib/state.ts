@@ -43,3 +43,9 @@ export const useEntryDetailsForm = () => {
  * to prevent conflicts with manual editing.
  */
 export const isEditingObituaryAtom = atom<boolean>(false);
+
+/**
+ * Tracks when an obituary is being updated via AI chat so UI components can
+ * coordinate their loading states.
+ */
+export const obituaryUpdateProcessingAtom = atom<boolean>(false);

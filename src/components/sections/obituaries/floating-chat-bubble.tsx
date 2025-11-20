@@ -1,6 +1,5 @@
 "use client";
 
-import { obituaryUpdateProcessingAtom } from "@/atoms/obituary-update";
 import {
   Conversation,
   ConversationContent,
@@ -21,7 +20,7 @@ import { MessageFeedback } from "@/components/ai/message-feedback";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { convertToUIMessages } from "@/lib/ai/utils";
-import { isEditingObituaryAtom } from "@/lib/state";
+import { isEditingObituaryAtom, obituaryUpdateProcessingAtom } from "@/lib/state";
 import { generateUUID } from "@/lib/utils";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
