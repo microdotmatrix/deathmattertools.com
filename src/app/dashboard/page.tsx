@@ -22,9 +22,15 @@ import { getUserGeneratedImagesCount } from "@/lib/db/queries/media";
 import { Entry } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { differenceInYears, format } from "date-fns";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Manage your memorial entries, view workspace activity, and create new obituaries and images.",
+};
 
 export default async function DashboardPage() {
   const { userId } = await auth();

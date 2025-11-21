@@ -8,8 +8,14 @@ import { getFeedbackStatusCounts, getFeedbackTypeCounts, getSystemFeedback } fro
 import type { SystemFeedbackWithUser } from "@/lib/db/schema";
 import type { Feedback } from "@/lib/types/feedback";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "System Feedback",
+  description: "Review and manage user feedback and error reports (Admin Only).",
+};
 
 type SessionClaims = ReturnType<typeof auth> extends Promise<infer T>
   ? T extends { sessionClaims?: infer Claims }

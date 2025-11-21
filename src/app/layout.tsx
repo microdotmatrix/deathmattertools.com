@@ -11,6 +11,7 @@ import { Suspense } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(meta.url),
   title: {
     template: `%s | ${meta.title}`,
     default: meta.title,
@@ -18,6 +19,19 @@ export const metadata: Metadata = {
   description: meta.description,
   keywords: meta.keywords,
   authors: [{ name: meta.author }],
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: meta.url,
+    title: meta.title,
+    description: meta.description,
+    siteName: meta.title,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: meta.title,
+    description: meta.description,
+  },
 };
 
 export const viewport: Viewport = {

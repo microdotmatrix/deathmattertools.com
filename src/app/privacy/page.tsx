@@ -1,5 +1,11 @@
 import { PageHeading } from "@/components/elements/page-heading";
 import { ReturnHome } from "@/components/elements/return-home";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "Read our privacy policy to understand how Death Matter Tools collects, uses, and protects your personal information.",
+};
 
 export const experimental_ppr = true;
 

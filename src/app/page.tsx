@@ -2,6 +2,17 @@ import { HeroSection } from "@/components/sections/home/hero";
 import { MemorialSection } from "@/components/sections/home/memorial";
 import { ObituarySection } from "@/components/sections/home/obituary";
 import { QuotesSection } from "@/components/sections/home/quotes";
+import { meta } from "@/lib/config";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Home",
+  description: meta.description,
+  openGraph: {
+    title: `${meta.title} - Home`,
+    description: meta.description,
+  },
+};
 
 export default function Home() {
   return (

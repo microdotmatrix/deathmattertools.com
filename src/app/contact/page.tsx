@@ -1,6 +1,12 @@
 import { ContactSection } from "@/components/email/contact-form";
 import { FeatureRequestForm } from "@/components/forms/feature-request-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Contact Us",
+  description: "Get in touch with Death Matter Tools. Send us a message or submit a feature request.",
+};
 
 export const experimental_ppr = true;
 

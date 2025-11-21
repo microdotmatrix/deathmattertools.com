@@ -1,5 +1,11 @@
 import { PageHeading } from "@/components/elements/page-heading";
 import { ReturnHome } from "@/components/elements/return-home";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description: "Review our terms of service to understand the rules and guidelines for using Death Matter Tools.",
+};
 
 export default function TermsPage() {
   return (

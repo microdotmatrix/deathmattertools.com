@@ -16,11 +16,58 @@ interface ErrorReportFormProps {
   onSuccess?: () => void;
 }
 
+/**
+ * Converts a pathname to a readable page title
+ */
+function getPageTitleFromPathname(pathname: string): string {
+  // Handle root
+  if (pathname === "/") return "Home";
+  
+  // Handle auth routes
+  if (pathname.startsWith("/sign-in")) return "Sign In";
+  if (pathname.startsWith("/sign-up")) return "Sign Up";
+  
+  // Handle static marketing pages
+  if (pathname === "/about") return "About";
+  if (pathname === "/contact") return "Contact";
+  if (pathname === "/privacy") return "Privacy Policy";
+  if (pathname === "/terms") return "Terms of Service";
+  
+  // Handle dashboard routes
+  if (pathname === "/dashboard") return "Dashboard";
+  if (pathname === "/dashboard/settings") return "Dashboard Settings";
+  if (pathname === "/dashboard/feedback") return "System Feedback (Admin)";
+  
+  // Handle dynamic entry routes
+  const entryMatch = pathname.match(/^\/([^\/]+)$/);
+  if (entryMatch) return "Entry Details";
+  
+  const obituaryViewMatch = pathname.match(/^\/([^\/]+)\/obituaries\/([^\/]+)$/);
+  if (obituaryViewMatch) return "Obituary View";
+  
+  const obituaryCreateMatch = pathname.match(/^\/([^\/]+)\/obituaries\/create$/);
+  if (obituaryCreateMatch) return "Create Obituary";
+  
+  const imagesMatch = pathname.match(/^\/([^\/]+)\/images$/);
+  if (imagesMatch) return "Memorial Images";
+  
+  const imageCreateMatch = pathname.match(/^\/([^\/]+)\/images\/create$/);
+  if (imageCreateMatch) return "Create Memorial Image";
+  
+  // Fallback: clean up the pathname for better readability
+  return pathname
+    .split("/")
+    .filter(Boolean)
+    .map(segment => segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " "))
+    .join(" > ");
+}
+
 export const ErrorReportForm = ({ onSuccess }: ErrorReportFormProps) => {
   const { userId, isSignedIn } = useAuth();
   const pathname = usePathname();
+  const pageTitle = getPageTitleFromPathname(pathname || "");
   
-  const [module, setModule] = useState(pathname || "");
+  const [module, setModule] = useState(pageTitle);
   const [description, setDescription] = useState("");
   const [action, setAction] = useState("");
   const [email, setEmail] = useState("");
@@ -88,7 +135,7 @@ export const ErrorReportForm = ({ onSuccess }: ErrorReportFormProps) => {
         });
         
         // Reset form
-        setModule(pathname || "");
+        setModule(pageTitle);
         setDescription("");
         setAction("");
         setEmail("");
