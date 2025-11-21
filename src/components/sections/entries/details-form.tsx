@@ -708,19 +708,26 @@ const FamilyMemberInputs = ({
               updateFamilyMember?.(type, member.id, "name", e.target.value)
             }
           />
-          <Input
-            name="relationship"
-            placeholder="Relationship"
+          <Select
             value={member.relationship}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              updateFamilyMember?.(
-                type,
-                member.id,
-                "relationship",
-                e.target.value
-              )
+            onValueChange={(value) =>
+              updateFamilyMember?.(type, member.id, "relationship", value)
             }
-          />
+          >
+            <SelectTrigger className="w-full lg:w-[200px]">
+              <SelectValue placeholder="Relationship" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="parent">Parent</SelectItem>
+              <SelectItem value="child">Child</SelectItem>
+              <SelectItem value="ancestor">Ancestor</SelectItem>
+              <SelectItem value="descendant">Descendant</SelectItem>
+              <SelectItem value="cousin">Cousin</SelectItem>
+              <SelectItem value="friend">Friend</SelectItem>
+              <SelectItem value="spouse">Spouse</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
           <Button
             type="button"
             variant="outline"
