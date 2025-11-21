@@ -6,20 +6,20 @@ import { type ReactNode } from "react";
 
 import { Icon } from "@/components/ui/icon";
 import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarGroup,
-    SidebarGroupLabel,
-    SidebarHeader,
-    SidebarInset,
-    SidebarMenu,
-    SidebarMenuBadge,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarProvider,
-    SidebarSeparator,
-    SidebarTrigger,
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarSeparator,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { OrganizationSwitcher, SignedIn, useUser } from "@clerk/nextjs";
 
@@ -104,7 +104,7 @@ export const DashboardHeader = ({
     <div className="flex flex-col gap-4 border-b border-border/50 pb-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-start gap-3">
-          <SidebarTrigger className="mt-1" />
+          <SidebarTrigger className="mt-2 fixed inset-y-0 -ml-2" />
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.35em] text-muted-foreground">
               {eyebrow}
@@ -205,7 +205,7 @@ const DashboardSidebar = () => {
           </SidebarGroup>
         )}
       </SidebarContent>
-      <SidebarSeparator />
+      <SidebarSeparator className="mx-0" />
       <SidebarFooter>
         <div className="rounded-lg border border-dashed border-sidebar-border/80 px-3 py-2 text-xs text-muted-foreground">
           Toggle sidebar with <span className="font-semibold text-foreground">⌘/Ctrl + B</span>

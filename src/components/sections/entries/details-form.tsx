@@ -492,7 +492,7 @@ const BiographicalDetailsStep = ({ data, onChange }: StepProps) => {
               value={data.militaryBranch || ""}
               onValueChange={(value) => onChange({ militaryBranch: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full py-4.75">
                 <SelectValue placeholder="Select branch" />
               </SelectTrigger>
               <SelectContent>
@@ -572,7 +572,7 @@ const BiographicalDetailsStep = ({ data, onChange }: StepProps) => {
                 value={data.denomination || ""}
                 onValueChange={(value) => onChange({ denomination: value })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full py-4.75">
                   <SelectValue placeholder="Select denomination" />
                 </SelectTrigger>
                 <SelectContent>
