@@ -576,15 +576,46 @@ const BiographicalDetailsStep = ({ data, onChange }: StepProps) => {
                   <SelectValue placeholder="Select denomination" />
                 </SelectTrigger>
                 <SelectContent>
+                  <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
+                    Christian Traditions
+                  </div>
                   <SelectItem value="catholic">Catholic</SelectItem>
                   <SelectItem value="protestant">Protestant</SelectItem>
                   <SelectItem value="baptist">Baptist</SelectItem>
                   <SelectItem value="methodist">Methodist</SelectItem>
                   <SelectItem value="lutheran">Lutheran</SelectItem>
+                  <SelectItem value="pentecostal">Pentecostal</SelectItem>
                   <SelectItem value="presbyterian">Presbyterian</SelectItem>
                   <SelectItem value="episcopal">Episcopal</SelectItem>
                   <SelectItem value="orthodox">Orthodox</SelectItem>
                   <SelectItem value="non-denominational">Non-denominational</SelectItem>
+                  <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
+                    Jewish Traditions
+                  </div>
+                  <SelectItem value="reform-jewish">Reform Judaism</SelectItem>
+                  <SelectItem value="conservative-jewish">Conservative Judaism</SelectItem>
+                  <SelectItem value="orthodox-jewish">Orthodox Judaism</SelectItem>
+                  <SelectItem value="hasidic">Hasidic</SelectItem>
+                  <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
+                    Islamic Traditions
+                  </div>
+                  <SelectItem value="sunni">Sunni</SelectItem>
+                  <SelectItem value="shia">Shia</SelectItem>
+                  <SelectItem value="sufi">Sufi</SelectItem>
+                  <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
+                    Eastern Traditions
+                  </div>
+                  <SelectItem value="hindu">Hindu</SelectItem>
+                  <SelectItem value="buddhist">Buddhist</SelectItem>
+                  <SelectItem value="taoist">Taoist</SelectItem>
+                  <SelectItem value="sikh">Sikh</SelectItem>
+                  <SelectItem value="jain">Jain</SelectItem>
+                  <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
+                    Indigenous & Other Faiths
+                  </div>
+                  <SelectItem value="indigenous">Indigenous / First Nations</SelectItem>
+                  <SelectItem value="bahai">Bahá'í</SelectItem>
+                  <SelectItem value="humanist">Humanist / Spiritual but not Religious</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                   <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
                 </SelectContent>

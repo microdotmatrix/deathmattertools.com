@@ -1,7 +1,7 @@
 "use client";
 
 import { updateObituaryContent } from "@/actions/obituaries";
-import { Response } from "@/components/ai/response";
+import { MessageResponse } from "@/components/ai-elements/message";
 import { SelectionToolbar } from "@/components/annotations";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -234,7 +234,7 @@ export const ObituaryEditorInline = ({
             ref={contentRef}
             className="prose dark:prose-invert prose-md lg:prose-lg max-w-4xl"
           >
-            <Response>{content}</Response>
+            <MessageResponse>{content}</MessageResponse>
           </div>
           
           {/* Processing indicator - shown when AI is updating the obituary */}

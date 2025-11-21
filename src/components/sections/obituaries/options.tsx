@@ -36,7 +36,7 @@ export const ObituaryOptions = ({
     {
       value: "reverent",
       label: "Reverent",
-      description: "Respectful and deeply honoring (default)",
+      description: "Respectful and honoring (default)",
     },
     { value: "somber", label: "Somber", description: "Serious and reflective" },
     {

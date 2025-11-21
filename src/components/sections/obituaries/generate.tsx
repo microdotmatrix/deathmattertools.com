@@ -1,6 +1,6 @@
 "use client";
 
-import { Response } from "@/components/ai/response";
+import { MessageResponse } from "@/components/ai-elements/message";
 import { DirectionAwareTabs } from "@/components/elements/animated-tabs";
 import { Typewriter } from "@/components/elements/typewriter";
 import { QuoteSelector } from "@/components/quotes-scripture/quote-selector";
@@ -188,7 +188,7 @@ export const GenerateObituary = ({
             />
           )}
 
-          <Response key={content}>{content}</Response>
+          <MessageResponse key={content}>{content}</MessageResponse>
           {completed && (
             <div className="flex flex-col gap-4 mt-12 border-t py-8">
               <div className="grid lg:grid-cols-2 gap-8 max-w-lg mx-auto text-center">

@@ -4,6 +4,7 @@ export * from "./entries";
 export * from "./entry-feedback";
 export * from "./media";
 export * from "./organizations";
+export * from "./page-content";
 export * from "./quotes";
 export * from "./settings";
 export * from "./system-feedback";
