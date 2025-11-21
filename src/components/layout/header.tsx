@@ -1,5 +1,6 @@
 "use client";
 
+import { ErrorReportPopover } from "@/components/error-reporting/error-report-popover";
 import { ThemeToggle } from "@/components/theme/toggle";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -8,11 +9,11 @@ import { useMounted } from "@/hooks/use-mounted";
 import { navigationLinks } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  UserButton,
-  useUser,
+    SignedIn,
+    SignedOut,
+    SignInButton,
+    UserButton,
+    useUser,
 } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -23,7 +24,7 @@ export const Header = () => {
   const mounted = useMounted();
   return (
     <header className="fixed top-4 right-4 z-50">
-      <div className="flex items-center gap-3 rounded-full border border-border/70 bg-background/90 px-3 py-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex items-center gap-3 rounded-full border border-border/70 bg-background/90 px-3 py-2 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/60">
         <Link
           href="/"
           className="hidden sm:flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80"
@@ -86,6 +87,7 @@ export const Header = () => {
 
         {mounted && (
           <div className="flex items-center gap-2">
+            <ErrorReportPopover />
             {isLoaded && (
               <>
                 <SignedOut>

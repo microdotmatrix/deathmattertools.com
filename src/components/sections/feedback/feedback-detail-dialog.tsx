@@ -1,5 +1,6 @@
 "use client";
 
+import { updateFeedbackStatusAndNotesAction } from "@/actions/system-feedback-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { Feedback } from "@/lib/types/feedback";
 import { FeedbackStatus, FeedbackType } from "@/lib/types/feedback";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 type FeedbackDetailDialogProps = {
@@ -68,6 +69,7 @@ export const FeedbackDetailDialog = ({
 }: FeedbackDetailDialogProps) => {
   const [status, setStatus] = useState<FeedbackStatus | "">("");
   const [internalNotes, setInternalNotes] = useState<string>("");
+  const [isPending, startTransition] = useTransition();
 
   // Update local state when feedback changes
   useEffect(() => {
@@ -82,16 +84,30 @@ export const FeedbackDetailDialog = ({
   }
 
   const handleSave = () => {
-    // Phase 1: Non-functional, just show toast
-    toast.success("Feedback updated", {
-      description: "In Phase 1, changes are not persisted. This will be functional in Phase 2.",
+    if (!status) {
+      toast.error("Status is required");
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await updateFeedbackStatusAndNotesAction({
+        feedbackId: feedback.id,
+        status: status as "new" | "in_review" | "resolved" | "dismissed",
+        internalNotes: internalNotes || undefined,
+      });
+
+      if (result.success) {
+        toast.success("Feedback updated successfully");
+        onOpenChange(false);
+      } else {
+        toast.error(result.error || "Failed to update feedback");
+      }
     });
-    onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-full lg:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{feedback.subject}</DialogTitle>
           <DialogDescription>
@@ -122,12 +138,19 @@ export const FeedbackDetailDialog = ({
                 </div>
               </div>
             )}
-            {feedback.userId && (
-              <div>
-                <Label className="text-xs text-muted-foreground">User ID</Label>
-                <p className="mt-1 font-mono text-xs">
-                  {feedback.userId}
-                </p>
+            {(feedback.user || feedback.userId) && (
+              <div className="col-span-2">
+                <Label className="text-xs text-muted-foreground">Submitted By</Label>
+                <div className="mt-1">
+                  {feedback.user ? (
+                    <div>
+                      <p className="text-sm font-medium">{feedback.user.name}</p>
+                      <p className="text-xs text-muted-foreground">{feedback.user.email}</p>
+                    </div>
+                  ) : (
+                    <p className="text-xs font-mono text-muted-foreground">{feedback.userId}</p>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -135,17 +158,31 @@ export const FeedbackDetailDialog = ({
           {/* Message */}
           <div>
             <Label className="text-xs text-muted-foreground">Message</Label>
-            <div className="mt-2 rounded-md border bg-muted/50 p-4">
-              <p className="text-sm whitespace-pre-wrap">{feedback.message}</p>
+            <div className="mt-2 rounded-md border bg-muted/50 p-4 w-full overflow-hidden">
+              <p className="text-sm whitespace-pre-wrap wrap-break-word overflow-wrap-anywhere">{feedback.message}</p>
             </div>
           </div>
 
+          {/* Screenshot if present */}
+          {feedback.metadata?.screenshot && typeof feedback.metadata.screenshot === 'string' && (
+            <div>
+              <Label className="text-xs text-muted-foreground">Screenshot</Label>
+              <div className="mt-2 rounded-md border overflow-hidden">
+                <img
+                  src={feedback.metadata.screenshot}
+                  alt="Error screenshot"
+                  className="w-full h-auto"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Metadata JSON if present */}
           {feedback.metadata && Object.keys(feedback.metadata).length > 0 && (
-            <div>
+            <div className="w-full">
               <Label className="text-xs text-muted-foreground">Metadata</Label>
-              <div className="mt-2 rounded-md border bg-muted/50 p-4">
-                <pre className="text-xs overflow-x-auto">
+              <div className="mt-2 rounded-md border bg-muted/50 p-4 w-full overflow-x-auto">
+                <pre className="text-xs whitespace-pre-wrap">
                   {JSON.stringify(feedback.metadata, null, 2)}
                 </pre>
               </div>
@@ -194,10 +231,12 @@ export const FeedbackDetailDialog = ({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>Save Changes</Button>
+          <Button onClick={handleSave} disabled={isPending}>
+            {isPending ? "Saving..." : "Save Changes"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

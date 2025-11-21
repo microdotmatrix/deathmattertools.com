@@ -6,22 +6,22 @@ import { type ReactNode } from "react";
 
 import { Icon } from "@/components/ui/icon";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuBadge,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarSeparator,
-  SidebarTrigger,
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarGroup,
+    SidebarGroupLabel,
+    SidebarHeader,
+    SidebarInset,
+    SidebarMenu,
+    SidebarMenuBadge,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarProvider,
+    SidebarSeparator,
+    SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { OrganizationSwitcher, SignedIn } from "@clerk/nextjs";
+import { OrganizationSwitcher, SignedIn, useUser } from "@clerk/nextjs";
 
 type DashboardShellProps = {
   children: ReactNode;
@@ -39,18 +39,14 @@ type SidebarLink = {
   href: string;
   icon: string;
   disabled?: boolean;
+  matchSubRoutes?: boolean;
 };
 
-const sidebarLinks: SidebarLink[] = [
+const workspaceLinks: SidebarLink[] = [
   {
     label: "Overview",
     href: "/dashboard",
     icon: "mdi:view-dashboard-outline",
-  },
-  {
-    label: "Feedback",
-    href: "/dashboard/feedback",
-    icon: "mdi:message-text-outline",
   },
   {
     label: "Feedback Surveys",
@@ -69,6 +65,15 @@ const sidebarLinks: SidebarLink[] = [
     href: "/dashboard/organization",
     icon: "mdi:account-group-outline",
     disabled: true,
+  },
+];
+
+const adminLinks: SidebarLink[] = [
+  {
+    label: "Feedback",
+    href: "/dashboard/feedback",
+    icon: "mdi:message-text-outline",
+    matchSubRoutes: true,
   },
 ];
 
@@ -124,6 +129,51 @@ export const DashboardHeader = ({
 
 const DashboardSidebar = () => {
   const pathname = usePathname();
+  const { user } = useUser();
+  const isSystemAdmin = user?.publicMetadata?.role === "system_admin";
+
+  const renderLinks = (links: SidebarLink[]) => (
+    <SidebarMenu>
+      {links.map((item) => {
+        const matchesExact = pathname === item.href;
+        const matchesSubRoute =
+          item.matchSubRoutes && pathname.startsWith(`${item.href}/`);
+        const isActive = !item.disabled && (matchesExact || matchesSubRoute);
+
+        const buttonLabel = (
+          <span className="flex items-center gap-2">
+            <Icon icon={item.icon} className="size-4" aria-hidden="true" />
+            <span>{item.label}</span>
+          </span>
+        );
+
+        return (
+          <SidebarMenuItem key={item.label}>
+            {item.disabled ? (
+              <>
+                <SidebarMenuButton
+                  aria-disabled="true"
+                  className="pointer-events-none opacity-60"
+                  tooltip="Coming soon"
+                >
+                  {buttonLabel}
+                </SidebarMenuButton>
+                <SidebarMenuBadge className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Soon
+                </SidebarMenuBadge>
+              </>
+            ) : (
+              <SidebarMenuButton asChild isActive={isActive}>
+                <Link href={item.href} className="flex items-center gap-2">
+                  {buttonLabel}
+                </Link>
+              </SidebarMenuButton>
+            )}
+          </SidebarMenuItem>
+        );
+      })}
+    </SidebarMenu>
+  );
 
   return (
     <>
@@ -146,46 +196,14 @@ const DashboardSidebar = () => {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Workspace</SidebarGroupLabel>
-          <SidebarMenu>
-            {sidebarLinks.map((item) => {
-              const isActive =
-                !item.disabled &&
-                (pathname === item.href || pathname.startsWith(`${item.href}/`));
-
-              const buttonLabel = (
-                <span className="flex items-center gap-2">
-                  <Icon icon={item.icon} className="size-4" aria-hidden="true" />
-                  <span>{item.label}</span>
-                </span>
-              );
-
-              return (
-                <SidebarMenuItem key={item.label}>
-                  {item.disabled ? (
-                    <>
-                      <SidebarMenuButton
-                        aria-disabled="true"
-                        className="pointer-events-none opacity-60"
-                        tooltip="Coming soon"
-                      >
-                        {buttonLabel}
-                      </SidebarMenuButton>
-                      <SidebarMenuBadge className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                        Soon
-                      </SidebarMenuBadge>
-                    </>
-                  ) : (
-                    <SidebarMenuButton asChild isActive={isActive}>
-                      <Link href={item.href} className="flex items-center gap-2">
-                        {buttonLabel}
-                      </Link>
-                    </SidebarMenuButton>
-                  )}
-                </SidebarMenuItem>
-              );
-            })}
-          </SidebarMenu>
+          {renderLinks(workspaceLinks)}
         </SidebarGroup>
+        {isSystemAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            {renderLinks(adminLinks)}
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarSeparator />
       <SidebarFooter>

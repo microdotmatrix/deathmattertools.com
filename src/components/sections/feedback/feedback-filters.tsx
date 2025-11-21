@@ -2,11 +2,11 @@
 
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import type { Feedback } from "@/lib/types/feedback";
 import { FeedbackStatus, FeedbackType } from "@/lib/types/feedback";
@@ -23,6 +23,7 @@ export const FeedbackFilters = ({
 }: FeedbackFiltersProps) => {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
@@ -38,6 +39,11 @@ export const FeedbackFilters = ({
       filtered = filtered.filter((item) => item.status === statusFilter);
     }
 
+    // Filter by source
+    if (sourceFilter !== "all") {
+      filtered = filtered.filter((item) => item.source === sourceFilter);
+    }
+
     // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -49,7 +55,7 @@ export const FeedbackFilters = ({
     }
 
     onFilterChange(filtered);
-  }, [feedback, typeFilter, statusFilter, searchQuery, onFilterChange]);
+  }, [feedback, typeFilter, statusFilter, sourceFilter, searchQuery, onFilterChange]);
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row">
@@ -86,6 +92,18 @@ export const FeedbackFilters = ({
           <SelectItem value={FeedbackStatus.IN_REVIEW}>In Review</SelectItem>
           <SelectItem value={FeedbackStatus.RESOLVED}>Resolved</SelectItem>
           <SelectItem value={FeedbackStatus.DISMISSED}>Dismissed</SelectItem>
+        </SelectContent>
+      </Select>
+      <Select value={sourceFilter} onValueChange={setSourceFilter}>
+        <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectValue placeholder="All Sources" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Sources</SelectItem>
+          <SelectItem value="error_reporter">Error Reporter</SelectItem>
+          <SelectItem value="user_form">User Form</SelectItem>
+          <SelectItem value="pre_need_survey">Pre-Need Survey</SelectItem>
+          <SelectItem value="admin">Admin</SelectItem>
         </SelectContent>
       </Select>
     </div>

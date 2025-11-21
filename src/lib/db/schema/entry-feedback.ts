@@ -29,11 +29,11 @@ export const EntryFeedbackTable = pgTable(
       .$defaultFn(() => new Date())
       .notNull(),
   },
-  (table) => ({
-    entryIdIdx: index("entry_feedback_entry_id_idx").on(table.entryId),
-    statusIdx: index("entry_feedback_status_idx").on(table.status),
-    userIdIdx: index("entry_feedback_user_id_idx").on(table.userId),
-  })
+  (table) => [
+    index("entry_feedback_entry_id_idx").on(table.entryId),
+    index("entry_feedback_status_idx").on(table.status),
+    index("entry_feedback_user_id_idx").on(table.userId),
+  ]
 );
 
 export const EntryFeedbackRelations = relations(

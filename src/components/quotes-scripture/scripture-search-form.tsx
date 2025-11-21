@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -11,8 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, BookOpen } from "lucide-react";
 import type { SearchParams } from "@/lib/api/saved-content";
+import { BookOpen, Search } from "lucide-react";
+import { useState } from "react";
 
 interface ScriptureSearchFormProps {
   onSearch: (params: SearchParams) => void;
@@ -49,7 +49,7 @@ export function ScriptureSearchForm({ onSearch, loading }: ScriptureSearchFormPr
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="scripture-faith">Faith Tradition</Label>
+        <Label htmlFor="scripture-faith">Faith</Label>
         <Select 
           value={faith} 
           onValueChange={(v: "Christianity" | "Islam") => setFaith(v)}

@@ -46,5 +46,11 @@ export interface Feedback {
   priority?: FeedbackPriority | null;
   metadata?: Record<string, unknown> | null;
   internalNotes?: string | null;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    imageUrl: string | null;
+  } | null;
 }
 
