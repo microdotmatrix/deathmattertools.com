@@ -5,28 +5,32 @@ import { UserGeneratedImageTable } from "./media";
 import { SavedQuotesTable } from "./quotes";
 import { UserTable } from "./users";
 
-export const EntryTable = pgTable("entry", {
-  id: text("id").notNull().primaryKey(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => UserTable.id, { onDelete: "cascade" }),
-  organizationId: text("organization_id"),
-  name: text("name").notNull(),
-  dateOfBirth: timestamp("date_of_birth"),
-  dateOfDeath: timestamp("date_of_death"),
-  locationBorn: text("location_born"),
-  locationDied: text("location_died"),
-  image: text("image"),
-  causeOfDeath: text("cause_of_death"),
-  createdAt: timestamp("created_at")
-    .$defaultFn(() => new Date())
-    .notNull(),
-  updatedAt: timestamp("updated_at")
-    .$defaultFn(() => new Date())
-    .notNull(),
-}, (table) => ({
-  organizationIdIdx: index("entry_organization_id_idx").on(table.organizationId),
-}));
+export const EntryTable = pgTable(
+  "entry",
+  {
+    id: text("id").notNull().primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => UserTable.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id"),
+    name: text("name").notNull(),
+    dateOfBirth: timestamp("date_of_birth"),
+    dateOfDeath: timestamp("date_of_death"),
+    locationBorn: text("location_born"),
+    locationDied: text("location_died"),
+    image: text("image"),
+    causeOfDeath: text("cause_of_death"),
+    createdAt: timestamp("created_at")
+      .$defaultFn(() => new Date())
+      .notNull(),
+    updatedAt: timestamp("updated_at")
+      .$defaultFn(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("entry_organization_id_idx").on(table.organizationId),
+  ]
+);
 
 export const EntryRelations = relations(EntryTable, ({ one, many }) => ({
   user: one(UserTable, {

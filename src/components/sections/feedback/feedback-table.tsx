@@ -94,12 +94,12 @@ export const FeedbackTable = ({ feedback, onRowClick }: FeedbackTableProps) => {
       <div className="overflow-x-auto">
         <div className="min-w-full">
           {/* Header */}
-          <div className="grid grid-cols-12 gap-4 border-b bg-muted/50 px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <div className="grid grid-cols-8 md:grid-cols-12 gap-2 md:gap-4 border-b bg-muted/50 px-3 md:px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             <div className="col-span-2">Type</div>
-            <div className="col-span-4">Subject</div>
-            <div className="col-span-2">Created</div>
-            <div className="col-span-2">Status</div>
-            <div className="col-span-2">Source</div>
+            <div className="col-span-4 md:col-span-4">Subject</div>
+            <div className="hidden md:block md:col-span-2">Created</div>
+            <div className="col-span-2 md:col-span-2">Status</div>
+            <div className="hidden md:block md:col-span-2">Source</div>
           </div>
 
           {/* Rows */}
@@ -109,28 +109,28 @@ export const FeedbackTable = ({ feedback, onRowClick }: FeedbackTableProps) => {
                 key={item.id}
                 type="button"
                 onClick={() => onRowClick(item)}
-                className="grid w-full grid-cols-12 gap-4 px-4 py-4 text-left transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
+                className="grid w-full grid-cols-8 md:grid-cols-12 gap-2 md:gap-4 px-3 md:px-4 py-3 md:py-4 text-left transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
               >
                 <div className="col-span-2">
-                  <Badge variant={getTypeVariant(item.type)}>
+                  <Badge variant={getTypeVariant(item.type)} className="text-[10px] md:text-xs px-1.5 md:px-2">
                     {getTypeLabel(item.type)}
                   </Badge>
                 </div>
-                <div className="col-span-4">
-                  <p className="font-medium">{item.subject}</p>
-                  <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
+                <div className="col-span-4 md:col-span-4">
+                  <p className="font-medium text-sm md:text-base line-clamp-1">{item.subject}</p>
+                  <p className="mt-0.5 md:mt-1 line-clamp-1 text-xs md:text-sm text-muted-foreground">
                     {item.message}
                   </p>
                 </div>
-                <div className="col-span-2 text-sm text-muted-foreground">
+                <div className="hidden md:block md:col-span-2 text-sm text-muted-foreground">
                   {format(item.createdAt, "MMM d, yyyy")}
                 </div>
-                <div className="col-span-2">
-                  <Badge variant={getStatusVariant(item.status)}>
+                <div className="col-span-2 md:col-span-2">
+                  <Badge variant={getStatusVariant(item.status)} className="text-[10px] md:text-xs px-1.5 md:px-2">
                     {getStatusLabel(item.status)}
                   </Badge>
                 </div>
-                <div className="col-span-2 flex items-center justify-between">
+                <div className="hidden md:flex md:col-span-2 items-center justify-between">
                   <span className="text-sm text-muted-foreground">
                     {item.source.replace(/_/g, " ")}
                   </span>

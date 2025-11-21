@@ -85,7 +85,7 @@ export const ObituaryOptions = ({
         </span>
       </RadioGroup>
       <Separator className="my-6" />
-      <Label htmlFor="tone">Desired Tone</Label>
+      <Label htmlFor="tone">Desired Tone (Choose One)</Label>
       <RadioGroup
         defaultValue={tone}
         disabled={isPending}
