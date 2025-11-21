@@ -447,29 +447,16 @@ const BiographicalDetailsStep = ({ data, onChange }: StepProps) => {
         placeholder="A brief overview of their life story, character, and what made them special..."
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
-        <AnimatedInput
-          label="Hobbies"
-          name="hobbies"
-          type="textarea"
-          controlled={true}
-          value={data.hobbies || ""}
-          onChange={(e) => onChange({ hobbies: e.target.value })}
-          placeholder="Activities they enjoyed in their free time..."
-          className="h-16"
-        />
-
-        <AnimatedInput
-          label="Personal Interests"
-          name="personalInterests"
-          type="textarea"
-          controlled={true}
-          value={data.personalInterests || ""}
-          onChange={(e) => onChange({ personalInterests: e.target.value })}
-          placeholder="Passions, causes they cared about, special interests..."
-          className="h-16"
-        />
-      </div>
+      <AnimatedInput
+        label="Personal Interests"
+        name="personalInterests"
+        type="textarea"
+        controlled={true}
+        value={data.personalInterests || ""}
+        onChange={(e) => onChange({ personalInterests: e.target.value })}
+        placeholder="Hobbies, passions, causes they cared about, special interests..."
+        className="h-16"
+      />
 
       {/* Military Service Section */}
       <div className="space-y-4 pt-4 border-t">
@@ -501,14 +488,28 @@ const BiographicalDetailsStep = ({ data, onChange }: StepProps) => {
 
         {data.militaryService && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-6 mt-8">
-            <AnimatedInput
-              label="Branch"
-              name="militaryBranch"
-              controlled={true}
-              value={data.militaryBranch || ""}
-              onChange={(e) => onChange({ militaryBranch: e.target.value })}
-              placeholder="e.g., Army, Navy, Air Force"
-            />
+            <div className="space-y-2">
+              <Label htmlFor="militaryBranch">Branch</Label>
+              <Select
+                value={data.militaryBranch || ""}
+                onValueChange={(value) => onChange({ militaryBranch: value })}
+              >
+                <SelectTrigger id="militaryBranch">
+                  <SelectValue placeholder="Select branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="army">Army</SelectItem>
+                  <SelectItem value="navy">Navy</SelectItem>
+                  <SelectItem value="air-force">Air Force</SelectItem>
+                  <SelectItem value="marines">Marines</SelectItem>
+                  <SelectItem value="coast-guard">Coast Guard</SelectItem>
+                  <SelectItem value="space-force">Space Force</SelectItem>
+                  <SelectItem value="national-guard">National Guard</SelectItem>
+                  <SelectItem value="reserves">Reserves</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             <AnimatedInput
               label="Years Served"
@@ -570,14 +571,30 @@ const BiographicalDetailsStep = ({ data, onChange }: StepProps) => {
         {data.religious && (
           <div className="space-y-6 mt-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
-              <AnimatedInput
-                label="Denomination"
-                name="denomination"
-                controlled={true}
-                value={data.denomination || ""}
-                onChange={(e) => onChange({ denomination: e.target.value })}
-                placeholder="e.g., Baptist, Catholic, Methodist"
-              />
+              <div className="space-y-2">
+                <Label htmlFor="denomination">Denomination</Label>
+                <Select
+                  value={data.denomination || ""}
+                  onValueChange={(value) => onChange({ denomination: value })}
+                >
+                  <SelectTrigger id="denomination">
+                    <SelectValue placeholder="Select denomination" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="catholic">Catholic</SelectItem>
+                    <SelectItem value="protestant">Protestant</SelectItem>
+                    <SelectItem value="baptist">Baptist</SelectItem>
+                    <SelectItem value="methodist">Methodist</SelectItem>
+                    <SelectItem value="lutheran">Lutheran</SelectItem>
+                    <SelectItem value="presbyterian">Presbyterian</SelectItem>
+                    <SelectItem value="episcopal">Episcopal</SelectItem>
+                    <SelectItem value="orthodox">Orthodox</SelectItem>
+                    <SelectItem value="non-denominational">Non-denominational</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               <AnimatedInput
                 label="Organization"
