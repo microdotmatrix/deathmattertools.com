@@ -602,7 +602,7 @@ export const ActionButtons = ({ entry }: { entry: EntryWithObituaries }) => {
         obituaries={entry.obituaries}
         canEdit={canEdit}
       />
-      <Link
+      {/* <Link
         href={`/${entry.id}/images/create`}
         className={buttonVariants({
           variant: "outline",
@@ -611,7 +611,7 @@ export const ActionButtons = ({ entry }: { entry: EntryWithObituaries }) => {
         })}
       >
         <Icon icon="mdi:image-outline" className="size-4" /> New Memorial Image
-      </Link>
+      </Link> */}
       <ActionButton
         variant="destructive"
         size="sm"

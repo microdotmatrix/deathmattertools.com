@@ -53,7 +53,7 @@ export const CreateEntryForm = () => {
       setImageUrl(null);
       setOpen(false);
     } else if (state.error) {
-      toast.error("Failed to create profile");
+      toast.error("Failed to create entry");
     }
   }, [state]);
 
@@ -178,7 +178,7 @@ export const CreateEntryForm = () => {
           disabled={pending}
           className={cn("flex-1", pending && "opacity-50 cursor-not-allowed")}
         >
-          {pending ? "Creating..." : "Create Profile"}
+          {pending ? "Creating..." : "Create Entry"}
         </Button>
         <Button
           type="button"
