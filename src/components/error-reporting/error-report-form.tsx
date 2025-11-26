@@ -238,7 +238,7 @@ export const ErrorReportForm = ({ onSuccess }: ErrorReportFormProps) => {
         </div>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-2 hidden">
         <Label>Screenshot (optional)</Label>
         <div className="flex items-center gap-2">
           <Button
