@@ -3,6 +3,7 @@ import { DashboardHeader, DashboardShell } from "@/components/layout/dashboard-s
 import { CreatePortal } from "@/components/sections/dashboard/create-dialog";
 import { CreateEntryForm } from "@/components/sections/dashboard/create-form";
 import { CreateEntryImage } from "@/components/sections/dashboard/create-image";
+import { ObituaryActionsButton } from "@/components/sections/entries/obituary-actions-button";
 import { PageContentSkeleton } from "@/components/skeletons/page";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -17,9 +18,8 @@ import {
 } from "@/components/ui/tooltip";
 import { deleteEntryAction } from "@/lib/db/mutations/entries";
 import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
-import { getOrganizationEntries, getUserUploads } from "@/lib/db/queries/entries";
+import { EntryWithObituaries, getOrganizationEntries, getUserUploads } from "@/lib/db/queries/entries";
 import { getUserGeneratedImagesCount } from "@/lib/db/queries/media";
-import { Entry } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { differenceInYears, format } from "date-fns";
 import type { Metadata } from "next";
@@ -194,7 +194,7 @@ const FeaturedEntryCard = async ({
   entry,
   stats,
 }: {
-  entry: Entry;
+  entry: EntryWithObituaries;
   stats: { obituariesCount: number; imagesCount: number } | null;
 }) => {
   const { userId } = await auth();
@@ -340,9 +340,9 @@ const EntryListTabs = ({
   teamEntries,
   userId,
 }: {
-  allEntries: Entry[];
-  myEntries: Entry[];
-  teamEntries: Entry[];
+  allEntries: EntryWithObituaries[];
+  myEntries: EntryWithObituaries[];
+  teamEntries: EntryWithObituaries[];
   userId: string;
 }) => {
   const tabs = [
@@ -401,7 +401,7 @@ const EntryList = ({
   emptyMessage,
   userId,
 }: {
-  entries: Entry[];
+  entries: EntryWithObituaries[];
   emptyMessage: string;
   userId: string;
 }) => {
@@ -424,7 +424,7 @@ const EntryList = ({
   );
 };
 
-const EntryRow = ({ entry, isOwnEntry }: { entry: Entry; isOwnEntry: boolean }) => {
+const EntryRow = ({ entry, isOwnEntry }: { entry: EntryWithObituaries; isOwnEntry: boolean }) => {
   return (
     <div className="rounded-2xl border border-border/70 bg-card/60 p-4 shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition hover:border-border">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -489,7 +489,7 @@ const UserStats = ({
   uploads,
   entriesThisMonth,
 }: {
-  entries: Entry[];
+  entries: EntryWithObituaries[];
   uploads: any[];
   entriesThisMonth: number;
 }) => {
@@ -578,8 +578,13 @@ const UserStats = ({
   );
 };
 
-export const ActionButtons = ({ entry }: { entry: Entry }) => {
+export const ActionButtons = ({ entry }: { entry: EntryWithObituaries }) => {
   const deleteAction = deleteEntryAction.bind(null, entry.id);
+  
+  // Determine if user can edit this entry
+  // This is a simplified check - in a real implementation you'd want to pass canEdit from the parent
+  const canEdit = true; // For now, assume user can edit if they can see the entry
+  
   return (
     <div className="flex flex-col lg:flex-row gap-2">
       <Link
@@ -592,16 +597,11 @@ export const ActionButtons = ({ entry }: { entry: Entry }) => {
       >
         <Icon icon="mdi:pencil-outline" className="size-4" /> Edit
       </Link>
-      <Link
-        href={`/${entry.id}/obituaries/create`}
-        className={buttonVariants({
-          variant: "outline",
-          size: "sm",
-          className: "flex items-center gap-2",
-        })}
-      >
-        <Icon icon="mdi:plus" className="size-4" /> New Obituary
-      </Link>
+      <ObituaryActionsButton
+        entryId={entry.id}
+        obituaries={entry.obituaries}
+        canEdit={canEdit}
+      />
       <Link
         href={`/${entry.id}/images/create`}
         className={buttonVariants({

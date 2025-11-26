@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useEntryDetailsForm } from "@/lib/state";
 import { cn, formatTime } from "@/lib/utils";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -56,6 +57,7 @@ interface ObituaryFormData {
 
   // Service details and additional information
   serviceDetails?: Service[];
+  educationDetails?: Education[];
   donationRequests?: string;
   specialAcknowledgments?: string;
   additionalNotes?: string;
@@ -76,6 +78,13 @@ interface Service {
   date?: Date;
   startTime?: string;
   endTime?: string;
+}
+
+interface Education {
+  id: string;
+  type: string;
+  institution: string;
+  yearGraduated: number;
 }
 
 // Helper functions for serialization/deserialization
@@ -161,6 +170,39 @@ const deserializeServices = (data: string | undefined): Service[] => {
   return [];
 };
 
+const serializeEducation = (
+  education: Education[] | undefined
+): string | undefined => {
+  if (!education || education.length === 0) return undefined;
+  try {
+    return JSON.stringify(education);
+  } catch {
+    return undefined;
+  }
+};
+
+const deserializeEducation = (data: string | undefined): Education[] => {
+  if (!data || data.trim() === "") return [];
+  try {
+    const parsed = JSON.parse(data);
+    if (Array.isArray(parsed)) {
+      return parsed.filter(
+        (education) =>
+          education &&
+          typeof education === "object" &&
+          typeof education.id === "string" &&
+          typeof education.type === "string" &&
+          typeof education.institution === "string" &&
+          typeof education.yearGraduated === "number"
+      );
+    }
+  } catch {
+    // If parsing fails, return empty array - don't create education from plain text
+    return [];
+  }
+  return [];
+};
+
 interface ObituaryFormProps {
   initialData?: Partial<any>; // Allow initial data to have string format from DB
   onSubmit: (data: any) => Promise<void>; // Allow serialized data to be passed
@@ -172,18 +214,20 @@ export const EntryDetailsForm = ({
   onSubmit,
   onCancel,
 }: ObituaryFormProps) => {
-  // Process initial data to convert string fields to arrays for family members and services
+  // Process initial data to convert string fields to arrays for family members, services, and education
   const processedInitialData: ObituaryFormData = {
     ...initialData,
     survivedBy: deserializeFamilyMembers(initialData?.survivedBy),
     precededBy: deserializeFamilyMembers(initialData?.precededBy),
     serviceDetails: deserializeServices(initialData?.serviceDetails),
+    educationDetails: deserializeEducation(initialData?.educationDetails),
   };
 
   const [formData, setFormData] =
     useState<ObituaryFormData>(processedInitialData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const { openDetails, setOpenDetails } = useEntryDetailsForm();
   const router = useRouter();
 
   const updateFormData = (updates: Partial<ObituaryFormData>) => {
@@ -244,6 +288,20 @@ export const EntryDetailsForm = ({
     }));
   };
 
+  const addEducation = () => {
+    const newEducation: Education = {
+      id: Date.now().toString(),
+      type: "",
+      institution: "",
+      yearGraduated: new Date().getFullYear(),
+    };
+
+    setFormData((prev) => ({
+      ...prev,
+      educationDetails: [...(prev.educationDetails || []), newEducation],
+    }));
+  };
+
   const updateService = (
     id: string,
     field: keyof Service,
@@ -257,11 +315,33 @@ export const EntryDetailsForm = ({
     }));
   };
 
+  const updateEducation = (
+    id: string,
+    field: keyof Education,
+    value: string | number
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      educationDetails: prev.educationDetails?.map((education: Education) =>
+        education.id === id ? { ...education, [field]: value } : education
+      ),
+    }));
+  };
+
   const removeService = (id: string) => {
     setFormData((prev) => ({
       ...prev,
       serviceDetails: prev.serviceDetails?.filter(
         (service: Service) => service.id !== id
+      ),
+    }));
+  };
+
+  const removeEducation = (id: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      educationDetails: prev.educationDetails?.filter(
+        (education: Education) => education.id !== id
       ),
     }));
   };
@@ -276,18 +356,21 @@ export const EntryDetailsForm = ({
           survivedBy: serializeFamilyMembers(formData.survivedBy),
           precededBy: serializeFamilyMembers(formData.precededBy),
           serviceDetails: serializeServices(formData.serviceDetails),
+          educationDetails: serializeEducation(formData.educationDetails),
+          // Generate education types and years for easy querying
+          educationTypes: formData.educationDetails?.map(ed => ed.type).join(','),
+          educationYears: formData.educationDetails?.map(ed => ed.yearGraduated.toString()).join(','),
         };
         await onSubmit(serializedFormData);
-        startTransition(() => {
-          router.refresh();
-        });
+        setOpenDetails(false);
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
     await handleSubmit();
   };
 
@@ -313,7 +396,13 @@ export const EntryDetailsForm = ({
       >
         {/* Step 1: Biographical Details */}
         <Step>
-          <BiographicalDetailsStep data={formData} onChange={updateFormData} />
+          <BiographicalDetailsStep
+            data={formData}
+            onChange={updateFormData}
+            addEducation={addEducation}
+            updateEducation={updateEducation}
+            removeEducation={removeEducation}
+          />
         </Step>
 
         {/* Step 2: Family and Relationships */}
@@ -361,9 +450,16 @@ interface StepProps {
     value: string | Date | undefined
   ) => void;
   removeService?: (id: string) => void;
+  addEducation?: () => void;
+  updateEducation?: (
+    id: string,
+    field: keyof Education,
+    value: string | number
+  ) => void;
+  removeEducation?: (id: string) => void;
 }
 
-const BiographicalDetailsStep = ({ data, onChange }: StepProps) => {
+const BiographicalDetailsStep = ({ data, onChange, addEducation, updateEducation, removeEducation }: StepProps) => {
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
@@ -413,29 +509,12 @@ const BiographicalDetailsStep = ({ data, onChange }: StepProps) => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
-        <AnimatedInput
-          label="Education"
-          name="education"
-          type="textarea"
-          controlled={true}
-          value={data.education || ""}
-          onChange={(e) => onChange({ education: e.target.value })}
-          placeholder="Schools attended, degrees earned, academic achievements..."
-          className="h-24"
-        />
-
-        <AnimatedInput
-          label="Accomplishments & Achievements"
-          name="accomplishments"
-          type="textarea"
-          controlled={true}
-          value={data.accomplishments || ""}
-          onChange={(e) => onChange({ accomplishments: e.target.value })}
-          placeholder="Awards, recognitions, career highlights..."
-          className="h-24"
-        />
-      </div>
+      <EducationInputs
+        formData={data}
+        addEducation={addEducation}
+        updateEducation={updateEducation}
+        removeEducation={removeEducation}
+      />
 
       <AnimatedInput
         label="Biographical Summary"
@@ -447,16 +526,29 @@ const BiographicalDetailsStep = ({ data, onChange }: StepProps) => {
         placeholder="A brief overview of their life story, character, and what made them special..."
       />
 
-      <AnimatedInput
-        label="Personal Interests"
-        name="personalInterests"
-        type="textarea"
-        controlled={true}
-        value={data.personalInterests || ""}
-        onChange={(e) => onChange({ personalInterests: e.target.value })}
-        placeholder="Hobbies, passions, causes they cared about, special interests..."
-        className="h-16"
-      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
+        <AnimatedInput
+          label="Accomplishments & Achievements"
+          name="accomplishments"
+          type="textarea"
+          controlled={true}
+          value={data.accomplishments || ""}
+          onChange={(e) => onChange({ accomplishments: e.target.value })}
+          placeholder="Awards, recognitions, career highlights..."
+          className="h-16"
+        />
+
+        <AnimatedInput
+          label="Personal Interests"
+          name="personalInterests"
+          type="textarea"
+          controlled={true}
+          value={data.personalInterests || ""}
+          onChange={(e) => onChange({ personalInterests: e.target.value })}
+          placeholder="Hobbies, passions, causes they cared about, special interests..."
+          className="h-16"
+        />
+      </div>
 
       {/* Military Service Section */}
       <div className="space-y-4 pt-4 border-t">
@@ -776,10 +868,130 @@ const FamilyMemberInputs = ({
             className="w-full lg:w-fit"
             onClick={() => removeFamilyMember?.(type, member.id)}
           >
-            <Icon icon="lucide:trash" className="h-4 w-4" />
+            <Icon icon="lucide:trash" className="size-4" />
+            <span className="md:sr-only">Remove</span>
           </Button>
         </div>
       ))}
+    </div>
+  );
+};
+
+const EducationInputs = ({
+  formData,
+  addEducation,
+  updateEducation,
+  removeEducation,
+}: {
+  formData: ObituaryFormData;
+  addEducation?: () => void;
+  updateEducation?: (
+    id: string,
+    field: keyof Education,
+    value: string | number
+  ) => void;
+  removeEducation?: (id: string) => void;
+}) => {
+  // Generate years from 1900 to 2025
+  const years = Array.from({ length: 2025 - 1900 + 1 }, (_, i) => 1900 + i);
+
+  return (
+    <div className="space-y-6 pb-4">
+      <div className="flex items-center justify-between">
+        <Label htmlFor="educationDetails">Education</Label>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => addEducation?.()}
+        >
+          <Icon icon="lucide:plus" className="h-4 w-4 mr-2" />
+          Add Education
+        </Button>
+      </div>
+
+      {formData.educationDetails?.map((education: Education) => (
+        <div
+          key={education.id}
+          className="flex flex-col gap-4 p-4 border rounded-lg"
+        >
+          <div className="flex flex-col md:flex-row md:items-center gap-2">
+            <div className="flex flex-row gap-2">
+              <Select
+                value={education.type}
+                onValueChange={(value) =>
+                  updateEducation?.(education.id, "type", value)
+                }
+              >
+                <SelectTrigger className="md:shrink-0 grow max-w-1/2 overflow-hidden">
+                  <SelectValue placeholder="Education Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="high-school">High School</SelectItem>
+                  <SelectItem value="ged">GED</SelectItem>
+                  <SelectItem value="vocational">Vocational/Technical School</SelectItem>
+                  <SelectItem value="college">College/University</SelectItem>
+                  <SelectItem value="advanced-degree">Advanced Degree</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+  
+              <Select
+                value={education.yearGraduated?.toString()}
+                onValueChange={(value) =>
+                  updateEducation?.(education.id, "yearGraduated", parseInt(value, 10))
+                }
+              >
+                <SelectTrigger className="md:shrink-0 grow">
+                  <SelectValue placeholder="Year Graduated" />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Input
+              name="institution"
+              placeholder="School Name/Location"
+              value={education.institution}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                updateEducation?.(education.id, "institution", e.target.value)
+              }
+            />
+
+            <Button
+              type="button"
+              variant="outline"
+            className="w-full lg:w-fit"
+              onClick={() => removeEducation?.(education.id)}
+            >
+              <Icon icon="lucide:trash" className="size-4" />
+              <span className="md:sr-only">Remove</span>
+            </Button>
+          </div>
+        </div>
+      ))}
+
+      {/* Legacy education field display for backward compatibility */}
+      {formData.education && formData.education.trim() !== "" && (!formData.educationDetails || formData.educationDetails.length === 0) && (
+        <div className="p-4 bg-muted/50 rounded-lg">
+          <div className="flex items-center justify-between mb-2">
+            <Label className="text-sm font-medium">Previous Education Information</Label>
+            <span className="text-xs text-muted-foreground">Legacy format</span>
+          </div>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+            {formData.education}
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            You can add new education details above to replace this legacy information.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

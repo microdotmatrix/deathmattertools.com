@@ -15,6 +15,36 @@ import { Entry } from "@/lib/db/schema";
 import { useEntryDetailsForm } from "@/lib/state";
 import { EntryDetailsForm } from "./details-form";
 
+interface EntryDetailsFormData {
+  occupation?: string;
+  jobTitle?: string;
+  companyName?: string;
+  yearsWorked?: string;
+  education?: string;
+  educationDetails?: string;
+  educationTypes?: string;
+  educationYears?: string;
+  accomplishments?: string;
+  biographicalSummary?: string;
+  hobbies?: string;
+  personalInterests?: string;
+  militaryService?: boolean;
+  militaryBranch?: string;
+  militaryRank?: string;
+  militaryYearsServed?: number;
+  religious?: boolean;
+  denomination?: string;
+  organization?: string;
+  favoriteScripture?: string;
+  familyDetails?: string;
+  survivedBy?: string;
+  precededBy?: string;
+  serviceDetails?: string;
+  donationRequests?: string;
+  specialAcknowledgments?: string;
+  additionalNotes?: string;
+}
+
 export const EntryDetailsDialog = ({
   entry,
   initialData,
@@ -26,9 +56,8 @@ export const EntryDetailsDialog = ({
 }) => {
   const { openDetails, setOpenDetails } = useEntryDetailsForm();
 
-  const handleObituarySubmit = async (data: any) => {
+  const handleObituarySubmit = async (data: EntryDetailsFormData) => {
     await updateEntryDetailsDirectAction(entry.id, data);
-    setOpenDetails(false);
   };
 
   return (

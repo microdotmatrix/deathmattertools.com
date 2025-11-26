@@ -1,8 +1,8 @@
 "use server";
 
+import { isOrganizationOwner } from "@/lib/auth/organization-roles";
 import { db } from "@/lib/db";
 import { EntryDetailsTable, EntryTable, UserTable } from "@/lib/db/schema";
-import { isOrganizationOwner } from "@/lib/auth/organization-roles";
 import { action } from "@/lib/utils";
 import { auth } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
@@ -199,6 +199,9 @@ const UpdateEntryDetailsSchema = z.object({
   companyName: z.string().nullable().optional(),
   yearsWorked: z.string().nullable().optional(),
   education: z.string().nullable().optional(),
+  educationDetails: z.string().nullable().optional(),
+  educationTypes: z.string().nullable().optional(),
+  educationYears: z.string().nullable().optional(),
   accomplishments: z.string().nullable().optional(),
   biographicalSummary: z.string().nullable().optional(),
   hobbies: z.string().nullable().optional(),
@@ -262,6 +265,9 @@ export const updateEntryDetailsAction = action(
           companyName: data.companyName,
           yearsWorked: data.yearsWorked,
           education: data.education,
+          educationDetails: data.educationDetails,
+          educationTypes: data.educationTypes,
+          educationYears: data.educationYears,
           accomplishments: data.accomplishments,
           biographicalSummary: data.biographicalSummary,
           hobbies: data.hobbies,
@@ -371,6 +377,9 @@ export const updateEntryDetailsDirectAction = async (
         companyName: result.data.companyName,
         yearsWorked: result.data.yearsWorked,
         education: result.data.education,
+        educationDetails: result.data.educationDetails,
+        educationTypes: result.data.educationTypes,
+        educationYears: result.data.educationYears,
         accomplishments: result.data.accomplishments,
         biographicalSummary: result.data.biographicalSummary,
         hobbies: result.data.hobbies,
@@ -403,6 +412,9 @@ export const updateEntryDetailsDirectAction = async (
         companyName: result.data.companyName,
         yearsWorked: result.data.yearsWorked,
         education: result.data.education,
+        educationDetails: result.data.educationDetails,
+        educationTypes: result.data.educationTypes,
+        educationYears: result.data.educationYears,
         accomplishments: result.data.accomplishments,
         biographicalSummary: result.data.biographicalSummary,
         hobbies: result.data.hobbies,

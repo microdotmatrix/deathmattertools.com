@@ -57,7 +57,10 @@ export const EntryDetailsTable = pgTable("entry_details", {
   yearsWorked: text("years_worked"), // e.g., "1985-2010" or "15 years"
 
   // Education
-  education: text("education"), // School names, degrees, etc.
+  education: text("education"), // School names, degrees, etc. (legacy field - preserved for backward compatibility)
+  educationDetails: text("education_details"), // JSON array of structured education objects
+  educationTypes: text("education_types"), // Comma-separated list of education types for easy querying
+  educationYears: text("education_years"), // Comma-separated list of graduation years for easy querying
 
   // Life summary and accomplishments
   accomplishments: text("accomplishments"), // Brief summary of achievements

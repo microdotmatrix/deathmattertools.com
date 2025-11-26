@@ -1,13 +1,14 @@
+import { isOrganizationOwner } from "@/lib/auth/organization-roles";
 import { db } from "@/lib/db";
+import type { Document, Entry } from "@/lib/db/schema";
 import {
+  DocumentTable,
   EntryDetailsTable,
   EntryTable,
-  UserUploadTable,
+  UserUploadTable
 } from "@/lib/db/schema";
-import type { Entry } from "@/lib/db/schema";
-import { isOrganizationOwner } from "@/lib/auth/organization-roles";
 import { auth } from "@clerk/nextjs/server";
-import { and, eq, isNotNull, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, or, sql } from "drizzle-orm";
 import { cache } from "react";
 
 // ============================================================================
@@ -24,6 +25,10 @@ export interface EntryAccessResult {
   isOrgOwner: boolean;
 }
 
+export interface EntryWithObituaries extends Entry {
+  obituaries: Document[];
+}
+
 // ============================================================================
 // Access Control Queries
 // ============================================================================
@@ -33,14 +38,16 @@ export interface EntryAccessResult {
  * Returns entries where:
  * - User is the owner, OR
  * - User is in the same organization as the entry
+ * Includes obituaries for each entry
  */
-export const getOrganizationEntries = cache(async () => {
+export const getOrganizationEntries = cache(async (): Promise<EntryWithObituaries[]> => {
   const { userId, orgId } = await auth();
 
   if (!userId) {
     return [];
   }
 
+  // First get the entries
   const entries = await db.query.EntryTable.findMany({
     where: orgId
       ? or(
@@ -54,7 +61,30 @@ export const getOrganizationEntries = cache(async () => {
     orderBy: (EntryTable, { desc }) => [desc(EntryTable.createdAt)],
   });
 
-  return entries;
+  // Then get obituaries for all entries in a single query
+  const entryIds = entries.map(entry => entry.id);
+  const obituaries = entryIds.length > 0 
+    ? await db
+        .select()
+        .from(DocumentTable)
+        .where(inArray(DocumentTable.entryId, entryIds))
+        .orderBy(desc(DocumentTable.createdAt))
+    : [];
+
+  // Group obituaries by entryId
+  const obituariesByEntry = obituaries.reduce((acc, obituary) => {
+    if (!acc[obituary.entryId]) {
+      acc[obituary.entryId] = [];
+    }
+    acc[obituary.entryId].push(obituary);
+    return acc;
+  }, {} as Record<string, Document[]>);
+
+  // Combine entries with their obituaries
+  return entries.map((entry) => ({
+    ...entry,
+    obituaries: obituariesByEntry[entry.id] || [],
+  })) as EntryWithObituaries[];
 });
 
 /**
@@ -102,7 +132,7 @@ export const getEntryWithAccess = cache(
 
     if (sameOrganization) {
       // Check if user is organization owner/admin
-      const isOrgAdmin = await isOrganizationOwner(entry.organizationId);
+      const isOrgAdmin = await isOrganizationOwner(entry.organizationId!);
 
       if (isOrgAdmin) {
         // Organization admins can edit team member entries
