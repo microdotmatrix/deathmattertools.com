@@ -150,8 +150,8 @@ export const FloatingChatBubble = ({
   };
 
   const positionClasses = {
-    "bottom-right": "bottom-6 right-6",
-    "bottom-left": "bottom-6 left-6",
+    "bottom-right": "bottom-2 lg:bottom-6 right-2 lg:right-6",
+    "bottom-left": "bottom-2 lg:bottom-6 left-2 lg:left-6",
   };
 
   return (
@@ -160,11 +160,11 @@ export const FloatingChatBubble = ({
         {isExpanded ? (
           <motion.div
             key="expanded"
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.5, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            exit={{ opacity: 0, scale: 0.5, y: 20 }}
             transition={{ duration: 0.2 }}
-            className="flex flex-col w-[550px] h-[700px] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden"
+            className="flex flex-col w-[420px] max-w-[96vw] h-[80vh] md:h-[65vh] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden origin-bottom-right"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">

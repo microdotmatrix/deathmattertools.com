@@ -1,40 +1,30 @@
 import { OrganizationCommentingSettings } from "@/components/sections/obituaries/commenting-settings";
 import { ObituaryComments } from "@/components/sections/obituaries/comments-panel";
+import { DynamicChat } from "@/components/sections/obituaries/dynamic-chat";
 import { ObituaryViewerWithComments } from "@/components/sections/obituaries/obituary-viewer-with-comments";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { getDocumentWithAccess, listDocumentComments } from "@/lib/db/queries";
 import {
-    getChatByDocumentId,
-    getMessagesByChatId,
+  getChatByDocumentId,
+  getMessagesByChatId,
 } from "@/lib/db/queries/chats";
 import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { format } from "date-fns";
-import nextDynamic from "next/dynamic";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 
 // Force dynamic rendering to ensure fresh data after updates
 export const dynamic = 'force-dynamic';
-
-// Dynamic import for heavy AI chat component (~150KB+ savings)
-// Uses ssr: false since it relies on browser APIs and client-side state
-const FloatingChatBubble = nextDynamic(
-  () => import("@/components/sections/obituaries/floating-chat-bubble").then((mod) => mod.FloatingChatBubble),
-  { 
-    ssr: false,
-    loading: () => null, // No loading indicator needed for floating bubble
-  }
-);
 
 type PageParams = Promise<{ entryId: string; id: string }>;
 
@@ -205,7 +195,7 @@ export default async function ObituaryPage({
       </div>
 
       {/* Main Content Grid - Two Column Layout */}
-      <div className="grid gap-6 xl:grid-cols-[1fr_640px]">
+      <div className="grid gap-6 xl:grid-cols-[1fr_480px] 3xl:grid-cols-[1fr_640px]">
         {/* Left Column - Obituary Viewer (Wider) */}
         <Card>
           <CardHeader>
@@ -316,10 +306,9 @@ export default async function ObituaryPage({
 
       {/* Owner-only: Floating AI Chat Bubble */}
       {isOwner && (
-        <FloatingChatBubble
-          documentId={access.document.id}
-          initialChat={chatData.chat}
-          initialMessages={chatData.messages}
+        <DynamicChat
+          access={access}
+          chatData={chatData}
         />
       )}
     </main>
