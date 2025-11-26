@@ -429,7 +429,7 @@ const EntryRow = ({ entry, isOwnEntry }: { entry: EntryWithObituaries; isOwnEntr
     <div className="rounded-2xl border border-border/70 bg-card/60 p-4 shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition hover:border-border">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex w-full items-center gap-4">
-          <div className="relative h-16 w-16 overflow-hidden rounded-xl bg-muted shrink-0">
+          <div className="relative size-24 xl:size-32 2xl:size-24 overflow-hidden rounded-xl bg-muted shrink-0">
             <Image
               src={entry.image ?? "/images/create-entry_portrait-01.png"}
               alt={entry.name}
@@ -529,7 +529,7 @@ const UserStats = ({
               className="rounded-2xl border border-border/60 bg-background/70 p-4 @container [@container(min-width:16rem)]:grid [@container(min-width:16rem)]:grid-rows-[auto_auto] [@container(min-width:16rem)]:gap-3"
             >
               <div className="flex items-center gap-3 [@container(min-width:16rem)]:grid [@container(min-width:16rem)]:grid-cols-[auto_auto] [@container(min-width:16rem)]:items-start [@container(min-width:16rem)]:gap-6">
-                <div className="rounded-full bg-muted/70 p-2">
+                <div className="rounded-full bg-muted/70 p-2 w-fit self-center justify-self-end">
                   <Icon icon={stat.icon} className="size-5 text-muted-foreground" />
                 </div>
                 <p className="text-2xl font-semibold [@container(min-width:16rem)]:text-3xl [@container(min-width:20rem)]:text-4xl">
@@ -586,7 +586,7 @@ export const ActionButtons = ({ entry }: { entry: EntryWithObituaries }) => {
   const canEdit = true; // For now, assume user can edit if they can see the entry
   
   return (
-    <div className="flex flex-col lg:flex-row gap-2">
+    <div className="flex flex-col md:flex-row xl:flex-col 2xl:flex-row gap-2">
       <Link
         href={`/${entry.id}`}
         className={buttonVariants({
@@ -595,7 +595,7 @@ export const ActionButtons = ({ entry }: { entry: EntryWithObituaries }) => {
           className: "flex items-center gap-2",
         })}
       >
-        <Icon icon="mdi:pencil-outline" className="size-4" /> Edit
+        <Icon icon="mdi:open-in-app" className="size-4" /> Open
       </Link>
       <ObituaryActionsButton
         entryId={entry.id}

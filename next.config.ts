@@ -7,6 +7,13 @@ const nextConfig: NextConfig = {
     viewTransition: true,
     useLightningcss: true,
     authInterrupts: true,
+    // Enable optimized package imports
+    optimizePackageImports: [
+      "lucide-react",
+      "date-fns",
+      "@radix-ui/react-icons",
+      "motion",
+    ],
   },
   typescript: {
     ignoreBuildErrors: true,
