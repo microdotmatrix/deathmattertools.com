@@ -2,12 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Icon } from "@/components/ui/icon";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -26,10 +26,10 @@ export const CreatePortal = () => {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="max-w-[90%] md:max-w-7xl max-h-[90vh] flex flex-col p-0"
+        className="max-w-[90%] md:max-w-7xl max-h-full  flex flex-col p-0 my-0"
         onPointerDownOutside={(e) => e.preventDefault()}
       >
-        <div className="flex flex-col md:flex-row gap-8 items-start md:items-center overflow-y-auto flex-1 min-h-0 lg:overflow-y-clip p-4 lg:p-8">
+        <div className="flex flex-col md:flex-row gap-8 items-start md:items-center overflow-y-auto flex-1 min-h-0 p-4 lg:p-8">
           <div className="w-full md:w-1/2 lg:w-1/3">
             <DialogHeader className="mb-8">
               <DialogTitle>Create New Entry</DialogTitle>

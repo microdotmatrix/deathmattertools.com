@@ -188,23 +188,6 @@ export const ErrorReportForm = ({ onSuccess }: ErrorReportFormProps) => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">What happened? *</Label>
-        <Textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe the error or unexpected behavior..."
-          disabled={isPending}
-          required
-          className="min-h-[100px] resize-none"
-          maxLength={1000}
-        />
-        <p className="text-xs text-muted-foreground">
-          {description.length}/1000 characters
-        </p>
-      </div>
-
-      <div className="space-y-2">
         <Label htmlFor="action">What were you trying to do? *</Label>
         <Textarea
           id="action"
@@ -218,6 +201,23 @@ export const ErrorReportForm = ({ onSuccess }: ErrorReportFormProps) => {
         />
         <p className="text-xs text-muted-foreground">
           {action.length}/500 characters
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description">What happened? *</Label>
+        <Textarea
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Describe the error or unexpected behavior..."
+          disabled={isPending}
+          required
+          className="min-h-[100px] resize-none"
+          maxLength={1000}
+        />
+        <p className="text-xs text-muted-foreground">
+          {description.length}/1000 characters
         </p>
       </div>
 
