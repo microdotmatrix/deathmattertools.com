@@ -1,4 +1,4 @@
-import { InboxIcon, ZapIcon } from "lucide-react";
+import { InboxIcon, StarIcon, ZapIcon } from "lucide-react";
 
 export const meta = {
   colors: {
@@ -25,6 +25,8 @@ export const meta = {
 // Navigation links array
 export const navigationLinks = [
   { href: "/dashboard", label: "Dashboard", icon: ZapIcon },
+  { href: "/pricing", label: "Pricing", icon: StarIcon },
+  // { href: "/about", label: "About", icon: InfoIcon },
   { href: "/contact", label: "Contact", icon: InboxIcon },
 ];
 

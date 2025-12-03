@@ -58,7 +58,6 @@ const workspaceLinks: SidebarLink[] = [
     label: "User Settings",
     href: "/dashboard/settings",
     icon: "mdi:cog-outline",
-    disabled: true,
   },
   {
     label: "Organization Preferences",

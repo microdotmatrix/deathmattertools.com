@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 import { ErrorReportPopover } from "@/components/error-reporting/error-report-popover";
 import { ThemeToggle } from "@/components/theme/toggle";
 import { Button } from "@/components/ui/button";
@@ -9,11 +11,11 @@ import { useMounted } from "@/hooks/use-mounted";
 import { navigationLinks } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import {
-    SignedIn,
-    SignedOut,
-    SignInButton,
-    UserButton,
-    useUser,
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  UserButton,
+  useUser,
 } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -46,6 +48,40 @@ export const Header = () => {
                 const isActive =
                   pathname === link.href ||
                   (pathname.startsWith(`${link.href}/`) && link.href !== "/");
+                
+                // Special handling for Dashboard link when user is not authenticated
+                if (link.href === "/dashboard") {
+                  return (
+                    <React.Fragment key={link.href}>
+                      <SignedOut>
+                        <SignInButton mode="modal">
+                          <button
+                            className={cn(
+                              "flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-muted-foreground hover:text-primary w-full text-left",
+                              isActive && "text-primary"
+                            )}
+                          >
+                            <link.icon className="size-4" />
+                            {link.label}
+                          </button>
+                        </SignInButton>
+                      </SignedOut>
+                      <SignedIn>
+                        <Link
+                          href={link.href}
+                          className={cn(
+                            "flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-muted-foreground hover:text-primary",
+                            isActive && "text-primary"
+                          )}
+                        >
+                          <link.icon className="size-4" />
+                          {link.label}
+                        </Link>
+                      </SignedIn>
+                    </React.Fragment>
+                  );
+                }
+                
                 return (
                   <Link
                     key={link.href}
@@ -69,6 +105,40 @@ export const Header = () => {
             const isActive =
               pathname === link.href ||
               (pathname.startsWith(`${link.href}/`) && link.href !== "/");
+            
+            // Special handling for Dashboard link when user is not authenticated
+            if (link.href === "/dashboard") {
+              return (
+                <React.Fragment key={link.href}>
+                  <SignedOut>
+                    <SignInButton mode="modal">
+                      <button
+                        className={cn(
+                          "flex items-center gap-1 rounded-full px-3 py-1 text-muted-foreground transition hover:text-primary",
+                          isActive && "text-primary"
+                        )}
+                      >
+                        <link.icon className="size-4" />
+                        {link.label}
+                      </button>
+                    </SignInButton>
+                  </SignedOut>
+                  <SignedIn>
+                    <Link
+                      href={link.href}
+                      className={cn(
+                        "flex items-center gap-1 rounded-full px-3 py-1 text-muted-foreground transition hover:text-primary",
+                        isActive && "text-primary"
+                      )}
+                    >
+                      <link.icon className="size-4" />
+                      {link.label}
+                    </Link>
+                  </SignedIn>
+                </React.Fragment>
+              );
+            }
+            
             return (
               <Link
                 key={link.href}

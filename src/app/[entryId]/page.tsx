@@ -164,7 +164,7 @@ const EntryEditContent = async ({
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Icon icon="mdi:image-multiple" className="w-5 h-5" />
+                  <Icon icon="mdi:image-multiple" className="w-5 h-5" aria-hidden="true" />
                   Photos & Images ({entryImages.length})
                 </CardTitle>
               </CardHeader>
@@ -204,7 +204,7 @@ const EntryEditContent = async ({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Icon icon="mdi:file-document-outline" className="w-5 h-5" />
+                <Icon icon="mdi:file-document-outline" className="w-5 h-5" aria-hidden="true" />
                 Obituaries ({obituaries.length})
               </CardTitle>
             </CardHeader>
@@ -238,8 +238,9 @@ const EntryEditContent = async ({
                               className={buttonVariants({
                                 variant: "outline",
                                 size: "sm",
-                                className: "size-8 p-0 flex-shrink-0",
+                                className: "size-8 p-0 shrink-0",
                               })}
+                              aria-label={`View obituary: ${obituary.title}`}
                             >
                               <Icon icon="mdi:eye" className="w-4 h-4" />
                             </Link>
@@ -262,6 +263,7 @@ const EntryEditContent = async ({
                                 variant="destructive"
                                 size="sm"
                                 className="size-8 p-0 flex-shrink-0"
+                                aria-label={`Delete obituary: ${obituary.title}`}
                               >
                                 <Icon icon="mdi:delete" className="w-4 h-4" />
                               </ActionButton>
@@ -293,6 +295,7 @@ const EntryEditContent = async ({
                               size: "sm",
                               className: "w-full",
                             })}
+                            aria-label="Generate New Obituary"
                           >
                             <Icon icon="mdi:plus" className="w-4 h-4 mr-2" />
                             Generate New Obituary
@@ -314,6 +317,7 @@ const EntryEditContent = async ({
                           size: "sm",
                           className: "w-full",
                         })}
+                        aria-label="Generate Obituary"
                       >
                         <Icon icon="mdi:plus" className="w-4 h-4 mr-2" />
                         Generate Obituary
@@ -329,7 +333,7 @@ const EntryEditContent = async ({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Icon icon="mdi:image-multiple-outline" className="w-5 h-5" />
+                <Icon icon="mdi:image-multiple-outline" className="w-5 h-5" aria-hidden="true" />
                 Memorial Images
               </CardTitle>
             </CardHeader>
@@ -381,6 +385,7 @@ const EntryEditContent = async ({
                           size: "sm",
                           className: "flex-1",
                         })}
+                        aria-label="View all memorial images"
                       >
                         <Icon icon="mdi:eye" className="w-4 h-4 mr-2" />
                         View All
@@ -392,6 +397,7 @@ const EntryEditContent = async ({
                           size: "sm",
                           className: "flex-1",
                         })}
+                        aria-label="Create new memorial image"
                       >
                         <Icon icon="mdi:plus" className="w-4 h-4 mr-2" />
                         Create New
@@ -410,6 +416,7 @@ const EntryEditContent = async ({
                         size: "sm",
                         className: "w-full",
                       })}
+                      aria-label="Create memorial image"
                     >
                       <Icon icon="mdi:plus" className="w-4 h-4 mr-2" />
                       Create Memorial Image

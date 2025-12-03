@@ -100,7 +100,7 @@ export const ImageUpload = ({
                       className="absolute top-2 left-2 z-10 bg-primary text-primary-foreground"
                     >
                       <Icon icon="mdi:star" className="w-3 h-3 mr-1" />
-                      Primary
+                      <span className="sr-only">Primary</span>
                     </Badge>
                   )}
                 </div>
@@ -114,6 +114,7 @@ export const ImageUpload = ({
                         onClick={() => onSetPrimary(index)}
                         disabled={disabled}
                         title="Set as primary image"
+                        aria-label="Set as primary image"
                       >
                         <Icon icon="mdi:star-outline" className="h-4 w-4" />
                       </Button>
@@ -125,6 +126,7 @@ export const ImageUpload = ({
                       onClick={() => onRemove?.(index)}
                       disabled={disabled}
                       title="Delete image"
+                      aria-label="Delete image"
                     >
                       <Icon icon="lucide:x" className="h-4 w-4" />
                     </Button>
