@@ -1,13 +1,13 @@
 import { relations } from "drizzle-orm";
 import {
-  boolean,
-  foreignKey,
-  integer,
-  primaryKey,
-  text,
-  timestamp,
-  uuid,
-  varchar,
+    boolean,
+    foreignKey,
+    integer,
+    primaryKey,
+    text,
+    timestamp,
+    uuid,
+    varchar,
 } from "drizzle-orm/pg-core";
 import { pgTable } from "../utils";
 import { EntryTable } from "./entries";

@@ -224,23 +224,19 @@ export default async function ObituaryPage({
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Icon icon="mdi:information-outline" className="size-5" />
-                Details
+                {access.document.title}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div>
-                <span className="font-medium text-foreground">Title:</span>
-                <p className="text-muted-foreground mt-1">
-                  {access.document.title}
-                </p>
-              </div>
-              <div>
-                <span className="font-medium text-foreground">Honoring:</span>
-                <p className="text-muted-foreground mt-1">{entry.name}</p>
-              </div>
-              <div>
-                <span className="font-medium text-foreground">Created:</span>
-                <p className="text-muted-foreground mt-1">{createdAtLabel}</p>
+            <CardContent className="text-sm">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="font-medium text-foreground">Honoring</span>
+                  <p className="text-muted-foreground mt-1">{entry.name}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">Created</span>
+                  <p className="text-muted-foreground mt-1">{createdAtLabel}</p>
+                </div>
               </div>
             </CardContent>
           </Card>

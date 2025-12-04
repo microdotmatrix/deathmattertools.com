@@ -9,10 +9,10 @@ import { z } from "zod";
 import { selectExamples } from "./few-shot-examples";
 import { models } from "./models";
 import {
-  createPromptFromEntryData,
-  createPromptFromFile,
-  fewShotSystemPrompt,
-  systemPrompt
+    createPromptFromEntryData,
+    createPromptFromFile,
+    fewShotSystemPrompt,
+    systemPrompt
 } from "./prompts";
 
 const ObitFormSchema = z.object({
