@@ -4,9 +4,13 @@ import { z } from "zod";
 export const env = createEnv({
   client: {
     NEXT_PUBLIC_BIBLE_API_KEY: z.string().min(1),
+    NEXT_PUBLIC_STANDS4_UID: z.string().min(1),
+    NEXT_PUBLIC_STANDS4_TOKENID: z.string().min(1),
   },
   emptyStringAsUndefined: true,
   runtimeEnv: {
     NEXT_PUBLIC_BIBLE_API_KEY: process.env.NEXT_PUBLIC_BIBLE_API_KEY,
+    NEXT_PUBLIC_STANDS4_UID: process.env.NEXT_PUBLIC_STANDS4_UID,
+    NEXT_PUBLIC_STANDS4_TOKENID: process.env.NEXT_PUBLIC_STANDS4_TOKENID,
   },
 });

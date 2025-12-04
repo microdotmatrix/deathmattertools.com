@@ -588,15 +588,15 @@ const BiographicalDetailsStep = ({ data, onChange, addEducation, updateEducation
                 <SelectValue placeholder="Select branch" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="army">Army</SelectItem>
-                <SelectItem value="navy">Navy</SelectItem>
-                <SelectItem value="air-force">Air Force</SelectItem>
-                <SelectItem value="marines">Marines</SelectItem>
-                <SelectItem value="coast-guard">Coast Guard</SelectItem>
-                <SelectItem value="space-force">Space Force</SelectItem>
-                <SelectItem value="national-guard">National Guard</SelectItem>
-                <SelectItem value="reserves">Reserves</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="Army">Army</SelectItem>
+                <SelectItem value="Navy">Navy</SelectItem>
+                <SelectItem value="Air-Force">Air Force</SelectItem>
+                <SelectItem value="Marines">Marines</SelectItem>
+                <SelectItem value="Coast-Guard">Coast Guard</SelectItem>
+                <SelectItem value="Space-Force">Space Force</SelectItem>
+                <SelectItem value="National-Guard">National Guard</SelectItem>
+                <SelectItem value="Reserves">Reserves</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
 

@@ -25,94 +25,95 @@
  *
  */
 
-import { mockQuotes } from "./mock";
+import { env } from "@/lib/env/client";
+import { decodeHtmlEntities } from "@/lib/utils";
 import { LengthFilter, QuoteProps } from "./types";
 
 export const s4 = {
-  // keyword: async (keyword: string, limit: number = 50) => {
-  //   const response = await fetch(
-  //     `https://www.stands4.com/services/v2/quotes.php?uid=${
-  //       env.STANDS4_UID
-  //     }&tokenid=${
-  //       env.STANDS4_TOKENID
-  //     }&searchtype=SEARCH&query=${encodeURIComponent(
-  //       keyword
-  //     )}&limit=${limit}&format=json`,
-  //     {
-  //       next: {
-  //         revalidate: 3600, // 1 hour
-  //         tags: ["quotes", `quotes:${keyword}`],
-  //       },
-  //     }
-  //   );
+  keyword: async (keyword: string, limit: number = 50) => {
+    const response = await fetch(
+      `https://www.stands4.com/services/v2/quotes.php?uid=${
+        env.NEXT_PUBLIC_STANDS4_UID
+      }&tokenid=${
+        env.NEXT_PUBLIC_STANDS4_TOKENID
+      }&searchtype=SEARCH&query=${encodeURIComponent(
+        keyword
+      )}&limit=${limit}&format=json`,
+      {
+        next: {
+          revalidate: 3600, // 1 hour
+          tags: ["quotes", `quotes:${keyword}`],
+        },
+      }
+    );
 
-  //   if (!response.ok) {
-  //     throw new Error("Failed to fetch quotes");
-  //   }
+    if (!response.ok) {
+      throw new Error("Failed to fetch quotes");
+    }
 
-  //   const json = await response.json();
+    const json = await response.json();
 
-  //   return json.result.map((item: { quote: string; author: string }) => ({
-  //     quote: decodeHtmlEntities(item.quote),
-  //     author: decodeHtmlEntities(item.author || "Unknown"),
-  //     source: "Stands4.com",
-  //     length: item.quote?.length || 0,
-  //   }));
-  // },
-  // author: async (author: string, limit: number = 50) => {
-  //   const response = await fetch(
-  //     `https://www.stands4.com/services/v2/quotes.php?uid=${
-  //       env.STANDS4_UID
-  //     }&tokenid=${
-  //       env.STANDS4_TOKENID
-  //     }&searchtype=AUTHOR&query=${encodeURIComponent(
-  //       author
-  //     )}&limit=${limit}&format=json`,
-  //     {
-  //       next: {
-  //         revalidate: 3600, // 1 hour
-  //         tags: ["quotes", `quotes:${author}`],
-  //       },
-  //     }
-  //   );
-  //   const json = await response.json();
+    return json.result.map((item: { quote: string; author: string }) => ({
+      quote: decodeHtmlEntities(item.quote),
+      author: decodeHtmlEntities(item.author || "Unknown"),
+      source: "Stands4.com",
+      length: item.quote?.length || 0,
+    }));
+  },
+  author: async (author: string, limit: number = 50) => {
+    const response = await fetch(
+      `https://www.stands4.com/services/v2/quotes.php?uid=${
+        env.NEXT_PUBLIC_STANDS4_UID
+      }&tokenid=${
+        env.NEXT_PUBLIC_STANDS4_TOKENID
+      }&searchtype=AUTHOR&query=${encodeURIComponent(
+        author
+      )}&limit=${limit}&format=json`,
+      {
+        next: {
+          revalidate: 3600, // 1 hour
+          tags: ["quotes", `quotes:${author}`],
+        },
+      }
+    );
+    const json = await response.json();
 
-  //   return json.result.map((item: { quote: string; author: string }) => ({
-  //     quote: decodeHtmlEntities(item.quote),
-  //     author: decodeHtmlEntities(item.author || "Unknown"),
-  //     source: "Stands4.com",
-  //     length: item.quote?.length || 0,
-  //   }));
-  // },
+    return json.result.map((item: { quote: string; author: string }) => ({
+      quote: decodeHtmlEntities(item.quote),
+      author: decodeHtmlEntities(item.author || "Unknown"),
+      source: "Stands4.com",
+      length: item.quote?.length || 0,
+    }));
+  },
   // Mock data to simulate API response without impacting daily usage limit
-  keyword: async (
-    keyword: string,
-    limit: number = 50
-  ): Promise<QuoteProps[]> => {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 100));
+  // keyword: async (
+  //   keyword: string,
+  //   limit: number = 50
+  // ): Promise<QuoteProps[]> => {
+  //   // Simulate API delay
+  //   await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // Filter quotes that contain the keyword (case-insensitive)
-    const filteredQuotes = mockQuotes.filter((quote) =>
-      quote.quote.toLowerCase().includes(keyword.toLowerCase())
-    );
+  //   // Filter quotes that contain the keyword (case-insensitive)
+  //   const filteredQuotes = mockQuotes.filter((quote) =>
+  //     quote.quote.toLowerCase().includes(keyword.toLowerCase())
+  //   );
 
-    // Return limited results
-    return filteredQuotes.slice(0, limit);
-  },
+  //   // Return limited results
+  //   return filteredQuotes.slice(0, limit);
+  // },
 
-  author: async (author: string, limit: number = 50): Promise<QuoteProps[]> => {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 100));
+  // author: async (author: string, limit: number = 50): Promise<QuoteProps[]> => {
+  //   // Simulate API delay
+  //   await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // Filter quotes by author (case-insensitive)
-    const filteredQuotes = mockQuotes.filter((quote) =>
-      quote.author.toLowerCase().includes(author.toLowerCase())
-    );
+  //   // Filter quotes by author (case-insensitive)
+  //   const filteredQuotes = mockQuotes.filter((quote) =>
+  //     quote.author.toLowerCase().includes(author.toLowerCase())
+  //   );
 
-    // Return limited results
-    return filteredQuotes.slice(0, limit);
-  },
+  //   // Return limited results
+  //   return filteredQuotes.slice(0, limit);
+  // },
 };
 
 // Helper function to filter quotes by length

@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Quote, Check } from "lucide-react";
-import { saveQuoteAction } from "@/lib/db/mutations/quotes";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import type { UnifiedSearchResult } from "@/lib/api/saved-content";
+import { saveQuoteAction } from "@/lib/db/mutations/quotes";
+import { BookOpen, Check, Quote } from "lucide-react";
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 interface SearchResultCardProps {
   result: UnifiedSearchResult;
@@ -67,9 +67,7 @@ export function SearchResultCard({ result, entryId, onSaved }: SearchResultCardP
               <Badge variant="secondary" className="text-xs">
                 {result.citation}
               </Badge>
-              <Badge variant="outline" className="text-xs">
-                {result.source}
-              </Badge>
+              
               {result.metadata?.faith && (
                 <Badge variant="outline" className="text-xs">
                   {result.metadata.faith}
