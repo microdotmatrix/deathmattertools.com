@@ -1,6 +1,6 @@
 "use client";
 
-import { Response } from "@/components/ai/response";
+import { MessageResponse } from "@/components/ai-elements/message";
 import { SelectionToolbar } from "@/components/annotations";
 import { Icon } from "@/components/ui/icon";
 import { useTextSelection } from "@/hooks/use-text-selection";
@@ -49,7 +49,7 @@ export const ObituaryViewerSimple = ({
         ref={contentRef}
         className="loading-fade prose dark:prose-invert prose-md lg:prose-lg max-w-4xl"
       >
-        <Response key={id} isAnimating={isProcessing}>{content}</Response>
+        <MessageResponse key={id} isAnimating={isProcessing}>{content}</MessageResponse>
       </div>
 
       {/* Processing indicator - shown when AI is updating the obituary */}

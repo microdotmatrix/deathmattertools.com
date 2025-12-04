@@ -1,16 +1,16 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
-import { Response } from "@/components/ai/response";
-import { useTextSelection } from "@/hooks/use-text-selection";
-import { extractAnchorData, getUserColor } from "@/lib/annotations";
-import { calculateIndicatorPositions } from "@/lib/annotations/calculate-positions";
+import { MessageResponse } from "@/components/ai-elements/message";
 import {
   AnnotatableText,
   SelectionToolbar,
 } from "@/components/annotations";
-import type { DocumentComment } from "@/lib/db/schema";
+import { useTextSelection } from "@/hooks/use-text-selection";
 import type { AnchorData } from "@/lib/annotations";
+import { extractAnchorData, getUserColor } from "@/lib/annotations";
+import { calculateIndicatorPositions } from "@/lib/annotations/calculate-positions";
+import type { DocumentComment } from "@/lib/db/schema";
+import { useCallback, useRef } from "react";
 
 interface AnnotatableObituaryViewerProps {
   id?: string;
@@ -65,7 +65,7 @@ export const AnnotatableObituaryViewer = ({
         ref={containerRef}
         className="loading-fade prose dark:prose-invert prose-md lg:prose-lg max-w-4xl lg:mx-12"
       >
-        <Response key={id}>{content}</Response>
+        <MessageResponse key={id}>{content}</MessageResponse>
         
         {canComment && enableAnnotations && (
           <SelectionToolbar

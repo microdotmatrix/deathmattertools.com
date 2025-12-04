@@ -1,13 +1,13 @@
 "use client";
 
-import { useRef, useCallback } from "react";
-import { Response } from "@/components/ai/response";
-import { useTextSelection } from "@/hooks/use-text-selection";
-import { MarginIndicators } from "@/components/annotations/margin-indicators";
+import { MessageResponse } from "@/components/ai-elements/message";
 import { SelectionToolbar } from "@/components/annotations";
+import { MarginIndicators } from "@/components/annotations/margin-indicators";
+import { useTextSelection } from "@/hooks/use-text-selection";
+import type { AnchorData } from "@/lib/annotations";
 import { calculateIndicatorPositions, getUserColor } from "@/lib/annotations";
 import type { DocumentComment } from "@/lib/db/schema";
-import type { AnchorData } from "@/lib/annotations";
+import { useCallback, useRef } from "react";
 
 interface ObituaryWithMarginAnnotationsProps {
   id?: string;
@@ -81,7 +81,7 @@ export const ObituaryWithMarginAnnotations = ({
           ref={contentRef}
           className="flex-1 loading-fade prose dark:prose-invert prose-md lg:prose-lg"
         >
-          <Response key={id}>{content}</Response>
+          <MessageResponse key={id}>{content}</MessageResponse>
         </div>
       </div>
 

@@ -14,9 +14,14 @@ import {
 import { cn } from "@/lib/utils";
 import type { FileUIPart, UIMessage } from "ai";
 import {
+  CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  CopyIcon,
   PaperclipIcon,
+  RefreshCwIcon,
+  ThumbsDownIcon,
+  ThumbsUpIcon,
   XIcon,
 } from "lucide-react";
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
@@ -446,3 +451,137 @@ export const MessageToolbar = ({
     {children}
   </div>
 );
+
+export type MessageFeedbackProps = {
+  messageId: string;
+  chatId: string;
+  onFeedback?: (messageId: string, feedback: "positive" | "negative") => void;
+  className?: string;
+};
+
+export const MessageFeedback = ({
+  messageId,
+  chatId,
+  onFeedback,
+  className,
+}: MessageFeedbackProps) => {
+  const [feedback, setFeedback] = useState<"positive" | "negative" | null>(null);
+  const [isPending, setIsPending] = useState(false);
+
+  const handleFeedback = async (type: "positive" | "negative") => {
+    if (isPending) return;
+    
+    setIsPending(true);
+    setFeedback(type);
+    onFeedback?.(messageId, type);
+    
+    try {
+      // Dynamic import to avoid bundling server code in client
+      const { createOrUpdateVote } = await import("@/lib/db/mutations/votes");
+      await createOrUpdateVote(chatId, messageId, type === "positive");
+    } catch (error) {
+      console.error("Failed to submit feedback:", error);
+      // Revert on error
+      setFeedback(null);
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  return (
+    <div className={cn("flex items-center gap-1", className)}>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleFeedback("positive")}
+              disabled={isPending}
+              className={cn(
+                "size-7 p-0",
+                feedback === "positive" && "text-green-500"
+              )}
+            >
+              <ThumbsUpIcon className="size-3.5" />
+              <span className="sr-only">Good response</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Good response</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleFeedback("negative")}
+              disabled={isPending}
+              className={cn(
+                "size-7 p-0",
+                feedback === "negative" && "text-red-500"
+              )}
+            >
+              <ThumbsDownIcon className="size-3.5" />
+              <span className="sr-only">Bad response</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Bad response</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+};
+
+export type ChatMessageActionsProps = {
+  messageText: string;
+  messageId: string;
+  isLastMessage?: boolean;
+  onRegenerate?: () => void;
+  className?: string;
+};
+
+export const ChatMessageActions = ({
+  messageText,
+  messageId,
+  isLastMessage,
+  onRegenerate,
+  className,
+}: ChatMessageActionsProps) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(messageText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy:", error);
+    }
+  };
+
+  return (
+    <MessageActions className={className}>
+      <MessageAction
+        tooltip={copied ? "Copied!" : "Copy"}
+        onClick={handleCopy}
+      >
+        {copied ? (
+          <CheckIcon className="size-3.5" />
+        ) : (
+          <CopyIcon className="size-3.5" />
+        )}
+      </MessageAction>
+      {isLastMessage && onRegenerate && (
+        <MessageAction tooltip="Regenerate" onClick={onRegenerate}>
+          <RefreshCwIcon className="size-3.5" />
+        </MessageAction>
+      )}
+    </MessageActions>
+  );
+};

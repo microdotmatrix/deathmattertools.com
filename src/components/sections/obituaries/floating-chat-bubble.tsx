@@ -6,17 +6,17 @@ import {
   ConversationEmptyState,
 } from "@/components/ai-elements/conversation";
 import {
+  ChatMessageActions,
   Message,
   MessageContent,
-  MessageResponse,
+  MessageFeedback,
+  MessageResponse
 } from "@/components/ai-elements/message";
 import {
   PromptInput,
   PromptInputSubmit,
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input"; // Replaced with AI Elements version
-import { MessageActions } from "@/components/ai/message-actions";
-import { MessageFeedback } from "@/components/ai/message-feedback";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { convertToUIMessages } from "@/lib/ai/utils";
@@ -252,7 +252,7 @@ export const FloatingChatBubble = ({
                           {/* Show actions and feedback for assistant messages, not during streaming */}
                           {message.role === "assistant" && status !== "streaming" && status !== "submitted" && (
                             <div className="flex items-center gap-2 mt-2">
-                              <MessageActions
+                              <ChatMessageActions
                                 messageText={messageText}
                                 messageId={message.id}
                                 isLastMessage={isLastAssistantMessage}
