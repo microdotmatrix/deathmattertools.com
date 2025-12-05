@@ -1,16 +1,15 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
-import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import {
-  createFeedback,
-  deleteFeedback,
-  updateFeedbackContent,
-  updateFeedbackStatus,
+    createFeedback,
+    deleteFeedback,
+    updateFeedbackContent,
+    updateFeedbackStatus,
 } from "@/lib/db/mutations/entry-feedback";
 import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import { getFeedbackById } from "@/lib/db/queries/entry-feedback";
+import { auth } from "@clerk/nextjs/server";
+import { z } from "zod";
 
 // Validation schemas
 const CreateFeedbackSchema = z.object({
@@ -71,7 +70,9 @@ export async function createFeedbackAction(
       content: parsed.data.content,
     });
 
-    revalidatePath(`/${entryId}`);
+    // Revalidate feedback and entry caches
+    revalidateTag(entryFeedbackTag(entryId), "max");
+    revalidateTag(entryDetailTag(entryId), "max");
 
     return { success: true, feedback };
   } catch (error) {
@@ -131,7 +132,9 @@ export async function updateFeedbackAction(
       return { error: "Failed to update feedback" };
     }
 
-    revalidatePath(`/${existingFeedback.entry.id}`);
+    // Revalidate feedback and entry caches
+    revalidateTag(entryFeedbackTag(existingFeedback.entry.id), "max");
+    revalidateTag(entryDetailTag(existingFeedback.entry.id), "max");
 
     return { success: true, feedback };
   } catch (error) {
@@ -178,7 +181,9 @@ export async function deleteFeedbackAction(
       return { error: "Failed to delete feedback" };
     }
 
-    revalidatePath(`/${existingFeedback.entry.id}`);
+    // Revalidate feedback and entry caches
+    revalidateTag(entryFeedbackTag(existingFeedback.entry.id), "max");
+    revalidateTag(entryDetailTag(existingFeedback.entry.id), "max");
 
     return { success: true };
   } catch (error) {
@@ -236,7 +241,9 @@ export async function updateFeedbackStatusAction(
       return { error: "Failed to update feedback status" };
     }
 
-    revalidatePath(`/${existingFeedback.entry.id}`);
+    // Revalidate feedback and entry caches
+    revalidateTag(entryFeedbackTag(existingFeedback.entry.id), "max");
+    revalidateTag(entryDetailTag(existingFeedback.entry.id), "max");
 
     return { success: true, feedback };
   } catch (error) {

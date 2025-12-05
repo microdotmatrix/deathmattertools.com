@@ -1,9 +1,8 @@
 "use server";
 
-import { getDocumentWithAccess } from "@/lib/db/queries";
 import { updateDocumentContent } from "@/lib/db/mutations/documents";
+import { getDocumentWithAccess } from "@/lib/db/queries";
 import { auth } from "@clerk/nextjs/server";
-import { revalidatePath } from "next/cache";
 
 interface UpdateObituaryContentParams {
   documentId: string;
@@ -72,8 +71,9 @@ export async function updateObituaryContent({
       return { error: result.error };
     }
 
-    // Revalidate the obituary page to show updated content
-    revalidatePath(`/${entryId}/obituaries/${documentId}`);
+    // Revalidate document cache with stale-while-revalidate
+    revalidateTag(documentTag(documentId), "max");
+    revalidateTag(documentsByEntryTag(entryId), "max");
 
     return { success: true };
   } catch (error) {

@@ -59,6 +59,9 @@ export const entryImagesTag = (entryId: string) => `images:entry:${entryId}`;
 export const userUploadsTag = (userId: string) => `uploads:user:${userId}`;
 export const entryUploadsTag = (entryId: string) => `uploads:entry:${entryId}`;
 
+// Feedback tags
+export const entryFeedbackTag = (entryId: string) => `feedback:entry:${entryId}`;
+
 // ============================================================================
 // Cache Profile Types (matches next.config.ts cacheLife profiles)
 // ============================================================================
