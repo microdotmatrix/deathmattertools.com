@@ -8,8 +8,6 @@ export const metadata: Metadata = {
   description: "Get in touch with Death Matter Tools. Send us a message or submit a feature request.",
 };
 
-export const experimental_ppr = true;
-
 export default function ContactPage() {
   return (
     <main>

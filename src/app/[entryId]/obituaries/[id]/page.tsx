@@ -5,16 +5,16 @@ import { ObituaryViewerWithComments } from "@/components/sections/obituaries/obi
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { getDocumentWithAccess, listDocumentComments } from "@/lib/db/queries";
 import {
-  getChatByDocumentId,
-  getMessagesByChatId,
+    getChatByDocumentId,
+    getMessagesByChatId,
 } from "@/lib/db/queries/chats";
 import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import { auth, clerkClient } from "@clerk/nextjs/server";
@@ -23,8 +23,9 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 
-// Force dynamic rendering to ensure fresh data after updates
-export const dynamic = 'force-dynamic';
+// Use on-demand revalidation via tags instead of force-dynamic
+// Revalidate when comments/content change
+export const revalidate = 60; // Fallback: revalidate every 60s
 
 type PageParams = Promise<{ entryId: string; id: string }>;
 

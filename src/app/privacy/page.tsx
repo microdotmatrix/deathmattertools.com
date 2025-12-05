@@ -10,8 +10,6 @@ export const metadata: Metadata = {
   description: "Read our privacy policy to understand how Death Matter Tools collects, uses, and protects your personal information.",
 };
 
-export const experimental_ppr = true;
-
 export default async function Privacy() {
   const pageContent = await getPageContentBySlug("privacy");
   const lastUpdated = pageContent?.updatedAt ? new Date(pageContent.updatedAt).toLocaleDateString() : "";

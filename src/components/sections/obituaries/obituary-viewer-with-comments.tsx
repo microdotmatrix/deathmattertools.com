@@ -2,16 +2,18 @@
 
 import { createCommentAction } from "@/actions/comments";
 import { QuotedCommentForm } from "@/components/annotations/quoted-comment-form";
+import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Icon } from "@/components/ui/icon";
 import type { AnchorData } from "@/lib/annotations";
 import dynamic from "next/dynamic";
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 // Dynamic imports with SSR disabled for client-only rendering
 const ObituaryViewerSimple = dynamic(
@@ -61,6 +63,7 @@ export const ObituaryViewerWithComments = ({
 }: ObituaryViewerWithCommentsProps) => {
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [currentQuote, setCurrentQuote] = useState<AnchorData | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   // React Compiler handles function stability - no useCallback needed
   const handleCreateQuotedComment = (anchor: AnchorData) => {
@@ -86,8 +89,22 @@ export const ObituaryViewerWithComments = ({
 
   return (
     <>
-      {/* Use inline editor for owners, simple viewer for others */}
-      {canEdit ? (
+      {/* Show Edit button for owners; load editor only when clicked */}
+      {canEdit && !isEditing && (
+        <div className="mb-4 flex justify-end">
+          <Button
+            onClick={() => setIsEditing(true)}
+            variant="outline"
+            size="sm"
+          >
+            <Icon icon="mdi:pencil" className="mr-2 h-4 w-4" />
+            Edit Obituary
+          </Button>
+        </div>
+      )}
+
+      {/* Load editor only when editing */}
+      {canEdit && isEditing ? (
         <ObituaryEditorInline
           documentId={documentId}
           entryId={entryId}

@@ -1,6 +1,9 @@
 "use client"
 
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import nextDynamic from "next/dynamic";
+import { useState } from "react";
 
 // Dynamic import for heavy AI chat component (~150KB+ savings)
 // Uses ssr: false since it relies on browser APIs and client-side state
@@ -13,11 +16,31 @@ const FloatingChatBubble = nextDynamic(
 );
 
 export const DynamicChat = ({ access, chatData }: { access: any, chatData: any }) => {
+  const [isChatLoaded, setIsChatLoaded] = useState(false);
+
   return (
-    <FloatingChatBubble
-      documentId={access.document.id}
-      initialChat={chatData.chat}
-      initialMessages={chatData.messages}
-    />
+    <>
+      {/* Trigger button - loads chat on first click */}
+      {!isChatLoaded && (
+        <Button
+          onClick={() => setIsChatLoaded(true)}
+          className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg"
+          size="icon"
+          aria-label="Open AI Assistant"
+        >
+          <Icon icon="mdi:robot-outline" className="h-6 w-6" />
+        </Button>
+      )}
+
+      {/* Load chat bubble only after user clicks */}
+      {isChatLoaded && (
+        <FloatingChatBubble
+          documentId={access.document.id}
+          initialChat={chatData.chat}
+          initialMessages={chatData.messages}
+          defaultExpanded
+        />
+      )}
+    </>
   )
 }

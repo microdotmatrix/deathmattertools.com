@@ -1,27 +1,20 @@
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 import { type ReactNode } from "react";
 
-import { Icon } from "@/components/ui/icon";
+import { DashboardSidebarNav } from "@/components/layout/dashboard-sidebar-nav";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuBadge,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarSeparator,
-  SidebarTrigger,
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarGroup,
+    SidebarGroupLabel,
+    SidebarHeader,
+    SidebarInset,
+    SidebarProvider,
+    SidebarSeparator,
+    SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { OrganizationSwitcher, SignedIn, useUser } from "@clerk/nextjs";
+import { OrganizationSwitcher, SignedIn } from "@clerk/nextjs";
 
 type DashboardShellProps = {
   children: ReactNode;
@@ -126,53 +119,11 @@ export const DashboardHeader = ({
   );
 };
 
-const DashboardSidebar = () => {
-  const pathname = usePathname();
-  const { user } = useUser();
+const DashboardSidebar = async () => {
+  const { userId } = await auth();
+  const clerkClientInstance = await (await import("@clerk/nextjs/server")).clerkClient();
+  const user = userId ? await clerkClientInstance.users.getUser(userId) : null;
   const isSystemAdmin = user?.publicMetadata?.role === "system_admin";
-
-  const renderLinks = (links: SidebarLink[]) => (
-    <SidebarMenu>
-      {links.map((item) => {
-        const matchesExact = pathname === item.href;
-        const matchesSubRoute =
-          item.matchSubRoutes && pathname.startsWith(`${item.href}/`);
-        const isActive = !item.disabled && (matchesExact || matchesSubRoute);
-
-        const buttonLabel = (
-          <span className="flex items-center gap-2">
-            <Icon icon={item.icon} className="size-4" aria-hidden="true" />
-            <span>{item.label}</span>
-          </span>
-        );
-
-        return (
-          <SidebarMenuItem key={item.label}>
-            {item.disabled ? (
-              <>
-                <SidebarMenuButton
-                  aria-disabled="true"
-                  className="pointer-events-none opacity-60"
-                  tooltip="Coming soon"
-                >
-                  {buttonLabel}
-                </SidebarMenuButton>
-                <SidebarMenuBadge className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                  Soon
-                </SidebarMenuBadge>
-              </>
-            ) : (
-              <SidebarMenuButton asChild isActive={isActive}>
-                <Link href={item.href} className="flex items-center gap-2">
-                  {buttonLabel}
-                </Link>
-              </SidebarMenuButton>
-            )}
-          </SidebarMenuItem>
-        );
-      })}
-    </SidebarMenu>
-  );
 
   return (
     <>
@@ -195,12 +146,12 @@ const DashboardSidebar = () => {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Workspace</SidebarGroupLabel>
-          {renderLinks(workspaceLinks)}
+          <DashboardSidebarNav links={workspaceLinks} />
         </SidebarGroup>
         {isSystemAdmin && (
           <SidebarGroup>
             <SidebarGroupLabel>Admin</SidebarGroupLabel>
-            {renderLinks(adminLinks)}
+            <DashboardSidebarNav links={adminLinks} />
           </SidebarGroup>
         )}
       </SidebarContent>

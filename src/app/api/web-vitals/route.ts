@@ -1,0 +1,20 @@
+import { NextResponse } from "next/server";
+
+export const runtime = "edge";
+
+export async function POST(request: Request) {
+  try {
+    const metric = await request.json();
+
+    if (!metric || typeof metric.name !== "string") {
+      return NextResponse.json({ error: "Invalid metric payload" }, { status: 400 });
+    }
+
+    // Forward to logging/observability; replace with real sink when available
+    console.info("[web-vitals]", metric);
+
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+}

@@ -10,8 +10,6 @@ export const metadata: Metadata = {
   description: "Review our terms of service to understand the rules and guidelines for using Death Matter Tools.",
 };
 
-export const experimental_ppr = true;
-
 export default async function TermsPage() {
   const pageContent = await getPageContentBySlug("terms");
   const lastUpdated = pageContent?.updatedAt ? new Date(pageContent.updatedAt).toLocaleDateString() : "";

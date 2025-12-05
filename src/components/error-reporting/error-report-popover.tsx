@@ -3,9 +3,9 @@
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover";
 import { useState } from "react";
 import { ErrorReportForm } from "./error-report-form";
@@ -29,8 +29,8 @@ export const ErrorReportPopover = () => {
       <PopoverContent
         align="end"
         side="bottom"
-        sideOffset={8}
-        className="w-[400px] max-w-[90vw] p-6"
+        sideOffset={16}
+        className="w-lg max-w-[90vw] p-6"
       >
         <div className="space-y-4">
           <div className="space-y-2">

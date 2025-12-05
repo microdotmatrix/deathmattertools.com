@@ -77,7 +77,7 @@ export function UserSettingsForm({ initialSettings }: UserSettingsFormProps) {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-screen-2xl">
       {/* Theme Settings - uses next-themes cookie, not database */}
       <Card>
         <CardHeader>
@@ -122,108 +122,110 @@ export function UserSettingsForm({ initialSettings }: UserSettingsFormProps) {
       </Card>
 
       {/* Notification Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Icon icon="mdi:bell" className="w-5 h-5" aria-hidden="true" />
-            Notifications
-          </CardTitle>
-          <CardDescription>
-            Manage how you receive notifications from the platform.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <Icon icon="mdi:email" className="w-5 h-5 text-muted-foreground" />
-              <div>
-                <Label htmlFor="notifications" className="font-medium">
-                  Email Notifications
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Receive updates about your memorials via email.
-                </p>
+      <section className="flex flex-col md:flex-row gap-4">
+        <Card className="flex-1">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon icon="mdi:bell" className="w-5 h-5" aria-hidden="true" />
+              Notifications
+            </CardTitle>
+            <CardDescription>
+              Manage how you receive notifications from the platform.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center gap-3">
+                <Icon icon="mdi:email" className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <Label htmlFor="notifications" className="font-medium">
+                    Email Notifications
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Receive updates about your memorials via email.
+                  </p>
+                </div>
               </div>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={settings.notifications}
-              onClick={() => handleToggleChange("notifications", !settings.notifications)}
-              className={cn(
-                "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                settings.notifications ? "bg-primary" : "bg-input"
-              )}
-              aria-label="Toggle email notifications"
-            >
-              <span
+              <button
+                type="button"
+                role="switch"
+                aria-checked={settings.notifications}
+                onClick={() => handleToggleChange("notifications", !settings.notifications)}
                 className={cn(
-                  "inline-block h-4 w-4 transform rounded-full bg-background transition-transform",
-                  settings.notifications ? "translate-x-6" : "translate-x-1"
+                  "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  settings.notifications ? "bg-primary" : "bg-input"
                 )}
+                aria-label="Toggle email notifications"
+              >
+                <span
+                  className={cn(
+                    "inline-block h-4 w-4 transform rounded-full bg-background transition-transform",
+                    settings.notifications ? "translate-x-6" : "translate-x-1"
+                  )}
+                />
+              </button>
+              <input
+                type="hidden"
+                name="notifications"
+                value={settings.notifications ? "on" : "off"}
               />
-            </button>
-            <input
-              type="hidden"
-              name="notifications"
-              value={settings.notifications ? "on" : "off"}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Cookie Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Icon icon="mdi:cookie" className="w-5 h-5" aria-hidden="true" />
-            Cookie Consent
-          </CardTitle>
-          <CardDescription>
-            Manage your privacy preferences for cookies and tracking.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <Icon icon="mdi:shield-check" className="w-5 h-5 text-muted-foreground" />
-              <div>
-                <Label htmlFor="cookies" className="font-medium">
-                  Accept Cookies
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Allow us to use cookies to improve your experience.
-                </p>
+            </div>
+          </CardContent>
+        </Card>
+  
+        {/* Cookie Settings */}
+        <Card className="flex-1">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon icon="mdi:cookie" className="w-5 h-5" aria-hidden="true" />
+              Cookie Consent
+            </CardTitle>
+            <CardDescription>
+              Manage your privacy preferences for cookies and tracking.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center gap-3">
+                <Icon icon="mdi:shield-check" className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <Label htmlFor="cookies" className="font-medium">
+                    Accept Cookies
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Allow us to use cookies to improve your experience.
+                  </p>
+                </div>
               </div>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={settings.cookies}
-              onClick={() => handleToggleChange("cookies", !settings.cookies)}
-              className={cn(
-                "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                settings.cookies ? "bg-primary" : "bg-input"
-              )}
-              aria-label="Toggle cookie consent"
-            >
-              <span
+              <button
+                type="button"
+                role="switch"
+                aria-checked={settings.cookies}
+                onClick={() => handleToggleChange("cookies", !settings.cookies)}
                 className={cn(
-                  "inline-block h-4 w-4 transform rounded-full bg-background transition-transform",
-                  settings.cookies ? "translate-x-6" : "translate-x-1"
+                  "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  settings.cookies ? "bg-primary" : "bg-input"
                 )}
+                aria-label="Toggle cookie consent"
+              >
+                <span
+                  className={cn(
+                    "inline-block h-4 w-4 transform rounded-full bg-background transition-transform",
+                    settings.cookies ? "translate-x-6" : "translate-x-1"
+                  )}
+                />
+              </button>
+              <input
+                type="hidden"
+                name="cookies"
+                value={settings.cookies ? "on" : "off"}
               />
-            </button>
-            <input
-              type="hidden"
-              name="cookies"
-              value={settings.cookies ? "on" : "off"}
-            />
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
 
       {isPending && (
         <Alert>
