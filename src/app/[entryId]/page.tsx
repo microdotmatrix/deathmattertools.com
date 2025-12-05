@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
+import { documentsByEntryTag, documentTag } from "@/lib/cache";
 import { obitLimit } from "@/lib/config";
 import { deleteDocumentById } from "@/lib/db/mutations/documents";
 import { getEntryImages } from "@/lib/db/queries";
@@ -17,7 +18,7 @@ import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
 import { getEntryDetailsById, getEntryWithAccess } from "@/lib/db/queries/entries";
 import { getUserGeneratedImages } from "@/lib/db/queries/media";
 import { format } from "date-fns";
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -71,8 +72,11 @@ const EntryEditContent = async ({
   role: "owner" | "org_admin" | "org_member";
   isOrgOwner: boolean;
 }) => {
-  const entryDetails = await getEntryDetailsById(entry.id);
-  const entryImagesResult = await getEntryImages(entry.id);
+  // Fetch entry details and images in parallel for better performance
+  const [entryDetails, entryImagesResult] = await Promise.all([
+    getEntryDetailsById(entry.id),
+    getEntryImages(entry.id),
+  ]);
   const entryImages = entryImagesResult.success
     ? entryImagesResult.images || []
     : [];
@@ -250,7 +254,9 @@ const EntryEditContent = async ({
                                     obituary.id
                                   );
                                   if (result.success) {
-                                    revalidatePath(`/${entry.id}`);
+                                    // Use granular tag invalidation for better caching
+                                    revalidateTag(documentTag(obituary.id), "max");
+                                    revalidateTag(documentsByEntryTag(entry.id), "max");
                                     return { error: false };
                                   } else {
                                     return { error: true, message: result.error };
