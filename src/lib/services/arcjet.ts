@@ -28,8 +28,8 @@ export const aj = arcjet({
     // }),
     slidingWindow({
       mode: "LIVE",
-      interval: "1m",
-      max: 100,
+      interval: "60",
+      max: 420,
     }),
   ],
 });
