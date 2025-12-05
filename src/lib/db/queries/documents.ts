@@ -1,10 +1,19 @@
 import "server-only";
 
+import { documentsByEntryTag, documentTag } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { DocumentTable, type Document } from "@/lib/db/schema";
 import { desc, eq } from "drizzle-orm";
+import { cacheLife, cacheTag } from "next/cache";
 
-export const getDocumentsByEntryId = async (entryId: string) => {
+/**
+ * Get all documents for an entry - cached
+ */
+export async function getDocumentsByEntryId(entryId: string) {
+  "use cache";
+  cacheLife("content");
+  cacheTag(documentsByEntryTag(entryId));
+
   try {
     const documents = await db
       .select()
@@ -17,9 +26,16 @@ export const getDocumentsByEntryId = async (entryId: string) => {
     console.error(error);
     throw new Error("Failed to get documents");
   }
-};
+}
 
-export const getDocumentById = async (id: string) => {
+/**
+ * Get document by ID - cached
+ */
+export async function getDocumentById(id: string) {
+  "use cache";
+  cacheLife("content");
+  cacheTag(documentTag(id));
+
   try {
     const [selectedDocument] = await db
       .select()
@@ -31,7 +47,7 @@ export const getDocumentById = async (id: string) => {
     console.error(error);
     throw new Error("Failed to get document");
   }
-};
+}
 
 export type DocumentAccessRole = "owner" | "viewer" | "commenter";
 

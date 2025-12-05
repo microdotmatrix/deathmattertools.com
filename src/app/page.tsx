@@ -5,9 +5,7 @@ import { QuotesSection } from "@/components/sections/home/quotes";
 import { meta } from "@/lib/config";
 import type { Metadata } from "next";
 
-// ISR with hourly revalidation for marketing content
-export const revalidate = 3600;
-
+// Static marketing page - caching handled by cacheComponents
 export const metadata: Metadata = {
   title: "Home",
   description: meta.description,

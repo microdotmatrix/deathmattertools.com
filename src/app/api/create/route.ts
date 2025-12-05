@@ -3,26 +3,24 @@ import { models } from "@/lib/ai/models";
 import { assistantPrompt, updateDocumentPrompt } from "@/lib/ai/prompts";
 import { convertToModelMessages, convertToUIMessages } from "@/lib/ai/utils";
 import {
-  getChatById,
-  getMessageCountByUserId,
-  getMessagesByChatId,
-  saveChat,
-  saveMessages,
+    getChatById,
+    getMessageCountByUserId,
+    getMessagesByChatId,
+    saveChat,
+    saveMessages,
 } from "@/lib/db/queries/chats";
 import { getDocumentById } from "@/lib/db/queries/documents";
 import { generateUUID } from "@/lib/utils";
 import { auth } from "@clerk/nextjs/server";
 import {
-  createUIMessageStream,
-  createUIMessageStreamResponse,
-  streamText,
+    createUIMessageStream,
+    createUIMessageStreamResponse,
+    streamText,
 } from "ai";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 
-// Force dynamic rendering to ensure fresh data
-export const dynamic = 'force-dynamic';
-
+// Route handlers are dynamic by default with cacheComponents
 export async function POST(request: NextRequest) {
   const {
     message,

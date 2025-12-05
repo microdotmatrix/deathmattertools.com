@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
-
+// Note: Edge runtime removed for cacheComponents compatibility
+// Route handlers run on Node.js runtime by default
 export async function POST(request: Request) {
   try {
     const metric = await request.json();

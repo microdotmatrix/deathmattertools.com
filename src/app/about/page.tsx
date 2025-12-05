@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 
-// Static generation for marketing pages
-export const revalidate = 3600; // Revalidate every hour
-
+// Static marketing page - caching handled by cacheComponents
 export const metadata: Metadata = {
   title: "About",
   description: "Learn about Death Matter Tools and our mission to help you create meaningful tributes for your loved ones.",

@@ -50,34 +50,39 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <AuthProvider>
-      <html
-        lang="en"
-        data-scroll-behavior="smooth"
-        suppressHydrationWarning
-        className="[--header-height:4rem]"
+    <html
+      lang="en"
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+      className="[--header-height:4rem]"
+    >
+      <body
+        className={cn(
+          display.variable,
+          text.variable,
+          code.variable,
+          "antialiased"
+        )}
       >
-        <body
-          className={cn(
-            display.variable,
-            text.variable,
-            code.variable,
-            "antialiased"
-          )}
-        >
-          <AppContext>
-            <Suspense>
-              <Header />
-            </Suspense>
-            <div className="pt-20 md:pt-24 flex-1">
-              {children}
+        {/* AuthProvider wrapped in Suspense for cacheComponents compatibility */}
+        <Suspense
+          fallback={
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="animate-pulse">Loading...</div>
             </div>
-            <Footer />
-            <BackgroundPattern />
-          </AppContext>
-        </body>
-      </html>
-    </AuthProvider>
+          }
+        >
+          <AuthProvider>
+            <AppContext>
+              <Header />
+              <div className="pt-20 md:pt-24 flex-1">{children}</div>
+              <Footer />
+              <BackgroundPattern />
+            </AppContext>
+          </AuthProvider>
+        </Suspense>
+      </body>
+    </html>
   );
 }
 
