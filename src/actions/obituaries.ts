@@ -1,8 +1,10 @@
 "use server";
 
+import { documentsByEntryTag, documentTag } from "@/lib/cache";
 import { updateDocumentContent } from "@/lib/db/mutations/documents";
 import { getDocumentWithAccess } from "@/lib/db/queries";
 import { auth } from "@clerk/nextjs/server";
+import { revalidateTag } from "next/cache";
 
 interface UpdateObituaryContentParams {
   documentId: string;

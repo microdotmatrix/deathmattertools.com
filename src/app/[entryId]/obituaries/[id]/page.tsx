@@ -211,6 +211,8 @@ export default async function ObituaryPage({
                 content={access.document.content ?? ""}
                 canComment={access.canComment}
                 canEdit={isOwner}
+                entryName={entry.name}
+                createdAt={access.document.createdAt}
               />
             </Suspense>
           </CardContent>

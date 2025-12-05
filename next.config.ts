@@ -78,6 +78,11 @@ const nextConfig: NextConfig = {
         hostname: "*.googleusercontent.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "placid-fra.fra1.digitaloceanspaces.com",
+        pathname: "/**",
+      }
     ],
   },
 };

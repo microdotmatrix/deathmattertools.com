@@ -1,3 +1,5 @@
+import "server-only";
+
 import { db } from "@/lib/db";
 import { UserSettingsTable } from "@/lib/db/schema/settings";
 import { auth } from "@clerk/nextjs/server";

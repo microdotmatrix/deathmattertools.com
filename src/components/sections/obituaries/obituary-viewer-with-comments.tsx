@@ -13,7 +13,8 @@ import {
 import { Icon } from "@/components/ui/icon";
 import type { AnchorData } from "@/lib/annotations";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { ExportActionsBar } from "./export-actions-bar";
 
 // Dynamic imports with SSR disabled for client-only rendering
 const ObituaryViewerSimple = dynamic(
@@ -52,6 +53,10 @@ interface ObituaryViewerWithCommentsProps {
   content: string;
   canComment: boolean;
   canEdit?: boolean;
+  /** Entry name for PDF export header */
+  entryName?: string;
+  /** Document creation date for PDF header */
+  createdAt?: Date;
 }
 
 export const ObituaryViewerWithComments = ({
@@ -60,10 +65,13 @@ export const ObituaryViewerWithComments = ({
   content,
   canComment,
   canEdit = false,
+  entryName,
+  createdAt,
 }: ObituaryViewerWithCommentsProps) => {
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [currentQuote, setCurrentQuote] = useState<AnchorData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // React Compiler handles function stability - no useCallback needed
   const handleCreateQuotedComment = (anchor: AnchorData) => {
@@ -89,7 +97,16 @@ export const ObituaryViewerWithComments = ({
 
   return (
     <>
-      
+      {/* Export actions - visible in read-only mode */}
+      {!isEditing && (
+        <ExportActionsBar
+          content={content}
+          contentRef={contentRef}
+          entryName={entryName}
+          createdAt={createdAt}
+          disabled={isEditing}
+        />
+      )}
 
       {/* Load editor only when editing */}
       {canEdit && isEditing ? (
@@ -101,12 +118,14 @@ export const ObituaryViewerWithComments = ({
           onClose={() => setIsEditing(false)}
         />
       ) : (
-        <ObituaryViewerSimple
-          id={documentId}
-          content={content}
-          canComment={canComment}
-          onCreateQuotedComment={handleCreateQuotedComment}
-        />
+        <div ref={contentRef} className="print-content">
+          <ObituaryViewerSimple
+            id={documentId}
+            content={content}
+            canComment={canComment}
+            onCreateQuotedComment={handleCreateQuotedComment}
+          />
+        </div>
       )}
 
       {/* Show Edit button for owners; load editor only when clicked */}
@@ -115,10 +134,10 @@ export const ObituaryViewerWithComments = ({
           <Button
             onClick={() => setIsEditing(true)}
             variant="outline"
-            size="sm"
+            size="lg"
           >
             <Icon icon="mdi:pencil" className="mr-2 h-4 w-4" />
-            Edit
+            Open Editor
           </Button>
         </div>
       )}

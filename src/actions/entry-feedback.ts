@@ -1,14 +1,16 @@
 "use server";
 
+import { entryDetailTag, entryFeedbackTag } from "@/lib/cache";
 import {
-    createFeedback,
-    deleteFeedback,
-    updateFeedbackContent,
-    updateFeedbackStatus,
+  createFeedback,
+  deleteFeedback,
+  updateFeedbackContent,
+  updateFeedbackStatus,
 } from "@/lib/db/mutations/entry-feedback";
 import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import { getFeedbackById } from "@/lib/db/queries/entry-feedback";
 import { auth } from "@clerk/nextjs/server";
+import { updateTag } from "next/cache";
 import { z } from "zod";
 
 // Validation schemas
@@ -70,9 +72,9 @@ export async function createFeedbackAction(
       content: parsed.data.content,
     });
 
-    // Revalidate feedback and entry caches
-    revalidateTag(entryFeedbackTag(entryId), "max");
-    revalidateTag(entryDetailTag(entryId), "max");
+    // Immediately invalidate feedback cache for read-your-own-writes
+    updateTag(entryFeedbackTag(entryId));
+    updateTag(entryDetailTag(entryId));
 
     return { success: true, feedback };
   } catch (error) {
@@ -132,9 +134,9 @@ export async function updateFeedbackAction(
       return { error: "Failed to update feedback" };
     }
 
-    // Revalidate feedback and entry caches
-    revalidateTag(entryFeedbackTag(existingFeedback.entry.id), "max");
-    revalidateTag(entryDetailTag(existingFeedback.entry.id), "max");
+    // Immediately invalidate feedback cache for read-your-own-writes
+    updateTag(entryFeedbackTag(existingFeedback.entry.id));
+    updateTag(entryDetailTag(existingFeedback.entry.id));
 
     return { success: true, feedback };
   } catch (error) {
@@ -181,9 +183,9 @@ export async function deleteFeedbackAction(
       return { error: "Failed to delete feedback" };
     }
 
-    // Revalidate feedback and entry caches
-    revalidateTag(entryFeedbackTag(existingFeedback.entry.id), "max");
-    revalidateTag(entryDetailTag(existingFeedback.entry.id), "max");
+    // Immediately invalidate feedback cache for read-your-own-writes
+    updateTag(entryFeedbackTag(existingFeedback.entry.id));
+    updateTag(entryDetailTag(existingFeedback.entry.id));
 
     return { success: true };
   } catch (error) {
@@ -241,9 +243,9 @@ export async function updateFeedbackStatusAction(
       return { error: "Failed to update feedback status" };
     }
 
-    // Revalidate feedback and entry caches
-    revalidateTag(entryFeedbackTag(existingFeedback.entry.id), "max");
-    revalidateTag(entryDetailTag(existingFeedback.entry.id), "max");
+    // Immediately invalidate feedback cache for read-your-own-writes
+    updateTag(entryFeedbackTag(existingFeedback.entry.id));
+    updateTag(entryDetailTag(existingFeedback.entry.id));
 
     return { success: true, feedback };
   } catch (error) {

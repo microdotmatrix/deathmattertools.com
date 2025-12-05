@@ -1,18 +1,20 @@
+import "server-only";
+
 import { isOrganizationOwner } from "@/lib/auth/organization-roles";
 import {
-    entryDetailTag,
-    entryListTag,
-    entryUploadsTag,
-    orgEntriesTag,
-    userUploadsTag,
+  entryDetailTag,
+  entryListTag,
+  entryUploadsTag,
+  orgEntriesTag,
+  userUploadsTag,
 } from "@/lib/cache";
 import { db } from "@/lib/db";
 import type { Document, Entry } from "@/lib/db/schema";
 import {
-    DocumentTable,
-    EntryDetailsTable,
-    EntryTable,
-    UserUploadTable,
+  DocumentTable,
+  EntryDetailsTable,
+  EntryTable,
+  UserUploadTable,
 } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { and, desc, eq, inArray, isNotNull, or, sql } from "drizzle-orm";

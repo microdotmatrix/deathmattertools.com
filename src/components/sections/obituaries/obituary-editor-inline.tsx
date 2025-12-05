@@ -38,6 +38,10 @@ export const ObituaryEditorInline = ({
   // Sync local editing state with global atom
   useEffect(() => {
     setIsEditingGlobal(isEditing);
+
+    return () => {
+      setIsEditingGlobal(false);
+    }
   }, [isEditing, setIsEditingGlobal]);
 
   // Initialize TipTap editor
@@ -68,7 +72,9 @@ export const ObituaryEditorInline = ({
       setContent(initialContent);
       setRetryCount(0);
     }
-    // Notify parent to close the editor
+    // Set editing to false first so the global atom gets updated via useEffect
+    setIsEditing(false);
+    // Then notify parent to close the editor
     onClose?.();
   };
 
@@ -138,7 +144,10 @@ export const ObituaryEditorInline = ({
           
           toast.success("Changes saved successfully");
           
-          // Refresh to ensure we have latest data
+          // Notify parent to close editor and switch back to viewer
+          onClose?.();
+          
+          // Refresh to ensure we have latest data from server
           router.refresh();
         });
       } catch (error) {

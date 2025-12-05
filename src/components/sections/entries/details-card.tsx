@@ -85,6 +85,7 @@ export const EntryDetailsSection = ({
         entryDetails.companyName,
         entryDetails.yearsWorked,
         entryDetails.education,
+        entryDetails.educationDetails,
         entryDetails.accomplishments,
         entryDetails.biographicalSummary,
         entryDetails.hobbies,
@@ -166,6 +167,52 @@ export const EntryDetailsSection = ({
                   </p>
                 </div>
               )}
+              {entryDetails.educationDetails && (() => {
+                try {
+                  const educationList = JSON.parse(entryDetails.educationDetails) as Array<{
+                    id: string;
+                    type: string;
+                    institution: string;
+                    yearGraduated: number;
+                  }>;
+                  if (!Array.isArray(educationList) || educationList.length === 0) return null;
+                  
+                  const formatEducationType = (type: string) => {
+                    const typeMap: Record<string, string> = {
+                      'high-school': 'High School',
+                      'ged': 'GED',
+                      'vocational': 'Vocational/Technical',
+                      'college': 'College/University',
+                      'advanced-degree': 'Advanced Degree',
+                      'other': 'Other',
+                    };
+                    return typeMap[type] || type;
+                  };
+
+                  return (
+                    <div>
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Education History
+                      </span>
+                      <div className="space-y-1 mt-1">
+                        {educationList.map((edu) => (
+                          <div key={edu.id} className="text-sm">
+                            <span className="font-medium">{formatEducationType(edu.type)}</span>
+                            {edu.institution && (
+                              <span className="text-muted-foreground"> — {edu.institution}</span>
+                            )}
+                            {edu.yearGraduated && (
+                              <span className="text-muted-foreground"> ({edu.yearGraduated})</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                } catch {
+                  return null;
+                }
+              })()}
 
               {entryDetails.hobbies && (
                 <div>

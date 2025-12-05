@@ -54,6 +54,8 @@ export const documentCommentsTag = (documentId: string) =>
 // Media tags
 export const userImagesTag = (userId: string) => `images:user:${userId}`;
 export const entryImagesTag = (entryId: string) => `images:entry:${entryId}`;
+export const userGeneratedImagesTag = (userId: string, entryId: string) =>
+  `images:generated:${userId}:${entryId}`;
 
 // Uploads tags
 export const userUploadsTag = (userId: string) => `uploads:user:${userId}`;

@@ -397,3 +397,75 @@
     filter: blur(3px);
   }
 }
+
+/* 
+ * Print styles for obituary export
+ * Only shows .print-content, hides everything else
+ */
+@media print {
+  /* Hide EVERYTHING by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Show only the print content and its children */
+  .print-content,
+  .print-content * {
+    visibility: visible;
+  }
+
+  /* Position print content at top of page */
+  .print-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Style only the print content - don't affect visible page */
+  .print-content {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt !important;
+    line-height: 1.6 !important;
+  }
+
+  /* Ensure all nested elements are readable in print */
+  .print-content * {
+    color: black !important;
+    background: transparent !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: letter portrait;
+    margin: 0.75in;
+  }
+
+  /* Avoid page breaks inside important elements */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+
+  p,
+  blockquote {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Links - hide external link indicator */
+  a[href]::after {
+    content: none !important;
+  }
+}

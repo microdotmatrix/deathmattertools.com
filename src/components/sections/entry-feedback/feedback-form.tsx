@@ -1,11 +1,17 @@
 "use client";
 
-import { useActionState, useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Icon } from "@/components/ui/icon";
-import { toast } from "sonner";
 import { createFeedbackAction, updateFeedbackAction } from "@/actions/entry-feedback";
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { Textarea } from "@/components/ui/textarea";
+import { useActionState, useEffect, useState } from "react";
+import { toast } from "sonner";
+
+type FeedbackState = {
+  success?: boolean;
+  error?: string;
+  feedback?: string;
+};
 
 interface FeedbackFormProps {
   entryId: string;
@@ -38,7 +44,7 @@ export const FeedbackForm = ({
     {}
   );
 
-  const state = isEdit ? updateState : createState;
+  const state: FeedbackState = isEdit ? updateState : createState;
   const formAction = isEdit ? updateFormAction : createFormAction;
   const isPending = isEdit ? isUpdating : isCreating;
 

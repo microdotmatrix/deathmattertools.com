@@ -671,45 +671,45 @@ const BiographicalDetailsStep = ({ data, onChange, addEducation, updateEducation
                   <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
                     Christian Traditions
                   </div>
-                  <SelectItem value="catholic">Catholic</SelectItem>
-                  <SelectItem value="protestant">Protestant</SelectItem>
-                  <SelectItem value="baptist">Baptist</SelectItem>
-                  <SelectItem value="methodist">Methodist</SelectItem>
-                  <SelectItem value="lutheran">Lutheran</SelectItem>
-                  <SelectItem value="pentecostal">Pentecostal</SelectItem>
-                  <SelectItem value="presbyterian">Presbyterian</SelectItem>
-                  <SelectItem value="episcopal">Episcopal</SelectItem>
-                  <SelectItem value="orthodox">Orthodox</SelectItem>
-                  <SelectItem value="non-denominational">Non-denominational</SelectItem>
+                  <SelectItem value="Catholic">Catholic</SelectItem>
+                  <SelectItem value="Protestant">Protestant</SelectItem>
+                  <SelectItem value="Baptist">Baptist</SelectItem>
+                  <SelectItem value="Methodist">Methodist</SelectItem>
+                  <SelectItem value="Lutheran">Lutheran</SelectItem>
+                  <SelectItem value="Pentecostal">Pentecostal</SelectItem>
+                  <SelectItem value="Presbyterian">Presbyterian</SelectItem>
+                  <SelectItem value="Episcopal">Episcopal</SelectItem>
+                  <SelectItem value="Orthodox">Orthodox</SelectItem>
+                  <SelectItem value="Non-Denominational">Non-denominational</SelectItem>
                   <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
                     Jewish Traditions
                   </div>
-                  <SelectItem value="reform-jewish">Reform Judaism</SelectItem>
-                  <SelectItem value="conservative-jewish">Conservative Judaism</SelectItem>
-                  <SelectItem value="orthodox-jewish">Orthodox Judaism</SelectItem>
-                  <SelectItem value="hasidic">Hasidic</SelectItem>
+                  <SelectItem value="Reform-Jewish">Reform Judaism</SelectItem>
+                  <SelectItem value="Conservative-Jewish">Conservative Judaism</SelectItem>
+                  <SelectItem value="Orthodox-Jewish">Orthodox Judaism</SelectItem>
+                  <SelectItem value="Hasidic">Hasidic</SelectItem>
                   <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
                     Islamic Traditions
                   </div>
-                  <SelectItem value="sunni">Sunni</SelectItem>
-                  <SelectItem value="shia">Shia</SelectItem>
-                  <SelectItem value="sufi">Sufi</SelectItem>
+                  <SelectItem value="Sunni">Sunni</SelectItem>
+                  <SelectItem value="Shia">Shia</SelectItem>
+                  <SelectItem value="Sufi">Sufi</SelectItem>
                   <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
                     Eastern Traditions
                   </div>
-                  <SelectItem value="hindu">Hindu</SelectItem>
-                  <SelectItem value="buddhist">Buddhist</SelectItem>
-                  <SelectItem value="taoist">Taoist</SelectItem>
-                  <SelectItem value="sikh">Sikh</SelectItem>
-                  <SelectItem value="jain">Jain</SelectItem>
+                  <SelectItem value="Hindu">Hindu</SelectItem>
+                  <SelectItem value="Buddhist">Buddhist</SelectItem>
+                  <SelectItem value="Taoist">Taoist</SelectItem>
+                  <SelectItem value="Sikh">Sikh</SelectItem>
+                  <SelectItem value="Jain">Jain</SelectItem>
                   <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
                     Indigenous & Other Faiths
                   </div>
-                  <SelectItem value="indigenous">Indigenous / First Nations</SelectItem>
-                  <SelectItem value="bahai">Bahá'í</SelectItem>
-                  <SelectItem value="humanist">Humanist / Spiritual but not Religious</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                  <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                  <SelectItem value="Indigenous">Indigenous / First Nations</SelectItem>
+                  <SelectItem value="Bahai">Bahá'í</SelectItem>
+                  <SelectItem value="Pantheist">Pantheist</SelectItem>
+                  <SelectItem value="Humanist">Humanist / Spiritual but not Religious</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -923,7 +923,7 @@ const EducationInputs = ({
                   updateEducation?.(education.id, "type", value)
                 }
               >
-                <SelectTrigger className="md:shrink-0 grow max-w-1/2 overflow-hidden">
+                <SelectTrigger className="md:shrink-0 grow max-w-1/2 lg:min-w-36 lg:max-w-36 overflow-hidden">
                   <SelectValue placeholder="Education Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -942,7 +942,7 @@ const EducationInputs = ({
                   updateEducation?.(education.id, "yearGraduated", parseInt(value, 10))
                 }
               >
-                <SelectTrigger className="md:shrink-0 grow">
+                <SelectTrigger className="md:shrink-0 grow lg:max-w-24">
                   <SelectValue placeholder="Year Graduated" />
                 </SelectTrigger>
                 <SelectContent>
