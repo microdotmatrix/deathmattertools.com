@@ -4,11 +4,11 @@ import { createCommentAction } from "@/actions/comments";
 import { QuotedCommentForm } from "@/components/annotations/quoted-comment-form";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Icon } from "@/components/ui/icon";
 import type { AnchorData } from "@/lib/annotations";
@@ -89,19 +89,7 @@ export const ObituaryViewerWithComments = ({
 
   return (
     <>
-      {/* Show Edit button for owners; load editor only when clicked */}
-      {canEdit && !isEditing && (
-        <div className="mb-4 flex justify-end">
-          <Button
-            onClick={() => setIsEditing(true)}
-            variant="outline"
-            size="sm"
-          >
-            <Icon icon="mdi:pencil" className="mr-2 h-4 w-4" />
-            Edit Obituary
-          </Button>
-        </div>
-      )}
+      
 
       {/* Load editor only when editing */}
       {canEdit && isEditing ? (
@@ -110,8 +98,7 @@ export const ObituaryViewerWithComments = ({
           entryId={entryId}
           initialContent={content}
           canEdit={canEdit}
-          canComment={canComment}
-          onCreateQuotedComment={handleCreateQuotedComment}
+          onClose={() => setIsEditing(false)}
         />
       ) : (
         <ObituaryViewerSimple
@@ -120,6 +107,20 @@ export const ObituaryViewerWithComments = ({
           canComment={canComment}
           onCreateQuotedComment={handleCreateQuotedComment}
         />
+      )}
+
+      {/* Show Edit button for owners; load editor only when clicked */}
+      {canEdit && !isEditing && (
+        <div className="mt-8 flex justify-end">
+          <Button
+            onClick={() => setIsEditing(true)}
+            variant="outline"
+            size="sm"
+          >
+            <Icon icon="mdi:pencil" className="mr-2 h-4 w-4" />
+            Edit
+          </Button>
+        </div>
       )}
 
       {/* Comment Form Dialog */}

@@ -164,7 +164,7 @@ export const FloatingChatBubble = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.5, y: 20 }}
             transition={{ duration: 0.2 }}
-            className="flex flex-col w-[420px] max-w-[96vw] h-[80vh] md:h-[65vh] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden origin-bottom-right"
+            className="flex flex-col w-[540px] max-w-[96vw] h-[80vh] md:h-[65vh] bg-background border border-border rounded-2xl shadow-2xl origin-bottom-right"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
@@ -191,7 +191,7 @@ export const FloatingChatBubble = ({
             </div>
 
             {/* Messages - Using AI Elements Conversation */}
-            <Conversation className="flex-1">
+            <Conversation className="flex-1 overflow-y-hidden">
               <ConversationContent>
                 {messages.length === 0 && status === "ready" && !error ? (
                   <ConversationEmptyState

@@ -1,19 +1,15 @@
 "use client";
 
 import { updateObituaryContent } from "@/actions/obituaries";
-import { MessageResponse } from "@/components/ai-elements/message";
-import { SelectionToolbar } from "@/components/annotations";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { useTextSelection } from "@/hooks/use-text-selection";
-import { extractAnchorData, type AnchorData } from "@/lib/annotations";
 import { htmlToMarkdown, markdownToHtml } from "@/lib/markdown-converter";
-import { isEditingObituaryAtom, obituaryUpdateProcessingAtom } from "@/lib/state";
+import { isEditingObituaryAtom } from "@/lib/state";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import "./tiptap-editor.css";
 
@@ -22,8 +18,7 @@ interface ObituaryEditorInlineProps {
   entryId: string;
   initialContent: string;
   canEdit: boolean;
-  canComment?: boolean;
-  onCreateQuotedComment?: (anchor: AnchorData) => void;
+  onClose?: () => void;
 }
 
 export const ObituaryEditorInline = ({
@@ -31,37 +26,26 @@ export const ObituaryEditorInline = ({
   entryId,
   initialContent,
   canEdit,
-  canComment = false,
-  onCreateQuotedComment,
+  onClose,
 }: ObituaryEditorInlineProps) => {
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
   const [content, setContent] = useState(initialContent);
   const [retryCount, setRetryCount] = useState(0);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const contentRef = useRef<HTMLDivElement>(null);
   const setIsEditingGlobal = useSetAtom(isEditingObituaryAtom);
-  
-  // Read processing state from Jotai atom for AI updates
-  const isProcessing = useAtomValue(obituaryUpdateProcessingAtom);
   
   // Sync local editing state with global atom
   useEffect(() => {
     setIsEditingGlobal(isEditing);
   }, [isEditing, setIsEditingGlobal]);
-  
-  // Text selection for comments - only enabled in view mode
-  const { range, text } = useTextSelection(
-    contentRef as unknown as React.RefObject<HTMLElement>,
-    canComment && !isEditing // Disable selection when editing
-  );
 
   // Initialize TipTap editor
   // Convert Markdown to HTML for TipTap on initialization
   const editor = useEditor({
     extensions: [StarterKit],
     content: markdownToHtml(initialContent),
-    editable: false,
+    editable: true,
     immediatelyRender: false,
     editorProps: {
       attributes: {
@@ -76,24 +60,16 @@ export const ObituaryEditorInline = ({
     },
   });
 
-  // Enter edit mode
-  const handleEnterEditMode = () => {
-    if (editor) {
-      editor.setEditable(true);
-      setIsEditing(true);
-    }
-  };
-
-  // Exit edit mode without saving
+  // Exit edit mode without saving - close the editor entirely
   const handleCancel = () => {
     if (editor) {
-      // Restore original markdown content by converting to HTML
+      // Restore original content
       editor.commands.setContent(markdownToHtml(initialContent));
-      editor.setEditable(false);
       setContent(initialContent);
-      setIsEditing(false);
       setRetryCount(0);
     }
+    // Notify parent to close the editor
+    onClose?.();
   };
 
   // Save changes with retry logic using React 19 useTransition pattern
@@ -189,17 +165,6 @@ export const ObituaryEditorInline = ({
     });
   };
 
-  // Handle creating quoted comment from text selection
-  const handleCreateComment = () => {
-    if (range && contentRef.current && onCreateQuotedComment) {
-      const anchor = extractAnchorData(range, contentRef.current);
-      onCreateQuotedComment(anchor);
-      
-      // Clear selection after extracting
-      window.getSelection()?.removeAllRanges();
-    }
-  };
-
   // Keyboard shortcuts
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (isEditing) {
@@ -226,55 +191,6 @@ export const ObituaryEditorInline = ({
 
   return (
     <div className="relative" onKeyDown={handleKeyDown}>
-      {/* View Mode */}
-      {!isEditing && (
-        <div className="relative space-y-4 animate-in fade-in duration-300">
-          {/* Content Display - Render Markdown with Response component */}
-          <div 
-            ref={contentRef}
-            className="prose dark:prose-invert prose-md lg:prose-lg max-w-4xl"
-          >
-            <MessageResponse>{content}</MessageResponse>
-          </div>
-          
-          {/* Processing indicator - shown when AI is updating the obituary */}
-          {isProcessing && (
-            <div className="absolute top-4 right-4 flex items-center gap-2 bg-primary/10 backdrop-blur-sm px-3 py-2 rounded-full border border-primary/20 z-10 animate-in fade-in duration-200">
-              <Icon 
-                icon="mdi:loading" 
-                className="size-5 text-primary animate-spin" 
-              />
-              <p className="text-xs font-medium text-primary">
-                Updating...
-              </p>
-            </div>
-          )}
-
-          {/* Edit Button (Owner Only) */}
-          {canEdit && (
-            <div className="flex justify-end pt-4 border-t border-border">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleEnterEditMode}
-              >
-                <Icon icon="mdi:pencil" className="mr-2 size-4" />
-                Edit
-              </Button>
-            </div>
-          )}
-          
-          {/* Selection toolbar for comments (only in view mode) */}
-          {canComment && (
-            <SelectionToolbar
-              range={range}
-              onCreateComment={handleCreateComment}
-              enabled={!!text}
-            />
-          )}
-        </div>
-      )}
-
       {/* Edit Mode */}
       {isEditing && (
         <div className="space-y-4 animate-in fade-in duration-300">
