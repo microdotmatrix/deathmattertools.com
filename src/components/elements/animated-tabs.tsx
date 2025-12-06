@@ -40,7 +40,7 @@ const DirectionAwareTabs = ({
       <LayoutGroup>
         <div
           className={cn(
-            "flex space-x-1 border border-none rounded-full cursor-pointer bg-neutral-600 p-0.5 shadow-inner",
+            "flex space-x-1 border-none rounded-full cursor-pointer bg-accent p-0.5 shadow-inner",
             className,
             rounded
           )}
