@@ -1,20 +1,20 @@
-import { OrganizationCommentingSettings } from "@/components/sections/obituaries/commenting-settings";
 import { ObituaryComments } from "@/components/sections/obituaries/comments-panel";
 import { DynamicChat } from "@/components/sections/obituaries/dynamic-chat";
+import { DynamicCommentingSettings } from "@/components/sections/obituaries/dynamic-commenting-settings";
 import { ObituaryViewerWithComments } from "@/components/sections/obituaries/obituary-viewer-with-comments";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { getDocumentWithAccess, listDocumentComments } from "@/lib/db/queries";
 import {
-  getChatByDocumentId,
-  getMessagesByChatId,
+    getChatByDocumentId,
+    getMessagesByChatId,
 } from "@/lib/db/queries/chats";
 import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import { auth, clerkClient } from "@clerk/nextjs/server";
@@ -260,7 +260,7 @@ export default async function ObituaryPage({
             (documentHasOrganization || ownerHasActiveOrg) && (
               <Card>
                 <CardContent className="py-6">
-                  <OrganizationCommentingSettings
+                  <DynamicCommentingSettings
                     documentId={access.document.id}
                     initialEnabled={
                       access.document.organizationCommentingEnabled

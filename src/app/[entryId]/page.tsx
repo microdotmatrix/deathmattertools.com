@@ -264,7 +264,7 @@ const EntryEditContent = async ({
                                 areYouSureDescription={`Are you sure you want to delete ${obituary.title}?`}
                                 variant="destructive"
                                 size="sm"
-                                className="size-8 p-0 flex-shrink-0"
+                                className="size-8 p-0 shrink-0"
                                 aria-label={`Delete obituary: ${obituary.title}`}
                               >
                                 <Icon icon="mdi:delete" className="w-4 h-4" />

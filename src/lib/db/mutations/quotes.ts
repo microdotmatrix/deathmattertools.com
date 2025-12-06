@@ -1,11 +1,12 @@
 "use server";
 
+import { savedQuotesByEntryTag } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { SavedQuotesTable } from "@/lib/db/schema";
 import { action } from "@/lib/utils";
 import { auth } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 const SaveQuoteSchema = z.object({
@@ -43,7 +44,9 @@ export const saveQuoteAction = action(SaveQuoteSchema, async (data) => {
       usedInImage: false,
     });
 
-    revalidatePath(`/[entryId]`, "page");
+    // Revalidate cache tag for SWR behavior + path for immediate UI update
+    revalidateTag(savedQuotesByEntryTag(data.entryId), "max");
+    revalidatePath(`/${data.entryId}`);
     return { success: true };
   } catch (error) {
     console.error("Failed to save quote:", error);
@@ -68,7 +71,9 @@ export const deleteQuoteAction = async (id: number, entryId: string) => {
         )
       );
 
-    revalidatePath(`/[entryId]`, "page");
+    // Revalidate cache tag for SWR behavior + path for immediate UI update
+    revalidateTag(savedQuotesByEntryTag(entryId), "max");
+    revalidatePath(`/${entryId}`);
     return { success: true };
   } catch (error) {
     console.error("Failed to delete quote:", error);
