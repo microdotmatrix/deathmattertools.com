@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
-import { documentsByEntryTag, documentTag } from "@/lib/cache";
 import { obitLimit } from "@/lib/config";
 import { deleteDocumentById } from "@/lib/db/mutations/documents";
 import { getEntryImages } from "@/lib/db/queries";
@@ -18,7 +17,7 @@ import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
 import { getEntryDetailsById, getEntryWithAccess } from "@/lib/db/queries/entries";
 import { getUserGeneratedImages } from "@/lib/db/queries/media";
 import { format } from "date-fns";
-import { revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -254,9 +253,8 @@ const EntryEditContent = async ({
                                     obituary.id
                                   );
                                   if (result.success) {
-                                    // Use granular tag invalidation for better caching
-                                    revalidateTag(documentTag(obituary.id), "max");
-                                    revalidateTag(documentsByEntryTag(entry.id), "max");
+                                    // Revalidate the current page to immediately show updated list
+                                    revalidatePath(`/${entry.id}`);
                                     return { error: false };
                                   } else {
                                     return { error: true, message: result.error };

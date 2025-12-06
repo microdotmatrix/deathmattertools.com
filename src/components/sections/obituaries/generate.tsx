@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-    generateObituary,
-    generateObituaryFromDocument,
+  generateObituary,
+  generateObituaryFromDocument,
 } from "@/lib/ai/actions";
 import type { Entry, EntryDetails, SavedQuote } from "@/lib/db/schema";
 import { convertFileToDataURL } from "@/lib/helpers";
@@ -70,7 +70,6 @@ export const GenerateObituary = ({
     e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault();
-    setContent(undefined);
 
     const formDataObj = new FormData();
     Object.entries({
@@ -84,6 +83,20 @@ export const GenerateObituary = ({
     }).forEach(([key, value]) => {
       formDataObj.append(key, String(value));
     });
+
+    setContent(undefined);
+    
+    // Scroll to top and wait for completion before starting transition
+    const scrollToTop = () => new Promise<void>((resolve) => {
+      if (window.scrollY === 0) {
+        resolve();
+        return;
+      }
+      window.addEventListener("scrollend", () => resolve(), { once: true });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    await scrollToTop();
 
     startTransition(async () => {
       const { success, result, error, id } = await generateObituary(entry.id, {
@@ -390,6 +403,18 @@ const UploadForm = ({
       toast.error("Please upload a PDF file");
       return;
     }
+
+    // Scroll to top and wait for completion before starting transition
+    const scrollToTop = () => new Promise<void>((resolve) => {
+      if (window.scrollY === 0) {
+        resolve();
+        return;
+      }
+      window.addEventListener("scrollend", () => resolve(), { once: true });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    await scrollToTop();
 
     startTransition(async () => {
       setUploading(true);

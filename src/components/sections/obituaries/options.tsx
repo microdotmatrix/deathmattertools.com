@@ -36,9 +36,13 @@ export const ObituaryOptions = ({
     {
       value: "reverent",
       label: "Reverent",
-      description: "Respectful and honoring (default)",
+      description: "Respectful and honoring",
     },
-    { value: "somber", label: "Somber", description: "Serious and reflective" },
+    {
+      value: "somber",
+      label: "Somber",
+      description: "Serious and reflective"
+    },
     {
       value: "uplifting",
       label: "Uplifting",
@@ -98,7 +102,7 @@ export const ObituaryOptions = ({
               <RadioGroupItem value={option.value} id={option.value} />
               <Label
                 htmlFor={option.value}
-                className="items-baseline flex flex-row 2xl:flex-col 3xl:flex-row 2xl:gap-0.5 3xl:gap-2"
+                className="items-baseline flex flex-row xl:flex-col 3xl:flex-row xl:gap-0.5 3xl:gap-2"
               >
                 {option.label}
                 <span className="text-xs font-normal text-muted-foreground">
@@ -114,7 +118,7 @@ export const ObituaryOptions = ({
               <RadioGroupItem value={option.value} id={option.value} />
               <Label
                 htmlFor={option.value}
-                className="items-baseline flex flex-row 2xl:flex-col 3xl:flex-row 2xl:gap-0.5 3xl:gap-2"
+                className="items-baseline flex flex-row xl:flex-col 3xl:flex-row xl:gap-0.5 3xl:gap-2"
               >
                 {option.label}
                 <span className="text-xs font-normal text-muted-foreground">
@@ -128,7 +132,7 @@ export const ObituaryOptions = ({
       <Separator className="my-6" />
       <section className="space-y-6">
         <Label htmlFor="avoidNotes">Miscellaneous Notes</Label>
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid lg:grid-cols-2 2xl:grid-cols-1 3xl:grid-cols-2 gap-4">
           <AnimatedInput
             name="includeNotes"
             label="Things to Include"
