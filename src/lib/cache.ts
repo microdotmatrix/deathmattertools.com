@@ -64,6 +64,18 @@ export const entryUploadsTag = (entryId: string) => `uploads:entry:${entryId}`;
 // Feedback tags
 export const entryFeedbackTag = (entryId: string) => `feedback:entry:${entryId}`;
 
+// Saved quotes tags
+export const savedQuotesByEntryTag = (entryId: string) =>
+  `quotes:entry:${entryId}`;
+export const savedQuotesByUserTag = (userId: string) => `quotes:user:${userId}`;
+
+// Chat tags
+export const chatTag = (chatId: string) => `chat:${chatId}`;
+export const chatByEntryTag = (entryId: string) => `chat:entry:${entryId}`;
+export const chatByDocumentTag = (documentId: string) =>
+  `chat:document:${documentId}`;
+export const chatMessagesTag = (chatId: string) => `chat:${chatId}:messages`;
+
 // ============================================================================
 // Cache Profile Types (matches next.config.ts cacheLife profiles)
 // ============================================================================

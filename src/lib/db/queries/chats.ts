@@ -1,24 +1,31 @@
 import "server-only";
 
+import {
+    chatByDocumentTag,
+    chatByEntryTag,
+    chatMessagesTag,
+    chatTag,
+} from "@/lib/cache";
 import { db } from "@/lib/db";
 import {
-  ChatTable,
-  MessageTable,
-  StreamTable,
-  VoteTable,
+    ChatTable,
+    MessageTable,
+    StreamTable,
+    VoteTable,
 } from "@/lib/db/schema";
 import {
-  and,
-  asc,
-  count,
-  desc,
-  eq,
-  gt,
-  gte,
-  inArray,
-  lt,
-  type SQL,
+    and,
+    asc,
+    count,
+    desc,
+    eq,
+    gt,
+    gte,
+    inArray,
+    lt,
+    type SQL,
 } from "drizzle-orm";
+import { cacheLife, cacheTag } from "next/cache";
 
 export const saveChat = async ({
   id,
@@ -140,7 +147,14 @@ export const getChatsByUserId = async ({
   }
 };
 
-export const getChatById = async ({ id }: { id: string }) => {
+/**
+ * Get chat by ID - cached with realtime profile
+ */
+export async function getChatById({ id }: { id: string }) {
+  "use cache";
+  cacheLife("realtime");
+  cacheTag(chatTag(id));
+
   try {
     const [selectedChat] = await db
       .select()
@@ -155,15 +169,22 @@ export const getChatById = async ({ id }: { id: string }) => {
       }`
     );
   }
-};
+}
 
-export const getChatByEntryId = async ({
+/**
+ * Get chat by entry ID - cached with realtime profile
+ */
+export async function getChatByEntryId({
   entryId,
   userId,
 }: {
   entryId: string;
   userId: string;
-}) => {
+}) {
+  "use cache";
+  cacheLife("realtime");
+  cacheTag(chatByEntryTag(entryId));
+
   try {
     const [selectedChat] = await db
       .select()
@@ -180,9 +201,12 @@ export const getChatByEntryId = async ({
       }`
     );
   }
-};
+}
 
-export const getChatByDocumentId = async ({
+/**
+ * Get chat by document ID - cached with realtime profile
+ */
+export async function getChatByDocumentId({
   documentId,
   documentCreatedAt,
   userId,
@@ -190,7 +214,11 @@ export const getChatByDocumentId = async ({
   documentId: string;
   documentCreatedAt: Date;
   userId: string;
-}) => {
+}) {
+  "use cache";
+  cacheLife("realtime");
+  cacheTag(chatByDocumentTag(documentId));
+
   try {
     const [selectedChat] = await db
       .select()
@@ -213,7 +241,7 @@ export const getChatByDocumentId = async ({
       }`
     );
   }
-};
+}
 
 export const saveMessages = async ({
   messages,
@@ -241,7 +269,14 @@ export const getMessageById = async ({ id }: { id: string }) => {
   }
 };
 
-export const getMessagesByChatId = async ({ id }: { id: string }) => {
+/**
+ * Get messages by chat ID - cached with realtime profile
+ */
+export async function getMessagesByChatId({ id }: { id: string }) {
+  "use cache";
+  cacheLife("realtime");
+  cacheTag(chatMessagesTag(id));
+
   try {
     return await db
       .select()
@@ -251,7 +286,7 @@ export const getMessagesByChatId = async ({ id }: { id: string }) => {
   } catch (error) {
     throw new Error("Failed to get messages by chat id");
   }
-};
+}
 
 export const deleteMessagesByChatIdAfterTimestamp = async ({
   chatId,
