@@ -368,76 +368,53 @@ export const updateEntryDetailsDirectAction = async (
       return { error: "Entry not found or unauthorized" };
     }
 
-    // Use upsert pattern - try to update, if no rows affected, insert
-    const updateResult = await db
-      .update(EntryDetailsTable)
-      .set({
-        occupation: result.data.occupation,
-        jobTitle: result.data.jobTitle,
-        companyName: result.data.companyName,
-        yearsWorked: result.data.yearsWorked,
-        education: result.data.education,
-        educationDetails: result.data.educationDetails,
-        educationTypes: result.data.educationTypes,
-        educationYears: result.data.educationYears,
-        accomplishments: result.data.accomplishments,
-        biographicalSummary: result.data.biographicalSummary,
-        hobbies: result.data.hobbies,
-        personalInterests: result.data.personalInterests,
-        militaryService: result.data.militaryService,
-        militaryBranch: result.data.militaryBranch,
-        militaryRank: result.data.militaryRank,
-        militaryYearsServed: result.data.militaryYearsServed,
-        religious: result.data.religious,
-        denomination: result.data.denomination,
-        organization: result.data.organization,
-        favoriteScripture: result.data.favoriteScripture,
-        familyDetails: result.data.familyDetails,
-        survivedBy: result.data.survivedBy,
-        precededBy: result.data.precededBy,
-        serviceDetails: result.data.serviceDetails,
-        donationRequests: result.data.donationRequests,
-        specialAcknowledgments: result.data.specialAcknowledgments,
-        additionalNotes: result.data.additionalNotes,
-        updatedAt: new Date(),
-      })
-      .where(eq(EntryDetailsTable.entryId, entryId));
+    // Use proper upsert pattern with onConflictDoUpdate
+    // Note: neon-http adapter doesn't return rowCount, so we use Postgres ON CONFLICT
+    const detailsData = {
+      occupation: result.data.occupation,
+      jobTitle: result.data.jobTitle,
+      companyName: result.data.companyName,
+      yearsWorked: result.data.yearsWorked,
+      education: result.data.education,
+      educationDetails: result.data.educationDetails,
+      educationTypes: result.data.educationTypes,
+      educationYears: result.data.educationYears,
+      accomplishments: result.data.accomplishments,
+      biographicalSummary: result.data.biographicalSummary,
+      hobbies: result.data.hobbies,
+      personalInterests: result.data.personalInterests,
+      militaryService: result.data.militaryService,
+      militaryBranch: result.data.militaryBranch,
+      militaryRank: result.data.militaryRank,
+      militaryYearsServed: result.data.militaryYearsServed,
+      religious: result.data.religious,
+      denomination: result.data.denomination,
+      organization: result.data.organization,
+      favoriteScripture: result.data.favoriteScripture,
+      familyDetails: result.data.familyDetails,
+      survivedBy: result.data.survivedBy,
+      precededBy: result.data.precededBy,
+      serviceDetails: result.data.serviceDetails,
+      donationRequests: result.data.donationRequests,
+      specialAcknowledgments: result.data.specialAcknowledgments,
+      additionalNotes: result.data.additionalNotes,
+    };
 
-    // If no existing record was updated, create a new one
-    if (updateResult.rowCount === 0) {
-      await db.insert(EntryDetailsTable).values({
+    await db
+      .insert(EntryDetailsTable)
+      .values({
         entryId,
-        occupation: result.data.occupation,
-        jobTitle: result.data.jobTitle,
-        companyName: result.data.companyName,
-        yearsWorked: result.data.yearsWorked,
-        education: result.data.education,
-        educationDetails: result.data.educationDetails,
-        educationTypes: result.data.educationTypes,
-        educationYears: result.data.educationYears,
-        accomplishments: result.data.accomplishments,
-        biographicalSummary: result.data.biographicalSummary,
-        hobbies: result.data.hobbies,
-        personalInterests: result.data.personalInterests,
-        militaryService: result.data.militaryService,
-        militaryBranch: result.data.militaryBranch,
-        militaryRank: result.data.militaryRank,
-        militaryYearsServed: result.data.militaryYearsServed,
-        religious: result.data.religious,
-        denomination: result.data.denomination,
-        organization: result.data.organization,
-        favoriteScripture: result.data.favoriteScripture,
-        familyDetails: result.data.familyDetails,
-        survivedBy: result.data.survivedBy,
-        precededBy: result.data.precededBy,
-        serviceDetails: result.data.serviceDetails,
-        donationRequests: result.data.donationRequests,
-        specialAcknowledgments: result.data.specialAcknowledgments,
-        additionalNotes: result.data.additionalNotes,
+        ...detailsData,
+      })
+      .onConflictDoUpdate({
+        target: EntryDetailsTable.entryId,
+        set: {
+          ...detailsData,
+          updatedAt: new Date(),
+        },
       });
-    }
 
-    revalidatePath(`/dashboard/${entryId}`);
+    revalidatePath(`/${entryId}`);
     return { success: true };
   } catch (error) {
     console.error("Failed to update entry details:", error);
