@@ -3,6 +3,7 @@ import { AppContext } from "@/components/context";
 import { HexPattern } from "@/components/elements/svg/hex-pattern";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
+import { ChaseDot } from "@/components/skeletons/loaders";
 import { meta } from "@/lib/config";
 import { code, display, text } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
@@ -68,7 +69,7 @@ export default function RootLayout({
         <Suspense
           fallback={
             <div className="min-h-screen flex items-center justify-center">
-              <div className="animate-pulse">Loading...</div>
+              <ChaseDot />
             </div>
           }
         >

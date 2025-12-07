@@ -1,23 +1,20 @@
-import { ActionButton } from "@/components/elements/action-button";
 import { SavedQuotesList } from "@/components/quotes-scripture/saved-quotes-list";
 import { EntryDetailsCard } from "@/components/sections/entries/details-card";
 import { EntryForm } from "@/components/sections/entries/entry-form";
 import { EntryImageUpload } from "@/components/sections/entries/entry-image-upload";
+import { ObituaryList } from "@/components/sections/entries/obituary-list";
 import { EntryFeedbackPanel } from "@/components/sections/entry-feedback";
 import { EntryEditContentSkeleton } from "@/components/skeletons/entry";
 import { FeedbackSkeleton } from "@/components/skeletons/feedback";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
-import { obitLimit } from "@/lib/config";
-import { deleteDocumentById } from "@/lib/db/mutations/documents";
 import { getEntryImages } from "@/lib/db/queries";
 import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
 import { getEntryDetailsById, getEntryWithAccess } from "@/lib/db/queries/entries";
 import { getUserGeneratedImages } from "@/lib/db/queries/media";
 import { format } from "date-fns";
-import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -210,124 +207,9 @@ const EntryEditContent = async ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {obituaries.length > 0 ? (
-                  <>
-                    <div className="space-y-2 max-h-60 overflow-y-auto scroll-style">
-                      {obituaries.map((obituary) => (
-                        <div
-                          key={obituary.id}
-                          className="p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-sm truncate">
-                                {obituary.title}
-                              </h4>
-                              <p className="text-xs text-muted-foreground">
-                                {format(
-                                  new Date(obituary.createdAt),
-                                  "MMM d, yyyy"
-                                )}
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                {obituary.content.substring(0, 100)}...
-                              </p>
-                            </div>
-                            <Link
-                              href={`/${entry.id}/obituaries/${obituary.id}`}
-                              className={buttonVariants({
-                                variant: "outline",
-                                size: "sm",
-                                className: "size-8 p-0 shrink-0",
-                              })}
-                              aria-label={`View obituary: ${obituary.title}`}
-                            >
-                              <Icon icon="mdi:eye" className="w-4 h-4" />
-                            </Link>
-                            {canEdit && (
-                              <ActionButton
-                                action={async () => {
-                                  "use server";
-                                  const result = await deleteDocumentById(
-                                    obituary.id
-                                  );
-                                  if (result.success) {
-                                    // Revalidate the current page to immediately show updated list
-                                    revalidatePath(`/${entry.id}`);
-                                    return { error: false };
-                                  } else {
-                                    return { error: true, message: result.error };
-                                  }
-                                }}
-                                requireAreYouSure={true}
-                                areYouSureDescription={`Are you sure you want to delete ${obituary.title}?`}
-                                variant="destructive"
-                                size="sm"
-                                className="size-8 p-0 shrink-0"
-                                aria-label={`Delete obituary: ${obituary.title}`}
-                              >
-                                <Icon icon="mdi:delete" className="w-4 h-4" />
-                              </ActionButton>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {canEdit && (
-                      <div className="border-t pt-3">
-                        {obituaries.length >= obitLimit ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
-                            disabled
-                          >
-                            <Icon
-                              icon="mdi:do-not-disturb"
-                              className="w-4 h-4 mr-2"
-                            />
-                            Obituary Limit Reached
-                          </Button>
-                        ) : (
-                          <Link
-                            href={`/${entry.id}/obituaries/create`}
-                            className={buttonVariants({
-                              variant: "outline",
-                              size: "sm",
-                              className: "w-full",
-                            })}
-                            aria-label="Generate New Obituary"
-                          >
-                            <Icon icon="mdi:plus" className="w-4 h-4 mr-2" />
-                            Generate New Obituary
-                          </Link>
-                        )}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <p className="text-sm text-muted-foreground">
-                      No obituaries generated yet.
-                    </p>
-                    {canEdit && (
-                      <Link
-                        href={`/${entry.id}/obituaries/create`}
-                        className={buttonVariants({
-                          variant: "outline",
-                          size: "sm",
-                          className: "w-full",
-                        })}
-                        aria-label="Generate Obituary"
-                      >
-                        <Icon icon="mdi:plus" className="w-4 h-4 mr-2" />
-                        Generate Obituary
-                      </Link>
-                    )}
-                  </>
-                )}
-              </div>
+              
+                <ObituaryList obituaries={obituaries} entryId={entry.id} canEdit={canEdit} />
+                
             </CardContent>
           </Card>
 

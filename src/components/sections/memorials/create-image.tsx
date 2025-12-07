@@ -99,10 +99,10 @@ export function CreateImage({
         {/* Display deceased information */}
         <div className="space-y-4">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold">
               {deceased.name}
             </h2>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               {format(deceased.dateOfBirth!, "MMMM d, yyyy")} -{" "}
               {format(deceased.dateOfDeath!, "MMMM d, yyyy")}
             </p>
@@ -110,7 +110,7 @@ export function CreateImage({
 
           {/* Display the selected image */}
           <div className="flex justify-center">
-            <div className="relative w-48 h-48 rounded-lg overflow-hidden border-2 border-primary shadow-lg">
+            <div className="relative w-48 h-48 rounded-lg overflow-hidden border-2 border-border shadow-lg">
               <Image
                 src={selectedImageUrl}
                 alt={deceased.name}
@@ -136,7 +136,7 @@ export function CreateImage({
                     className={cn(
                       "relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all hover:scale-105",
                       selectedImageUrl === deceased.image
-                        ? "border-primary ring-2 ring-primary ring-offset-2"
+                        ? "border-primary"
                         : "border-gray-300 hover:border-primary"
                     )}
                     title="Default entry photo"
@@ -145,8 +145,8 @@ export function CreateImage({
                       src={deceased.image!}
                       alt={`${deceased.name} - Default`}
                       fill
-                      className="object-cover"
-                      sizes="64px"
+                      className="object-cover size-full"
+                      sizes="150px"
                     />
                   </button>
                 )}
@@ -160,7 +160,7 @@ export function CreateImage({
                     className={cn(
                       "relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all hover:scale-105",
                       selectedImageUrl === upload.url
-                        ? "border-primary ring-2 ring-primary ring-offset-2"
+                        ? "border-primary"
                         : "border-gray-300 hover:border-primary"
                     )}
                     title={`Uploaded ${format(upload.createdAt, "MMM d, yyyy")}`}
@@ -169,8 +169,8 @@ export function CreateImage({
                       src={upload.url}
                       alt={`${deceased.name} - Photo ${format(upload.createdAt, "MMM d")}`}
                       fill
-                      className="object-cover"
-                      sizes="64px"
+                      className="object-cover size-full"
+                      sizes="150px"
                     />
                   </button>
                 ))}

@@ -97,9 +97,9 @@ export const ImageUpload = ({
                   {isPrimary && (
                     <Badge
                       variant="secondary"
-                      className="absolute top-2 left-2 z-10 bg-primary text-primary-foreground"
+                      className="absolute top-2 left-2 z-10 bg-primary text-primary-foreground px-0.5"
                     >
-                      <Icon icon="mdi:star" className="w-3 h-3 mr-1" />
+                      <Icon icon="mdi:star" className="size-3" />
                       <span className="sr-only">Primary</span>
                     </Badge>
                   )}

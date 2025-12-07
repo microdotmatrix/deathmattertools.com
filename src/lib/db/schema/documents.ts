@@ -34,6 +34,7 @@ export const DocumentTable = pgTable(
     kind: varchar("kind", { enum: ["obituary", "eulogy"] })
       .notNull()
       .default("obituary"),
+    isPublic: boolean("is_public").notNull().default(false),
     tokenUsage: integer("token_usage").default(0),
     createdAt: timestamp("created_at")
       .$defaultFn(() => new Date())
