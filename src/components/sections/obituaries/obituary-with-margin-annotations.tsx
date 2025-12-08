@@ -79,7 +79,7 @@ export const ObituaryWithMarginAnnotations = ({
         {/* Content - original markdown, unchanged */}
         <div
           ref={contentRef}
-          className="flex-1 loading-fade prose dark:prose-invert prose-md lg:prose-lg"
+          className="flex-1 prose dark:prose-invert prose-md lg:prose-lg"
         >
           <MessageResponse key={id}>{content}</MessageResponse>
         </div>

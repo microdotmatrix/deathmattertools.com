@@ -47,7 +47,7 @@ export const ObituaryViewerSimple = ({
       {/* Content - clean markdown with no indicators */}
       <div
         ref={contentRef}
-        className="loading-fade prose dark:prose-invert prose-md lg:prose-lg max-w-4xl"
+        className="prose dark:prose-invert prose-md lg:prose-lg max-w-4xl"
       >
         <MessageResponse key={id} isAnimating={isProcessing}>{content}</MessageResponse>
       </div>

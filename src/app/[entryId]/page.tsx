@@ -17,6 +17,7 @@ import { getEntryDetailsById, getEntryWithAccess } from "@/lib/db/queries/entrie
 import { getUserGeneratedImages } from "@/lib/db/queries/media";
 import { getEntryThumbnailId } from "@/lib/utils/transition-ids";
 import { format } from "date-fns";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -80,7 +81,7 @@ const EntryEditContent = async ({
     : [];
 
   return (
-    <div className="space-y-8 loading-fade">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <Link
@@ -113,10 +114,13 @@ const EntryEditContent = async ({
                 {/* Entry Image - Left side on desktop, top on mobile */}
                 <EntryThumbnail transitionName={getEntryThumbnailId(entry.id)}>
                   <div className="relative w-full aspect-square rounded-lg overflow-hidden border">
-                    <img
+                    <Image
                       src={entry.image ?? "/images/create-entry_portrait-01.png"}
                       alt={entry.name}
-                      className="w-full h-full object-cover"
+                      height={1280}
+                      width={1280}
+                      className="h-full w-full object-cover"
+                      priority
                     />
                   </div>
                 </EntryThumbnail>

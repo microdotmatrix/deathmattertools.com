@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export const PageContentSkeleton = () => {
   return (
-    <div className="space-y-8 px-4 lg:px-8 loading-fade">
+    <div className="space-y-8 px-4 lg:px-8">
       {/* Header */}
       <div className="flex justify-between items-center">
         <Skeleton className="h-8 w-32" />

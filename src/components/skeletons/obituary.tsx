@@ -10,7 +10,7 @@ import {
 
 export const ObituaryCreateSkeleton = () => {
   return (
-    <div className="grid lg:grid-cols-6 gap-4 px-4 lg:px-8 loading-fade">
+    <div className="grid lg:grid-cols-6 gap-4 px-4 lg:px-8">
       {/* Left Sidebar - Entry Details & Form */}
       <aside className="lg:col-span-2 space-y-4">
         {/* Entry Card Skeleton */}
@@ -156,7 +156,7 @@ export const ObituaryCreateSkeleton = () => {
 
 export const ObituarySidebarSkeleton = () => {
   return (
-    <Sidebar variant="sidebar" className="top-4 loading-fade">
+    <Sidebar variant="sidebar" className="top-4">
       <SidebarHeader className="pt-[var(--header-height)] mt-4">
         <Skeleton className="h-6 w-32" />
       </SidebarHeader>
@@ -210,7 +210,7 @@ export const ObituarySidebarSkeleton = () => {
 
 export const ObituaryViewerSkeleton = () => {
   return (
-    <div className="w-full max-w-6xl mx-auto p-8 loading-fade">
+    <div className="w-full max-w-6xl mx-auto p-8">
       {/* Title skeleton */}
       <h3 className="text-muted-foreground font-bold opacity-50 animate-pulse mb-8">
         Loading...

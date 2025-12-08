@@ -3,18 +3,19 @@ import { type ReactNode } from "react";
 
 import { DashboardSidebarNav } from "@/components/layout/dashboard-sidebar-nav";
 import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarGroup,
-    SidebarGroupLabel,
-    SidebarHeader,
-    SidebarInset,
-    SidebarProvider,
-    SidebarSeparator,
-    SidebarTrigger,
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarProvider,
+  SidebarSeparator,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { OrganizationSwitcher, SignedIn } from "@clerk/nextjs";
+import { ViewTransition } from "react";
 
 type DashboardShellProps = {
   children: ReactNode;
@@ -71,18 +72,20 @@ const adminLinks: SidebarLink[] = [
 
 export const DashboardShell = ({ children }: DashboardShellProps) => {
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <DashboardSidebar />
-      </Sidebar>
-      <SidebarInset className="bg-transparent">
-        <div className="flex min-h-svh flex-1 flex-col">
-          <div className="flex flex-1 flex-col gap-8 px-4 pb-10 pt-6 md:px-8 lg:px-10">
-            {children}
+    <ViewTransition>
+      <SidebarProvider>
+        <Sidebar>
+          <DashboardSidebar />
+        </Sidebar>
+        <SidebarInset className="bg-transparent">
+          <div className="flex min-h-svh flex-1 flex-col">
+            <div className="flex flex-1 flex-col gap-8 px-4 pb-10 pt-6 md:px-8 lg:px-10">
+              {children}
+            </div>
           </div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+        </SidebarInset>
+      </SidebarProvider>
+    </ViewTransition>
   );
 };
 

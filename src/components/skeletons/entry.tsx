@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export const EntryEditContentSkeleton = () => {
   return (
-    <div className="space-y-8 loading-fade">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Skeleton className="h-9 w-32" />
