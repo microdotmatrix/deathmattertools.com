@@ -6,6 +6,11 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* View Transition durations */
+  --duration-enter: 200ms;
+  --duration-exit: 150ms;
+  --duration-move: 300ms;
+
   --background: oklch(0.9875 0.0026 106.4475);
   --foreground: oklch(0.1822 0 0);
   --card: oklch(0.9911 0 0);
@@ -395,6 +400,20 @@
 @keyframes via-blur {
   30% {
     filter: blur(3px);
+  }
+}
+
+/* 
+ * Respect prefers-reduced-motion for view transitions
+ * Disable or minimize animations for users who prefer reduced motion
+ */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-image-pair(*) {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
   }
 }
 

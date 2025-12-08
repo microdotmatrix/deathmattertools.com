@@ -2,6 +2,7 @@ import { SavedQuotesList } from "@/components/quotes-scripture/saved-quotes-list
 import { EntryDetailsCard } from "@/components/sections/entries/details-card";
 import { EntryForm } from "@/components/sections/entries/entry-form";
 import { EntryImageUpload } from "@/components/sections/entries/entry-image-upload";
+import { EntryThumbnail } from "@/components/sections/entries/entry-link";
 import { ObituaryList } from "@/components/sections/entries/obituary-list";
 import { EntryFeedbackPanel } from "@/components/sections/entry-feedback";
 import { EntryEditContentSkeleton } from "@/components/skeletons/entry";
@@ -14,6 +15,7 @@ import { getEntryImages } from "@/lib/db/queries";
 import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
 import { getEntryDetailsById, getEntryWithAccess } from "@/lib/db/queries/entries";
 import { getUserGeneratedImages } from "@/lib/db/queries/media";
+import { getEntryThumbnailId } from "@/lib/utils/transition-ids";
 import { format } from "date-fns";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -101,20 +103,23 @@ const EntryEditContent = async ({
         <div className="xl:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Commemoration Entry</CardTitle>
+              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                Commemoration Entry
+              </p>
+              <CardTitle className="text-2xl font-display">{entry.name}</CardTitle>
             </CardHeader>
             <CardContent className="@container">
               <div className="grid md:grid-cols-[250px_1fr] lg:grid-cols-[300px_1fr] 2xl:grid-cols-[400px_1fr] gap-6">
                 {/* Entry Image - Left side on desktop, top on mobile */}
-                {entry.image && (
+                <EntryThumbnail transitionName={getEntryThumbnailId(entry.id)}>
                   <div className="relative w-full aspect-square rounded-lg overflow-hidden border">
                     <img
-                      src={entry.image}
+                      src={entry.image ?? "/images/create-entry_portrait-01.png"}
                       alt={entry.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
-                )}
+                </EntryThumbnail>
                 
                 {/* Edit Form or View-Only Content - Right side on desktop, bottom on mobile */}
                 <div className="flex-1">

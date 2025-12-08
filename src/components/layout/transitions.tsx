@@ -1,14 +1,21 @@
 "use client";
 
+import type { TransitionId } from "@/lib/utils/transition-ids";
 import clsx from "clsx";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  unstable_addTransitionType as addTransitionType,
+  addTransitionType,
   startTransition,
-  unstable_ViewTransition as ViewTransition,
+  ViewTransition,
 } from "react";
+
+// Re-export transition ID utilities for convenience
+export {
+  getEntryNameId, getEntryThumbnailId
+} from "@/lib/utils/transition-ids";
+export type { TransitionId };
 
 /**
  * Extended Link component that adds a type to a navigation transition.
@@ -99,7 +106,7 @@ export function HorizontalTransition({
 
 /**
  * Wrapper for shared element transitions between views.
- * Enables morphing of elements that persistacross transitions.
+ * Enables morphing of elements that persist across transitions.
  *
  * @example
  * <SharedTransition name="product-image" share="animate-morph">
@@ -119,6 +126,41 @@ export function SharedTransition({
     <ViewTransition name={name} share={share}>
       {children}
     </ViewTransition>
+  );
+}
+
+/**
+ * Link component that triggers view transitions when navigating.
+ * Use this for links that should animate shared elements between pages.
+ *
+ * @example
+ * <ViewTransitionLink href="/entry/123">
+ *   View Entry
+ * </ViewTransitionLink>
+ */
+export function ViewTransitionLink({
+  href,
+  children,
+  className,
+  onClick,
+  ...props
+}: Omit<React.ComponentProps<typeof Link>, "href"> & { href: string }) {
+  const router = useRouter();
+
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    onClick?.(e);
+
+    startTransition(() => {
+      addTransitionType("transition-to-detail");
+      router.push(href);
+    });
+  };
+
+  return (
+    <Link href={href} onClick={handleClick} className={className} {...props}>
+      {children}
+    </Link>
   );
 }
 
@@ -191,11 +233,6 @@ type TransitionMap = { default: AnimationType } & Partial<
  * <ViewTransition> props accept both.
  */
 type ViewTransitionClass = AnimationType | TransitionMap;
-
-/**
- * Type for transition element IDs
- */
-type TransitionId = (typeof transitionIds)[number] | `entry-${string}`;
 
 /**
  * Props for TransitionLink component

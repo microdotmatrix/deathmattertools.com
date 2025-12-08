@@ -3,6 +3,7 @@ import { DashboardHeader, DashboardShell } from "@/components/layout/dashboard-s
 import { CreatePortal } from "@/components/sections/dashboard/create-dialog";
 import { CreateEntryForm } from "@/components/sections/dashboard/create-form";
 import { CreateEntryImage } from "@/components/sections/dashboard/create-image";
+import { EntryLink, EntryThumbnail } from "@/components/sections/entries/entry-link";
 import { ObituaryActionsButton } from "@/components/sections/entries/obituary-actions-button";
 import { PageContentSkeleton } from "@/components/skeletons/page";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +21,10 @@ import { deleteEntryAction } from "@/lib/db/mutations/entries";
 import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
 import { EntryWithObituaries, getOrganizationEntries, getUserUploads } from "@/lib/db/queries/entries";
 import { getUserGeneratedImagesCount } from "@/lib/db/queries/media";
+import {
+  getEntryNameId,
+  getEntryThumbnailId,
+} from "@/lib/utils/transition-ids";
 import { auth } from "@clerk/nextjs/server";
 import { differenceInYears, format } from "date-fns";
 import type { Metadata } from "next";
@@ -203,16 +208,18 @@ const FeaturedEntryCard = async ({
   return (
     <Card className="border-0 shadow-xl grid md:grid-cols-2 min-h-fit p-4">
       {/* Image Section - Left Half */}
-      <figure className="relative shadow-xl dark:shadow-foreground/5 transition-shadow duration-200 rounded-lg overflow-clip aspect-auto max-h-120 md:max-h-136 3xl:max-h-none 3xl:aspect-4/3 max-w-full">
-        <Image
-          src={entry.image ?? "/images/create-entry_portrait-01.png"}
-          alt={entry.name}
-          height={1280}
-          width={1280}
-          className="h-full w-full object-cover"
-          priority
-        />
-      </figure>
+      <EntryThumbnail transitionName={getEntryThumbnailId(entry.id)}>
+        <figure className="relative shadow-xl dark:shadow-foreground/5 transition-shadow duration-200 rounded-lg overflow-clip aspect-auto max-h-120 md:max-h-136 3xl:max-h-none 3xl:aspect-4/3 max-w-full">
+          <Image
+            src={entry.image ?? "/images/create-entry_portrait-01.png"}
+            alt={entry.name}
+            height={1280}
+            width={1280}
+            className="h-full w-full object-cover"
+            priority
+          />
+        </figure>
+      </EntryThumbnail>
 
       {/* Content Section - Right Half */}
       <div className="p-8 flex flex-col justify-center space-y-6">
@@ -237,12 +244,13 @@ const FeaturedEntryCard = async ({
               </TooltipProvider>
             )}
           </div>
-          <Link
+          <EntryLink
             href={`/${entry.id}`}
             className="text-3xl font-display font-bold mb-2"
+            transitionName={getEntryNameId(entry.id)}
           >
             {entry.name}
-          </Link>
+          </EntryLink>
           {entry.locationBorn && (
             <p className="text-lg text-muted-foreground mb-6">
               from {entry.locationBorn}
@@ -429,19 +437,25 @@ const EntryRow = ({ entry, isOwnEntry }: { entry: EntryWithObituaries; isOwnEntr
     <div className="rounded-2xl border border-border/70 bg-card/60 p-4 shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition hover:border-border">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex w-full items-center gap-4">
-          <div className="relative size-24 xl:size-32 2xl:size-24 overflow-hidden rounded-xl bg-muted shrink-0">
-            <Image
-              src={entry.image ?? "/images/create-entry_portrait-01.png"}
-              alt={entry.name}
-              fill
-              className="object-cover"
-            />
-          </div>
+          <EntryThumbnail transitionName={getEntryThumbnailId(entry.id)}>
+            <div className="relative size-24 xl:size-32 2xl:size-24 overflow-hidden rounded-xl bg-muted shrink-0">
+              <Image
+                src={entry.image ?? "/images/create-entry_portrait-01.png"}
+                alt={entry.name}
+                fill
+                className="object-cover"
+              />
+            </div>
+          </EntryThumbnail>
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <Link href={`/${entry.id}`} className="font-semibold leading-tight">
+              <EntryLink
+                href={`/${entry.id}`}
+                className="font-semibold leading-tight"
+                transitionName={getEntryNameId(entry.id)}
+              >
                 {entry.name}
-              </Link>
+              </EntryLink>
               <Badge variant={isOwnEntry ? "default" : "outline"} className="text-xs">
                 {isOwnEntry ? "My Entry" : "Team"}
               </Badge>
