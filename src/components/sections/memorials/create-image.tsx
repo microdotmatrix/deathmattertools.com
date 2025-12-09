@@ -3,7 +3,7 @@
 import { AnimatedInput } from "@/components/elements/form/animated-input";
 import { SavedQuoteSelector } from "@/components/quotes-scripture/saved-quote-selector";
 import { SearchDialog } from "@/components/quotes-scripture/search-dialog";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import type { Entry, SavedQuote, UserUpload } from "@/lib/db/schema";
 import type { PlacidRequest } from "@/lib/services/placid";
@@ -11,7 +11,6 @@ import type { ActionState } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -259,16 +258,6 @@ export function CreateImage({
           </Button>
         </div>
         {error && <p className="text-destructive">{error}</p>}
-        {/* Back to Entry Button */}
-        <div className="mt-2">
-          <Link
-            href={`/${entryId}`}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            <Icon icon="mdi:arrow-left" className="w-4 h-4 mr-2" />
-            Back to Entry
-          </Link>
-        </div>
       </form>
 
       <SearchDialog

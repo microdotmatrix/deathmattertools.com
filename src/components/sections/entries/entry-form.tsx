@@ -46,7 +46,7 @@ export const EntryForm = ({
   }, [state]);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="flex flex-col h-full justify-between">
       {/* Admin editing indicator */}
       {isOrgOwner && (
         <Alert>
@@ -59,85 +59,87 @@ export const EntryForm = ({
         </Alert>
       )}
 
-      <input type="hidden" name="id" value={entry.id} />
-
-      {/* Name */}
-      <AnimatedInput
-        label="Full Name"
-        name="name"
-        defaultValue={entry.name}
-        placeholder="Enter full name"
-        required
-      />
-
-      {/* Locations */}
-      <div className="grid grid-cols-1 @lg:grid-cols-2 gap-4 mt-8">
+      <div className="space-y-4">
+        <input type="hidden" name="id" value={entry.id} />
+  
+        {/* Name */}
         <AnimatedInput
-          label="Birth Location"
-          name="birthLocation"
-          defaultValue={entry.locationBorn || ""}
-          placeholder="City, State/Country"
+          label="Full Name"
+          name="name"
+          defaultValue={entry.name}
+          placeholder="Enter full name"
           required
         />
+  
+        {/* Locations */}
+        <div className="grid grid-cols-1 @lg:grid-cols-2 gap-4 mt-8">
+          <AnimatedInput
+            label="Birth Location"
+            name="birthLocation"
+            defaultValue={entry.locationBorn || ""}
+            placeholder="City, State/Country"
+            required
+          />
+          <AnimatedInput
+            label="Death Location"
+            name="deathLocation"
+            defaultValue={entry.locationDied || ""}
+            placeholder="City, State/Country"
+            required
+          />
+        </div>
+  
+        {/* Dates */}
+        <div className="grid grid-cols-1 @lg:grid-cols-2 gap-4 mb-8">
+          <div className="space-y-0.5">
+            <Label
+              htmlFor="dateOfBirth"
+              className="text-xs font-normal ml-1.25"
+            >
+              Birth Date
+            </Label>
+            <DatePicker
+              label="Birth Date"
+              date={dateOfBirth}
+              setDate={setDateOfBirth}
+              buttonClasses="h-10 w-full"
+            />
+            <input
+              type="hidden"
+              name="dateOfBirth"
+              defaultValue={dateOfBirth?.toISOString() || ""}
+            />
+          </div>
+          <div className="space-y-0.5">
+            <Label htmlFor="dateOfDeath" className="text-xs font-normal ml-3">
+              Death Date
+            </Label>
+            <DatePicker
+              label="Death Date"
+              date={dateOfDeath}
+              setDate={setDateOfDeath}
+              buttonClasses="h-10 w-full"
+            />
+            <input
+              type="hidden"
+              name="dateOfDeath"
+              defaultValue={dateOfDeath?.toISOString() || ""}
+            />
+          </div>
+        </div>
+  
+        {/* Cause of Death */}
         <AnimatedInput
-          label="Death Location"
-          name="deathLocation"
-          defaultValue={entry.locationDied || ""}
-          placeholder="City, State/Country"
+          label="Cause of Death"
+          name="causeOfDeath"
+          defaultValue={entry.causeOfDeath}
+          placeholder="Enter cause of death"
           required
         />
+        
+        {/* Hidden field to preserve image value */}
+        <input type="hidden" name="image" value={entry.image} />
       </div>
-
-      {/* Dates */}
-      <div className="grid grid-cols-1 @lg:grid-cols-2 gap-4 mb-8">
-        <div className="space-y-0.5">
-          <Label
-            htmlFor="dateOfBirth"
-            className="text-xs font-normal ml-1.25"
-          >
-            Birth Date
-          </Label>
-          <DatePicker
-            label="Birth Date"
-            date={dateOfBirth}
-            setDate={setDateOfBirth}
-            buttonClasses="h-10 w-full"
-          />
-          <input
-            type="hidden"
-            name="dateOfBirth"
-            defaultValue={dateOfBirth?.toISOString() || ""}
-          />
-        </div>
-        <div className="space-y-0.5">
-          <Label htmlFor="dateOfDeath" className="text-xs font-normal ml-3">
-            Death Date
-          </Label>
-          <DatePicker
-            label="Death Date"
-            date={dateOfDeath}
-            setDate={setDateOfDeath}
-            buttonClasses="h-10 w-full"
-          />
-          <input
-            type="hidden"
-            name="dateOfDeath"
-            defaultValue={dateOfDeath?.toISOString() || ""}
-          />
-        </div>
-      </div>
-
-      {/* Cause of Death */}
-      <AnimatedInput
-        label="Cause of Death"
-        name="causeOfDeath"
-        defaultValue={entry.causeOfDeath}
-        placeholder="Enter cause of death"
-        required
-      />
-      
-      {/* Hidden field to preserve image value */}
-      <input type="hidden" name="image" value={entry.image} />
 
       {/* Submit Button - Full Width */}
       <div className="flex gap-4 pt-4">

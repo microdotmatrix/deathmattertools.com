@@ -52,7 +52,7 @@ export const EntryDisplay = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 flex flex-col justify-between h-full">
       {/* Read-only display */}
       <div className="space-y-4">
         {/* Name */}

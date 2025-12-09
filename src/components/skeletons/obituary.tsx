@@ -10,7 +10,7 @@ import {
 
 export const ObituaryCreateSkeleton = () => {
   return (
-    <div className="grid lg:grid-cols-6 gap-4 px-4 lg:px-8 loading-fade">
+    <div className="grid lg:grid-cols-6 gap-4loading-fade">
       {/* Left Sidebar - Entry Details & Form */}
       <aside className="lg:col-span-2 space-y-4">
         {/* Entry Card Skeleton */}
@@ -210,7 +210,7 @@ export const ObituarySidebarSkeleton = () => {
 
 export const ObituaryViewerSkeleton = () => {
   return (
-    <div className="w-full max-w-6xl mx-auto p-8 loading-fade">
+    <div className="w-full max-w-6xl p-8 loading-fade">
       {/* Title skeleton */}
       <h3 className="text-muted-foreground font-bold opacity-50 animate-pulse mb-8">
         Loading...
