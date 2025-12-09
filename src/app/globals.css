@@ -321,6 +321,9 @@
   .loading-fade {
     @apply starting:opacity-0 opacity-100 transition-opacity duration-200;
   }
+  .loading-fade-up {
+    @apply starting:opacity-0 starting:translate-y-4 opacity-100 translate-y-0 transition-all duration-500;
+  }
   .scroll-style {
     scrollbar-width: thin;
     scrollbar-color: var(--color-accent) transparent;

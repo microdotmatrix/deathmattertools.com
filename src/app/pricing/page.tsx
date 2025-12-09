@@ -3,7 +3,7 @@ import { PricingTable } from '@clerk/nextjs'
 export default function PricingPage() {
   return (
     <div className="container mx-auto py-8">
-      <div className="mb-8 text-center">
+      <div className="mb-8 text-center loading-fade">
         <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
         <p className="text-lg text-muted-foreground">
           Select the perfect plan for your needs. Upgrade or downgrade at any time.
@@ -19,7 +19,9 @@ export default function PricingPage() {
               Perfect for personal use and individual creators
             </p>
           </div>
-          <PricingTable />
+          <div className="loading-fade-up delay-500">
+            <PricingTable />
+          </div>
         </section>
 
         {/* Organization Plans Section */}
@@ -30,7 +32,9 @@ export default function PricingPage() {
               Designed for teams and businesses with collaborative features
             </p>
           </div>
-          <PricingTable for="organization" />
+          <div className="loading-fade-up delay-750">
+            <PricingTable for="organization" />
+          </div>
         </section>
       </div>
     </div>

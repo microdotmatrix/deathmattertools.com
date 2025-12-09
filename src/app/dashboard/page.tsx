@@ -201,15 +201,15 @@ const FeaturedEntryCard = async ({
   const isOwnEntry = entry.userId === userId;
   
   return (
-    <Card className="border-0 shadow-xl grid md:grid-cols-12 min-h-fit p-4">
+    <Card className="border-0 shadow-xl md:grid md:grid-cols-12 min-h-fit p-4">
       {/* Image Section - Left Half */}
-      <figure className="relative col-span-5 shadow-xl dark:shadow-foreground/5 transition-shadow duration-200 rounded-lg overflow-clip aspect-auto max-h-120 md:max-h-136 3xl:max-h-none 3xl:aspect-4/3 max-w-full">
+      <figure className="relative md:col-span-5 shadow-xl dark:shadow-foreground/5 transition-shadow duration-200 rounded-lg overflow-clip aspect-square md:aspect-auto w-full max-h-130 md:max-h-136 3xl:max-h-180 3xl:aspect-4/3 max-w-full">
         <CachedImage
           src={entry.image ?? "/images/create-entry_portrait-01.png"}
           alt={entry.name}
           height={1280}
           width={1280}
-          className="size-full object-cover"
+          className="size-full object-cover object-center"
         />
       </figure>
 
