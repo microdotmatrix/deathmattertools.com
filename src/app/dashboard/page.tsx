@@ -1,4 +1,5 @@
 import { ActionButton } from "@/components/elements/action-button";
+import { CachedImage } from "@/components/elements/image-cache";
 import { DashboardHeader, DashboardShell } from "@/components/layout/dashboard-shell";
 import { CreatePortal } from "@/components/sections/dashboard/create-dialog";
 import { CreateEntryForm } from "@/components/sections/dashboard/create-form";
@@ -23,7 +24,6 @@ import { getUserGeneratedImagesCount } from "@/lib/db/queries/media";
 import { auth } from "@clerk/nextjs/server";
 import { differenceInYears, format } from "date-fns";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -201,21 +201,20 @@ const FeaturedEntryCard = async ({
   const isOwnEntry = entry.userId === userId;
   
   return (
-    <Card className="border-0 shadow-xl grid md:grid-cols-2 min-h-fit p-4">
+    <Card className="border-0 shadow-xl grid md:grid-cols-12 min-h-fit p-4">
       {/* Image Section - Left Half */}
-      <figure className="relative shadow-xl dark:shadow-foreground/5 transition-shadow duration-200 rounded-lg overflow-clip aspect-auto max-h-120 md:max-h-136 3xl:max-h-none 3xl:aspect-4/3 max-w-full">
-        <Image
+      <figure className="relative col-span-5 shadow-xl dark:shadow-foreground/5 transition-shadow duration-200 rounded-lg overflow-clip aspect-auto max-h-120 md:max-h-136 3xl:max-h-none 3xl:aspect-4/3 max-w-full">
+        <CachedImage
           src={entry.image ?? "/images/create-entry_portrait-01.png"}
           alt={entry.name}
           height={1280}
           width={1280}
-          className="h-full w-full object-cover"
-          priority
+          className="size-full object-cover"
         />
       </figure>
 
       {/* Content Section - Right Half */}
-      <div className="p-8 flex flex-col justify-center space-y-6">
+      <div className="col-span-7 p-8 flex flex-col justify-center space-y-6">
         <div>
           <div className="flex items-center gap-2 mb-2">
             <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
@@ -320,8 +319,8 @@ const FeaturedEntryCard = async ({
               href={`/${entry.id}`}
               className={buttonVariants({
                 variant: "default",
-                size: "default",
-                className: "w-full",
+                size: "lg",
+                className: "w-fit",
               })}
             >
               <Icon icon="mdi:eye" className="w-4 h-4 mr-2" />
@@ -430,11 +429,10 @@ const EntryRow = ({ entry, isOwnEntry }: { entry: EntryWithObituaries; isOwnEntr
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex w-full items-center gap-4">
           <div className="relative size-24 xl:size-32 2xl:size-24 overflow-hidden rounded-xl bg-muted shrink-0">
-            <Image
+            <CachedImage
               src={entry.image ?? "/images/create-entry_portrait-01.png"}
               alt={entry.name}
-              fill
-              className="object-cover"
+              className="size-full object-cover"
             />
           </div>
           <div className="min-w-0 space-y-1">

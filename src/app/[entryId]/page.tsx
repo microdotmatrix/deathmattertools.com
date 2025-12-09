@@ -1,6 +1,7 @@
+import { CachedImage } from "@/components/elements/image-cache";
 import { SavedQuotesList } from "@/components/quotes-scripture/saved-quotes-list";
 import { EntryDetailsCard } from "@/components/sections/entries/details-card";
-import { EntryForm } from "@/components/sections/entries/entry-form";
+import { EntryDisplay } from "@/components/sections/entries/entry-display";
 import { EntryImageUpload } from "@/components/sections/entries/entry-image-upload";
 import { ObituaryList } from "@/components/sections/entries/obituary-list";
 import { EntryFeedbackPanel } from "@/components/sections/entry-feedback";
@@ -107,47 +108,32 @@ const EntryEditContent = async ({
               <div className="grid md:grid-cols-[250px_1fr] lg:grid-cols-[300px_1fr] 2xl:grid-cols-[400px_1fr] gap-6">
                 {/* Entry Image - Left side on desktop, top on mobile */}
                 {entry.image && (
-                  <div className="relative w-full aspect-square rounded-lg overflow-hidden border">
-                    <img
+                  <figure className="relative w-full aspect-square rounded-lg overflow-hidden border">
+                    <CachedImage
                       src={entry.image}
                       alt={entry.name}
+                      height={1280}
+                      width={1280}
                       className="w-full h-full object-cover"
                     />
-                  </div>
+                  </figure>
                 )}
                 
-                {/* Edit Form or View-Only Content - Right side on desktop, bottom on mobile */}
+                {/* Entry Details - Right side on desktop, bottom on mobile */}
                 <div className="flex-1">
-                  {canEdit ? (
-                    <EntryForm entry={entry} isOrgOwner={isOrgOwner} />
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="p-4 bg-muted/50 rounded-lg border border-border">
-                        <p className="text-sm text-muted-foreground flex items-center gap-2">
-                          <Icon icon="mdi:information-outline" className="w-4 h-4" />
-                          You have view-only access to this entry. Only the creator can make edits.
-                        </p>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium">Name:</span>
-                          <p className="text-muted-foreground">{entry.name}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium">Location Born:</span>
-                          <p className="text-muted-foreground">{entry.locationBorn || "—"}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium">Location Died:</span>
-                          <p className="text-muted-foreground">{entry.locationDied || "—"}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium">Cause of Death:</span>
-                          <p className="text-muted-foreground">{entry.causeOfDeath || "—"}</p>
-                        </div>
-                      </div>
+                  {!canEdit && (
+                    <div className="p-4 bg-muted/50 rounded-lg border border-border mb-4">
+                      <p className="text-sm text-muted-foreground flex items-center gap-2">
+                        <Icon icon="mdi:information-outline" className="w-4 h-4" />
+                        You have view-only access to this entry. Only the creator can make edits.
+                      </p>
                     </div>
                   )}
+                  <EntryDisplay
+                    entry={entry}
+                    canEdit={canEdit}
+                    isOrgOwner={isOrgOwner}
+                  />
                 </div>
               </div>
             </CardContent>

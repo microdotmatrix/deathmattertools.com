@@ -14,10 +14,12 @@ import { toast } from "sonner";
 
 export const EntryForm = ({ 
   entry,
-  isOrgOwner = false 
+  isOrgOwner = false,
+  onCancel,
 }: { 
   entry: any;
   isOrgOwner?: boolean;
+  onCancel?: () => void;
 }) => {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     updateEntryAction,
@@ -150,12 +152,18 @@ export const EntryForm = ({
           )}
           {pending ? "Saving..." : "Save Changes"}
         </Button>
-        <Link
-          href="/dashboard"
-          className={buttonVariants({ variant: "outline" })}
-        >
-          Cancel
-        </Link>
+        {onCancel ? (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+        ) : (
+          <Link
+            href="/dashboard"
+            className={buttonVariants({ variant: "outline" })}
+          >
+            Cancel
+          </Link>
+        )}
       </div>
     </form>
   );
