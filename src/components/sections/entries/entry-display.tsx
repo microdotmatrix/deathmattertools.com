@@ -41,13 +41,11 @@ export const EntryDisplay = ({
 
   if (isEditing && canEdit) {
     return (
-      <div className="space-y-4">
         <EntryForm
           entry={entry}
           isOrgOwner={isOrgOwner}
           onCancel={() => setIsEditing(false)}
         />
-      </div>
     );
   }
 
@@ -57,38 +55,38 @@ export const EntryDisplay = ({
       <div className="space-y-4">
         {/* Name */}
         <div>
-          <span className="text-xs text-muted-foreground">Full Name</span>
-          <p className="text-base font-medium">{entry.name}</p>
+          <span className="text-xs text-muted-foreground uppercase">Full Name</span>
+          <h3 className="text-xl font-medium">{entry.name}</h3>
         </div>
 
         {/* Locations */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <span className="text-xs text-muted-foreground">Birth Location</span>
-            <p className="text-sm">{entry.locationBorn || "—"}</p>
+            <span className="text-xs text-muted-foreground uppercase">Birth Location</span>
+            <p className="text-base">{entry.locationBorn || "—"}</p>
           </div>
           <div>
-            <span className="text-xs text-muted-foreground">Death Location</span>
-            <p className="text-sm">{entry.locationDied || "—"}</p>
+            <span className="text-xs text-muted-foreground uppercase">Death Location</span>
+            <p className="text-base">{entry.locationDied || "—"}</p>
           </div>
         </div>
 
         {/* Dates */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <span className="text-xs text-muted-foreground">Birth Date</span>
+            <span className="text-xs text-muted-foreground uppercase">Birth Date</span>
             <p className="text-sm">{formatDate(entry.dateOfBirth)}</p>
           </div>
           <div>
-            <span className="text-xs text-muted-foreground">Death Date</span>
+            <span className="text-xs text-muted-foreground uppercase">Death Date</span>
             <p className="text-sm">{formatDate(entry.dateOfDeath)}</p>
           </div>
         </div>
 
         {/* Cause of Death */}
         <div>
-          <span className="text-xs text-muted-foreground">Cause of Death</span>
-          <p className="text-sm">{entry.causeOfDeath || "—"}</p>
+          <span className="text-xs text-muted-foreground uppercase">Cause of Death</span>
+          <p className="text-base">{entry.causeOfDeath || "—"}</p>
         </div>
       </div>
 

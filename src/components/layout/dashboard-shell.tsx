@@ -1,20 +1,20 @@
 import { auth } from "@clerk/nextjs/server";
 import { type ReactNode } from "react";
 
+import { OrganizationSwitcherClient } from "@/components/auth/organization-switcher";
 import { DashboardSidebarNav } from "@/components/layout/dashboard-sidebar-nav";
 import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarGroup,
-    SidebarGroupLabel,
-    SidebarHeader,
-    SidebarInset,
-    SidebarProvider,
-    SidebarSeparator,
-    SidebarTrigger,
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarProvider,
+  SidebarSeparator,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { OrganizationSwitcher, SignedIn } from "@clerk/nextjs";
 
 type DashboardShellProps = {
   children: ReactNode;
@@ -128,20 +128,14 @@ const DashboardSidebar = async () => {
   return (
     <>
       <SidebarHeader className="pt-6">
-        <SignedIn>
-          <div className="mt-4 px-2">
-            <OrganizationSwitcher
-              hidePersonal
-              afterSelectOrganizationUrl="/dashboard"
-              appearance={{
-                elements: {
-                  rootBox: "w-full",
-                  organizationSwitcherTrigger: "w-full justify-between",
-                },
-              }}
-            />
-          </div>
-        </SignedIn>
+        <OrganizationSwitcherClient
+          appearance={{
+            elements: {
+              rootBox: "w-full",
+              organizationSwitcherTrigger: "w-full justify-between",
+            },
+          }}
+        />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

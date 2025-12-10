@@ -1,10 +1,9 @@
-import { ActionButton } from "@/components/elements/action-button";
-import { CachedImage } from "@/components/elements/image-cache";
 import { DashboardHeader, DashboardShell } from "@/components/layout/dashboard-shell";
 import { CreatePortal } from "@/components/sections/dashboard/create-dialog";
 import { CreateEntryForm } from "@/components/sections/dashboard/create-form";
 import { CreateEntryImage } from "@/components/sections/dashboard/create-image";
-import { ObituaryActionsButton } from "@/components/sections/entries/obituary-actions-button";
+import { ActionButtons } from "@/components/sections/dashboard/entry-action-buttons";
+import { UserStats } from "@/components/sections/dashboard/user-stats";
 import { PageContentSkeleton } from "@/components/skeletons/page";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -17,13 +16,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { deleteEntryAction } from "@/lib/db/mutations/entries";
 import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
 import { EntryWithObituaries, getOrganizationEntries, getUserUploads } from "@/lib/db/queries/entries";
 import { getUserGeneratedImagesCount } from "@/lib/db/queries/media";
 import { auth } from "@clerk/nextjs/server";
 import { differenceInYears, format } from "date-fns";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -72,8 +71,10 @@ const PageContent = async () => {
   // Separate owned entries from team entries
   const myEntries = entries.filter((entry) => entry.userId === userId);
   const teamEntries = entries.filter((entry) => entry.userId !== userId);
-  
-  const [featuredEntry, ...libraryEntries] = entries;
+
+  // Use the user's most recent entry for the featured spot
+  const featuredEntry = myEntries.at(0) ?? null;
+  const libraryEntries = entries.filter((entry) => entry.id !== featuredEntry?.id);
   const myLibraryEntries = libraryEntries.filter((entry) => entry.userId === userId);
   const teamLibraryEntries = libraryEntries.filter((entry) => entry.userId !== userId);
 
@@ -93,8 +94,6 @@ const PageContent = async () => {
 
   let featuredEntryStats = null;
   if (featuredEntry) {
-    // const obituaries = await getDocumentsByEntryId(featuredEntry.id);
-
     const [obituaries, imagesCount] = await Promise.all([
       getDocumentsByEntryId(featuredEntry.id),
       getUserGeneratedImagesCount(featuredEntry.userId!, featuredEntry.id),
@@ -194,21 +193,44 @@ const FeaturedEntryCard = async ({
   entry,
   stats,
 }: {
-  entry: EntryWithObituaries;
+  entry: EntryWithObituaries | null;
   stats: { obituariesCount: number; imagesCount: number } | null;
 }) => {
   const { userId } = await auth();
+
+  if (!entry) {
+    return (
+      <Card className="border-dashed bg-muted/20 p-8 text-center space-y-4">
+        <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
+          Most Recent
+        </p>
+        <h3 className="text-2xl font-semibold">Create your first entry to feature it here</h3>
+        <p className="text-muted-foreground">
+          You don&apos;t have a personal entry yet. Once you create one, it will appear in this
+          featured spot.
+        </p>
+        <div className="flex items-center justify-center gap-3">
+          <CreatePortal />
+          <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
+            <Icon icon="mdi:home-outline" className="w-4 h-4 mr-2" />
+            Back to dashboard
+          </Link>
+        </div>
+      </Card>
+    );
+  }
+
   const isOwnEntry = entry.userId === userId;
-  
+
   return (
     <Card className="border-0 shadow-xl md:grid md:grid-cols-12 min-h-fit p-4">
       {/* Image Section - Left Half */}
       <figure className="relative md:col-span-5 shadow-xl dark:shadow-foreground/5 transition-shadow duration-200 rounded-lg overflow-clip aspect-square md:aspect-auto w-full max-h-130 md:max-h-136 3xl:max-h-180 3xl:aspect-4/3 max-w-full">
-        <CachedImage
+        <Image
           src={entry.image ?? "/images/create-entry_portrait-01.png"}
           alt={entry.name}
-          height={1280}
-          width={1280}
+          fill
+          priority
           className="size-full object-cover object-center"
         />
       </figure>
@@ -259,74 +281,47 @@ const FeaturedEntryCard = async ({
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="font-medium">Died:</span>
+            <span className="font-medium">Deceased:</span>
             <span>
               {entry.dateOfDeath
                 ? format(new Date(entry.dateOfDeath), "MMMM d, yyyy")
                 : ""}
             </span>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="font-medium">Age:</span>
-            <span>
-              {entry.dateOfBirth && entry.dateOfDeath
-                ? differenceInYears(
-                    new Date(entry.dateOfDeath),
-                    new Date(entry.dateOfBirth)
-                  )
-                : ""}{" "}
-              years
-            </span>
-          </div>
-
-          {/* Generated Content Stats */}
-          {stats && (
-            <>
-              <div className="h-px bg-border my-4" />
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                  Generated Content
-                </p>
-                <div className="flex items-center gap-4">
-                  <span className="font-medium">Obituaries:</span>
-                  <span className="flex items-center gap-1">
-                    <Icon
-                      icon="mdi:file-document-outline"
-                      className="w-4 h-4"
-                    />
-                    {stats.obituariesCount}
-                  </span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="font-medium">Memorial Images:</span>
-                  <span className="flex items-center gap-1">
-                    <Icon
-                      icon="mdi:image-multiple-outline"
-                      className="w-4 h-4"
-                    />
-                    {stats.imagesCount}
-                  </span>
-                </div>
-              </div>
-            </>
+          {entry.dateOfBirth && entry.dateOfDeath && (
+            <p className="text-sm text-muted-foreground">
+              {differenceInYears(
+                new Date(entry.dateOfDeath),
+                new Date(entry.dateOfBirth)
+              )}{" "}
+              years old
+            </p>
           )}
         </div>
-        <div className="shrink-0 flex flex-col gap-2 pr-4">
-          {isOwnEntry ? (
-            <ActionButtons entry={entry} />
-          ) : (
-            <Link
-              href={`/${entry.id}`}
-              className={buttonVariants({
-                variant: "default",
-                size: "lg",
-                className: "w-fit",
-              })}
-            >
-              <Icon icon="mdi:eye" className="w-4 h-4 mr-2" />
-              View Entry
-            </Link>
-          )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="rounded-xl border bg-background/80 px-4 py-3 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground">Obituaries</p>
+              <p className="text-lg font-semibold">
+                {stats?.obituariesCount ?? 0}
+              </p>
+            </div>
+            <Icon icon="mdi:feather" className="w-5 h-5 text-primary" />
+          </div>
+          <div className="rounded-xl border bg-background/80 px-4 py-3 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground">Memorial Images</p>
+              <p className="text-lg font-semibold">
+                {stats?.imagesCount ?? 0}
+              </p>
+            </div>
+            <Icon icon="mdi:image-multiple-outline" className="w-5 h-5 text-primary" />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <ActionButtons entry={entry} />
         </div>
       </div>
     </Card>
@@ -429,9 +424,11 @@ const EntryRow = ({ entry, isOwnEntry }: { entry: EntryWithObituaries; isOwnEntr
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex w-full items-center gap-4">
           <div className="relative size-24 xl:size-32 2xl:size-24 overflow-hidden rounded-xl bg-muted shrink-0">
-            <CachedImage
+            <Image
               src={entry.image ?? "/images/create-entry_portrait-01.png"}
               alt={entry.name}
+              fill
+              priority
               className="size-full object-cover"
             />
           </div>
@@ -482,143 +479,5 @@ const EntryRow = ({ entry, isOwnEntry }: { entry: EntryWithObituaries; isOwnEntr
   );
 };
 
-const UserStats = ({
-  entries,
-  uploads,
-  entriesThisMonth,
-}: {
-  entries: EntryWithObituaries[];
-  uploads: any[];
-  entriesThisMonth: number;
-}) => {
-  const totalEntries = entries.length;
-  const totalUploads = uploads.length;
-  const stats = [
-    {
-      label: "Total Entries",
-      value: totalEntries,
-      icon: "mdi:account-multiple",
-    },
-    {
-      label: "This Month",
-      value: entriesThisMonth,
-      icon: "mdi:calendar-month",
-    },
-    {
-      label: "Uploads",
-      value: totalUploads,
-      icon: "mdi:cloud-upload",
-    },
-  ];
 
-  const latestEntry = entries[0];
-  const latestUpload = uploads[0];
-  const helperText = entriesThisMonth
-    ? "Great work—keep the momentum going this month."
-    : "No entries yet this month. Create one to stay on track.";
 
-  return (
-    <Card className="rounded-3xl border bg-card/80 shadow-sm">
-      <CardContent className="space-y-6 p-6">
-        <div className="grid gap-4 sm:grid-cols-3">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-2xl border border-border/60 bg-background/70 p-4 @container [@container(min-width:16rem)]:grid [@container(min-width:16rem)]:grid-rows-[auto_auto] [@container(min-width:16rem)]:gap-3"
-            >
-              <div className="flex items-center gap-3 [@container(min-width:16rem)]:grid [@container(min-width:16rem)]:grid-cols-[auto_auto] [@container(min-width:16rem)]:items-start [@container(min-width:16rem)]:gap-6">
-                <div className="rounded-full bg-muted/70 p-2 w-fit self-center justify-self-end">
-                  <Icon icon={stat.icon} className="size-5 text-muted-foreground" />
-                </div>
-                <p className="text-2xl font-semibold [@container(min-width:16rem)]:text-3xl [@container(min-width:20rem)]:text-4xl">
-                  {stat.value}
-                </p>
-              </div>
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground [@container(min-width:16rem)]:col-span-2 [@container(min-width:16rem)]:text-center [@container(min-width:16rem)]:justify-self-center [@container(min-width:16rem)]:mt-1">
-                {stat.label}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <div className="rounded-2xl border border-dashed border-border/70 bg-muted/20 p-4">
-          <p className="text-xs font-medium uppercase tracking-[0.3em] text-muted-foreground">
-            Activity Highlights
-          </p>
-          <div className="mt-3 grid gap-4 text-sm sm:grid-cols-2">
-            <div>
-              <p className="text-muted-foreground">Newest Entry</p>
-              <p className="font-medium">{latestEntry?.name ?? "—"}</p>
-              <p className="text-xs text-muted-foreground">
-                {latestEntry?.createdAt
-                  ? format(new Date(latestEntry.createdAt), "MMM d, yyyy")
-                  : "Add an entry to see activity"}
-              </p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Latest Upload</p>
-              <p className="font-medium">
-                {latestUpload?.fileName ?? `${totalUploads} files in library`}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {latestUpload?.createdAt
-                  ? format(new Date(latestUpload.createdAt), "MMM d, yyyy")
-                  : "Uploads appear here"}
-              </p>
-            </div>
-          </div>
-          <p className="mt-4 rounded-xl bg-background/80 px-3 py-2 text-xs text-muted-foreground">
-            {helperText}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-export const ActionButtons = ({ entry }: { entry: EntryWithObituaries }) => {
-  const deleteAction = deleteEntryAction.bind(null, entry.id);
-  
-  // Determine if user can edit this entry
-  // This is a simplified check - in a real implementation you'd want to pass canEdit from the parent
-  const canEdit = true; // For now, assume user can edit if they can see the entry
-  
-  return (
-    <div className="flex flex-col md:flex-row xl:flex-col 2xl:flex-row gap-2">
-      <Link
-        href={`/${entry.id}`}
-        className={buttonVariants({
-          variant: "outline",
-          size: "sm",
-          className: "flex items-center gap-2",
-        })}
-      >
-        <Icon icon="mdi:open-in-app" className="size-4" /> Open
-      </Link>
-      <ObituaryActionsButton
-        entryId={entry.id}
-        obituaries={entry.obituaries}
-        canEdit={canEdit}
-      />
-      {/* <Link
-        href={`/${entry.id}/images/create`}
-        className={buttonVariants({
-          variant: "outline",
-          size: "sm",
-          className: "flex items-center gap-2",
-        })}
-      >
-        <Icon icon="mdi:image-outline" className="size-4" /> New Memorial Image
-      </Link> */}
-      <ActionButton
-        variant="destructive"
-        size="sm"
-        className="flex items-center gap-2"
-        action={deleteAction}
-        requireAreYouSure
-      >
-        <Icon icon="mdi:delete-outline" className="size-4" /> Delete
-      </ActionButton>
-    </div>
-  );
-};

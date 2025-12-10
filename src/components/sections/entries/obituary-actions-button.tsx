@@ -8,13 +8,13 @@ import { ObituaryListModal } from "./obituary-list-modal";
 
 interface ObituaryActionsButtonProps {
   entryId: string;
-  obituaries: Document[];
+  obituaries?: Document[];
   canEdit: boolean;
 }
 
 export const ObituaryActionsButton = ({
   entryId,
-  obituaries,
+  obituaries = [],
   canEdit,
 }: ObituaryActionsButtonProps) => {
   const hasObituaries = obituaries.length > 0;
@@ -31,11 +31,11 @@ export const ObituaryActionsButton = ({
         canEdit={canEdit}
       >
         <Button
-          variant="outline"
-          size="sm"
+          variant="secondary"
           className="flex items-center gap-2"
         >
-          <Icon icon="mdi:pencil-outline" className="size-4" /> Edit Obituary
+          <Icon icon="mdi:file-document-edit-outline" className="size-4" />
+            Manage Obituaries
         </Button>
       </ObituaryListModal>
     );
@@ -45,12 +45,11 @@ export const ObituaryActionsButton = ({
     <Link
       href={`/${entryId}/obituaries/create`}
       className={buttonVariants({
-        variant: "outline",
-        size: "sm",
+        variant: "secondary",
         className: "flex items-center gap-2",
       })}
     >
-      <Icon icon="mdi:plus" className="size-4" /> New Obituary
+      <Icon icon="mdi:plus" className="size-4" /> Create Obituary
     </Link>
   );
 };

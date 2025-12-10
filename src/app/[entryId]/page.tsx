@@ -101,9 +101,6 @@ const EntryEditContent = async ({
         {/* Main Edit Form - Takes up 2/3 */}
         <div className="xl:col-span-2">
           <Card>
-            <CardHeader>
-              <CardTitle>Commemoration Entry</CardTitle>
-            </CardHeader>
             <CardContent className="@container">
               <div className="grid md:grid-cols-[250px_1fr] lg:grid-cols-[300px_1fr] 2xl:grid-cols-[400px_1fr] gap-6">
                 {/* Entry Image - Left side on desktop, top on mobile */}
