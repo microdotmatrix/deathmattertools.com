@@ -5,16 +5,16 @@ import { ObituaryViewerWithComments } from "@/components/sections/obituaries/obi
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { getDocumentWithAccess, listDocumentComments } from "@/lib/db/queries";
 import {
-    getChatByDocumentId,
-    getMessagesByChatId,
+  getChatByDocumentId,
+  getMessagesByChatId,
 } from "@/lib/db/queries/chats";
 import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import { auth, clerkClient } from "@clerk/nextjs/server";
@@ -290,7 +290,7 @@ export default async function ObituaryPage({
                         Collaboration requires an organization
                       </h4>
                       <p>
-                        Create or join an organization in Clerk to extend
+                        Create or join an organization in to extend
                         commenting access to your teammates.
                       </p>
                     </div>

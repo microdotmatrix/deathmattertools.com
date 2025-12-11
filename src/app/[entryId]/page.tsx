@@ -12,9 +12,11 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { getEntryImages } from "@/lib/db/queries";
+import { getUserById } from "@/lib/db/queries/auth";
 import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
 import { getEntryDetailsById, getEntryWithAccess } from "@/lib/db/queries/entries";
 import { getUserGeneratedImages } from "@/lib/db/queries/media";
+import type { Entry, User } from "@/lib/db/schema";
 import { format } from "date-fns";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -62,7 +64,7 @@ const EntryEditContent = async ({
   role,
   isOrgOwner,
 }: {
-  entry: any;
+  entry: Entry;
   obituaries: any[];
   generatedImages: any[];
   canEdit: boolean;
@@ -70,13 +72,19 @@ const EntryEditContent = async ({
   isOrgOwner: boolean;
 }) => {
   // Fetch entry details and images in parallel for better performance
-  const [entryDetails, entryImagesResult] = await Promise.all([
+  const [entryDetails, entryImagesResult, ownerUser] = await Promise.all([
     getEntryDetailsById(entry.id),
     getEntryImages(entry.id),
+    getUserById(entry.userId),
   ]);
   const entryImages = entryImagesResult.success
     ? entryImagesResult.images || []
     : [];
+
+  const lastEditedBy: User | null = ownerUser ?? null; // TODO: replace with real last-editor attribution when available
+  const ownerName = ownerUser?.name ?? ownerUser?.email ?? "Unknown user";
+  const lastEditedName =
+    lastEditedBy?.name ?? lastEditedBy?.email ?? "Unknown user";
 
   return (
     <div className="space-y-8 loading-fade">
@@ -164,7 +172,7 @@ const EntryEditContent = async ({
                     entryId={entry.id}
                     initialImages={entryImages}
                     readOnly={!canEdit}
-                    currentPrimaryImage={entry.image}
+                    currentPrimaryImage={entry.image ?? undefined}
                   />
                 </div>
               </CardContent>
@@ -337,6 +345,20 @@ const EntryEditContent = async ({
                       new Date(entry.updatedAt),
                       "MMM d, yyyy 'at' h:mm a"
                     )}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-medium">Owned by:</span>
+                  <br />
+                  <span className="text-muted-foreground">
+                    {ownerName}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-medium">Last Edited By:</span>
+                  <br />
+                  <span className="text-muted-foreground">
+                    {lastEditedName}
                   </span>
                 </div>
               </div>

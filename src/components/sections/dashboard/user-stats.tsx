@@ -77,19 +77,9 @@ export const UserStats = ({
                   : "Add an entry to see activity"}
               </p>
             </div>
-            <div>
-              <p className="text-muted-foreground">Latest Upload</p>
-              <p className="font-medium">
-                {latestUpload?.key ?? `${totalUploads} files in library`}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {latestUpload?.createdAt
-                  ? format(new Date(latestUpload.createdAt), "MMM d, yyyy")
-                  : "Uploads appear here"}
-              </p>
-            </div>
+            
           </div>
-          <p className="mt-4 rounded-xl bg-background/80 px-3 py-2 text-xs text-muted-foreground">
+          <p className="mt-4 rounded-md bg-background/80 px-3 py-2 text-xs text-muted-foreground">
             {helperText}
           </p>
         </div>

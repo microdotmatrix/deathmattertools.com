@@ -22,7 +22,7 @@ export const getCurrentUser = async () => {
   }
 };
 
-const getUserById = async (userId: string) => {
+export const getUserById = async (userId: string) => {
   return db.query.UserTable.findFirst({
     where: eq(UserTable.id, userId),
   });
