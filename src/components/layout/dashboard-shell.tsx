@@ -18,6 +18,7 @@ import {
 
 type DashboardShellProps = {
   children: ReactNode;
+  sidebarContent?: ReactNode;
 };
 
 type DashboardHeaderProps = {
@@ -69,11 +70,11 @@ const adminLinks: SidebarLink[] = [
   },
 ];
 
-export const DashboardShell = ({ children }: DashboardShellProps) => {
+export const DashboardShell = ({ children, sidebarContent }: DashboardShellProps) => {
   return (
     <SidebarProvider>
       <Sidebar>
-        <DashboardSidebar />
+        <DashboardSidebar extraContent={sidebarContent} />
       </Sidebar>
       <SidebarInset className="bg-transparent">
         <div className="flex min-h-svh flex-1 flex-col">
@@ -119,7 +120,11 @@ export const DashboardHeader = ({
   );
 };
 
-const DashboardSidebar = async () => {
+const DashboardSidebar = async ({
+  extraContent,
+}: {
+  extraContent?: ReactNode;
+}) => {
   const { userId } = await auth();
   const clerkClientInstance = await (await import("@clerk/nextjs/server")).clerkClient();
   const user = userId ? await clerkClientInstance.users.getUser(userId) : null;
@@ -148,6 +153,7 @@ const DashboardSidebar = async () => {
             <DashboardSidebarNav links={adminLinks} />
           </SidebarGroup>
         )}
+        {extraContent}
       </SidebarContent>
       <SidebarSeparator className="mx-0" />
       <SidebarFooter>
