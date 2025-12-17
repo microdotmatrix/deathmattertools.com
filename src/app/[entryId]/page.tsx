@@ -1,6 +1,8 @@
 import { CachedImage } from "@/components/elements/image-cache";
 import { SavedQuotesList } from "@/components/quotes-scripture/saved-quotes-list";
-import { EntryDetailsCard } from "@/components/sections/entries/details-card";
+import { CollapsibleSection } from "@/components/sections/entries/collapsible-section";
+import { EntryDetailsSection } from "@/components/sections/entries/details-card";
+import { EntryDetailsDialog } from "@/components/sections/entries/details-dialog";
 import { EntryDisplay } from "@/components/sections/entries/entry-display";
 import { EntryImageUpload } from "@/components/sections/entries/entry-image-upload";
 import { ObituaryList } from "@/components/sections/entries/obituary-list";
@@ -9,14 +11,15 @@ import { EntryEditContentSkeleton } from "@/components/skeletons/entry";
 import { FeedbackSkeleton } from "@/components/skeletons/feedback";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { getEntryImages } from "@/lib/db/queries";
 import { getUserById } from "@/lib/db/queries/auth";
 import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
 import { getEntryDetailsById, getEntryWithAccess } from "@/lib/db/queries/entries";
 import { getUserGeneratedImages } from "@/lib/db/queries/media";
-import type { Entry, User } from "@/lib/db/schema";
+import { getSavedQuotesByEntryId } from "@/lib/db/queries/quotes";
+import type { Entry, User, UserUpload } from "@/lib/db/schema";
 import { format } from "date-fns";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -36,11 +39,16 @@ export default async function EntryEditPage({ params }: PageProps) {
 
   const { entry, canEdit, role, isOrgOwner } = access;
 
-  // Fetch obituaries for this deceased person
-  const obituaries = await getDocumentsByEntryId(entryId);
+  // Fetch all data in parallel for better performance
+  const [obituaries, generatedImages, entryDetails, entryImagesResult, savedQuotes] = await Promise.all([
+    getDocumentsByEntryId(entryId),
+    getUserGeneratedImages(entry.userId!, entryId),
+    getEntryDetailsById(entry.id),
+    getEntryImages(entry.id),
+    getSavedQuotesByEntryId(entryId),
+  ]);
 
-  // Fetch generated images for this deceased person
-  const generatedImages = await getUserGeneratedImages(entry.userId!, entryId);
+  const entryImages = entryImagesResult.success ? entryImagesResult.images || [] : [];
 
   return (
     <Suspense fallback={<EntryEditContentSkeleton />}>
@@ -48,6 +56,9 @@ export default async function EntryEditPage({ params }: PageProps) {
         entry={entry}
         obituaries={obituaries}
         generatedImages={generatedImages}
+        entryDetails={entryDetails}
+        entryImages={entryImages}
+        savedQuotes={savedQuotes}
         canEdit={canEdit}
         role={role}
         isOrgOwner={isOrgOwner}
@@ -60,6 +71,9 @@ const EntryEditContent = async ({
   entry,
   obituaries,
   generatedImages,
+  entryDetails,
+  entryImages,
+  savedQuotes,
   canEdit,
   role,
   isOrgOwner,
@@ -67,27 +81,46 @@ const EntryEditContent = async ({
   entry: Entry;
   obituaries: any[];
   generatedImages: any[];
+  entryDetails: any;
+  entryImages: UserUpload[];
+  savedQuotes: any[];
   canEdit: boolean;
   role: "owner" | "org_admin" | "org_member";
   isOrgOwner: boolean;
 }) => {
-  // Fetch entry details and images in parallel for better performance
-  const [entryDetails, entryImagesResult, ownerUser] = await Promise.all([
-    getEntryDetailsById(entry.id),
-    getEntryImages(entry.id),
-    getUserById(entry.userId),
-  ]);
-  const entryImages = entryImagesResult.success
-    ? entryImagesResult.images || []
-    : [];
-
-  const lastEditedBy: User | null = ownerUser ?? null; // TODO: replace with real last-editor attribution when available
+  const ownerUser = await getUserById(entry.userId);
+  const lastEditedBy: User | null = ownerUser ?? null;
   const ownerName = ownerUser?.name ?? ownerUser?.email ?? "Unknown user";
-  const lastEditedName =
-    lastEditedBy?.name ?? lastEditedBy?.email ?? "Unknown user";
+  const lastEditedName = lastEditedBy?.name ?? lastEditedBy?.email ?? "Unknown user";
+
+  // Create a unified images array that includes the primary/header image
+  const allImages: UserUpload[] = [];
+
+  // Add primary image if it exists and is not already in entryImages
+  if (entry.image) {
+    const primaryImageExists = entryImages.some(img => img.url === entry.image);
+    if (!primaryImageExists) {
+      // Synthesize a UserUpload object for the primary image
+      allImages.push({
+        id: 'primary',
+        userId: entry.userId,
+        entryId: entry.id,
+        url: entry.image,
+        key: 'primary',
+        isPrimary: true,
+        createdAt: entry.createdAt,
+        updatedAt: entry.updatedAt,
+      });
+    }
+  }
+
+  // Add all other uploaded images
+  allImages.push(...entryImages);
+
+  const totalImagesCount = allImages.length;
 
   return (
-    <div className="space-y-8 loading-fade">
+    <div className="space-y-6 loading-fade">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <Link
@@ -105,267 +138,248 @@ const EntryEditContent = async ({
         )}
       </div>
 
-      <div className="grid xl:grid-cols-3 gap-8">
-        {/* Main Edit Form - Takes up 2/3 */}
-        <div className="xl:col-span-2">
-          <Card>
-            <CardContent className="@container">
-              <div className="grid md:grid-cols-[250px_1fr] lg:grid-cols-[300px_1fr] 2xl:grid-cols-[400px_1fr] gap-6">
-                {/* Entry Image - Left side on desktop, top on mobile */}
-                {entry.image && (
-                  <figure className="relative w-full aspect-square rounded-lg overflow-hidden border">
-                    <CachedImage
-                      src={entry.image}
-                      alt={entry.name}
-                      height={1280}
-                      width={1280}
-                      className="w-full h-full object-cover"
-                    />
-                  </figure>
-                )}
-                
-                {/* Entry Details - Right side on desktop, bottom on mobile */}
-                <div className="flex-1">
-                  {!canEdit && (
-                    <div className="p-4 bg-muted/50 rounded-lg border border-border mb-4">
-                      <p className="text-sm text-muted-foreground flex items-center gap-2">
-                        <Icon icon="mdi:information-outline" className="w-4 h-4" />
-                        You have view-only access to this entry. Only the creator can make edits.
-                      </p>
-                    </div>
-                  )}
-                  <EntryDisplay
-                    entry={entry}
-                    canEdit={canEdit}
-                    isOrgOwner={isOrgOwner}
-                  />
+      {/* Commemoration Entry - Always Expanded (Non-Collapsible) */}
+      <Card>
+        <CardContent className="@container p-6">
+          <div className="grid md:grid-cols-[250px_1fr] lg:grid-cols-[300px_1fr] 2xl:grid-cols-[400px_1fr] gap-6">
+            {/* Entry Image - Left side on desktop, top on mobile */}
+            {entry.image && (
+              <figure className="relative w-full aspect-square rounded-lg overflow-hidden border">
+                <CachedImage
+                  src={entry.image}
+                  alt={entry.name}
+                  height={1280}
+                  width={1280}
+                  className="w-full h-full object-cover"
+                />
+              </figure>
+            )}
+
+            {/* Entry Details - Right side on desktop, bottom on mobile */}
+            <div className="flex-1">
+              {!canEdit && (
+                <div className="p-4 bg-muted/50 rounded-lg border border-border mb-4">
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Icon icon="mdi:information-outline" className="w-4 h-4" />
+                    You have view-only access to this entry. Only the creator can make edits.
+                  </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Obituary Details Section */}
-          <div className="grid md:grid-cols-2 gap-6 mt-6">
-            {/* Obituary Details Card */}
-            <EntryDetailsCard entry={entry} entryDetails={entryDetails!} canEdit={canEdit} isOrgOwner={isOrgOwner} />
-
-            {/* Photos & Images Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Icon icon="mdi:image-multiple" className="w-5 h-5" aria-hidden="true" />
-                  Photos & Images ({entryImages.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {canEdit ? (
-                    <p className="text-sm text-muted-foreground">
-                      Upload and manage photos for {entry.name}'s memorial.
-                    </p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Photos uploaded for {entry.name}'s memorial.
-                    </p>
-                  )}
-                  <EntryImageUpload
-                    entryId={entry.id}
-                    initialImages={entryImages}
-                    readOnly={!canEdit}
-                    currentPrimaryImage={entry.image ?? undefined}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+              )}
+              <EntryDisplay
+                entry={entry}
+                canEdit={canEdit}
+                isOrgOwner={isOrgOwner}
+              />
+            </div>
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Entry Feedback Section */}
-          <div className="mt-6">
-            <Suspense fallback={<FeedbackSkeleton />}>
-              <EntryFeedbackPanel entryId={entry.id} />
-            </Suspense>
-          </div>
-        </div>
-
-        {/* Generated Content Sections - Takes up 1/3 */}
-        <div className="space-y-6">
-          {/* Generated Obituaries */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Icon icon="mdi:file-document-outline" className="w-5 h-5" aria-hidden="true" />
-                Obituaries ({obituaries.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              
-                <ObituaryList obituaries={obituaries} entryId={entry.id} canEdit={canEdit} />
-                
-            </CardContent>
-          </Card>
-
-          {/* Memorial Images */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Icon icon="mdi:image-multiple-outline" className="w-5 h-5" aria-hidden="true" />
-                Memorial Images
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {generatedImages && generatedImages.length > 0 ? (
-                  <>
-                    <div className="space-y-2">
-                      {generatedImages.slice(0, 3).map((image) => (
-                        <div
-                          key={image.id}
-                          className="flex items-center justify-between p-2 border rounded-lg"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center">
-                              <Icon
-                                icon="mdi:image"
-                                className="w-6 h-6 text-gray-400"
-                              />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">
-                                Memorial Image #{image.epitaphId}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {format(
-                                  new Date(image.createdAt),
-                                  "MMM d, yyyy"
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full">
-                            {image.status}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {generatedImages.length > 3 && (
-                      <p className="text-xs text-muted-foreground text-center">
-                        +{generatedImages.length - 3} more images
-                      </p>
-                    )}
-                    <div className="flex gap-2">
-                      <Link
-                        href={`/${entry.id}/images`}
-                        className={buttonVariants({
-                          variant: "outline",
-                          size: "sm",
-                          className: "flex-1",
-                        })}
-                        aria-label="View all memorial images"
-                      >
-                        <Icon icon="mdi:eye" className="w-4 h-4 mr-2" />
-                        View All
-                      </Link>
-                      <Link
-                        href={`/${entry.id}/images/create`}
-                        className={buttonVariants({
-                          variant: "outline",
-                          size: "sm",
-                          className: "flex-1",
-                        })}
-                        aria-label="Create new memorial image"
-                      >
-                        <Icon icon="mdi:plus" className="w-4 h-4 mr-2" />
-                        Create New
-                      </Link>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-sm text-muted-foreground">
-                      No memorial images created yet.
-                    </p>
-                    <Link
-                      href={`/${entry.id}/images/create`}
-                      className={buttonVariants({
-                        variant: "outline",
-                        size: "sm",
-                        className: "w-full",
-                      })}
-                      aria-label="Create memorial image"
-                    >
-                      <Icon icon="mdi:plus" className="w-4 h-4 mr-2" />
-                      Create Memorial Image
-                    </Link>
-                  </>
+      {/* Obituary Details (edit) - Collapsible */}
+      <CollapsibleSection
+        title="Obituary Details"
+        icon="mdi:file-document-edit-outline"
+        defaultOpen={false}
+      >
+        <div className="space-y-4">
+          {canEdit && (
+            <div className="flex items-center justify-between pb-4 border-b">
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-muted-foreground">
+                  Extended biographical information for {entry.name}
+                </p>
+                {isOrgOwner && (
+                  <Badge variant="outline">
+                    <Icon icon="mdi:shield-account" className="w-3 h-3 mr-1" />
+                    Admin
+                  </Badge>
                 )}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Saved Quotes & Scripture */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Icon icon="mdi:format-quote-close" className="w-5 h-5" />
-                Saved Quotes & Scripture
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Suspense fallback={<SavedQuotesSkeleton />}>
-                <SavedQuotesList entryId={entry.id} />
-              </Suspense>
-            </CardContent>
-          </Card>
-
-          {/* Entry Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Icon icon="mdi:information-outline" className="w-5 h-5" />
-                Entry Info
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="font-medium">Created:</span>
-                  <br />
-                  <span className="text-muted-foreground">
-                    {format(
-                      new Date(entry.createdAt),
-                      "MMM d, yyyy 'at' h:mm a"
-                    )}
-                  </span>
-                </div>
-                <div>
-                  <span className="font-medium">Last Updated:</span>
-                  <br />
-                  <span className="text-muted-foreground">
-                    {format(
-                      new Date(entry.updatedAt),
-                      "MMM d, yyyy 'at' h:mm a"
-                    )}
-                  </span>
-                </div>
-                <div>
-                  <span className="font-medium">Owned by:</span>
-                  <br />
-                  <span className="text-muted-foreground">
-                    {ownerName}
-                  </span>
-                </div>
-                <div>
-                  <span className="font-medium">Last Edited By:</span>
-                  <br />
-                  <span className="text-muted-foreground">
-                    {lastEditedName}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <EntryDetailsDialog entry={entry} initialData={entryDetails!} isOrgOwner={isOrgOwner} />
+            </div>
+          )}
+          <EntryDetailsSection entryDetails={entryDetails!} />
         </div>
-      </div>
+      </CollapsibleSection>
+
+      {/* [NAME] Obituaries (#) - Collapsible */}
+      <CollapsibleSection
+        title={`${entry.name} Obituaries`}
+        icon="mdi:file-document-outline"
+        count={obituaries.length}
+        defaultOpen={false}
+      >
+        <ObituaryList obituaries={obituaries} entryId={entry.id} canEdit={canEdit} />
+      </CollapsibleSection>
+
+      {/* Photos and Images (#) - Collapsible */}
+      <CollapsibleSection
+        title="Photos and Images"
+        icon="mdi:image-multiple"
+        count={totalImagesCount}
+        defaultOpen={false}
+      >
+        <div className="space-y-4">
+          {canEdit ? (
+            <p className="text-sm text-muted-foreground">
+              Upload and manage photos for {entry.name}'s memorial. The primary image is used as the main display image.
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Photos uploaded for {entry.name}'s memorial.
+            </p>
+          )}
+          <EntryImageUpload
+            entryId={entry.id}
+            initialImages={allImages}
+            readOnly={!canEdit}
+            currentPrimaryImage={entry.image ?? undefined}
+          />
+        </div>
+      </CollapsibleSection>
+
+      {/* Saved Quotes and Scripture (#) - Collapsible */}
+      <CollapsibleSection
+        title="Saved Quotes and Scripture"
+        icon="mdi:format-quote-close"
+        count={savedQuotes.length}
+        defaultOpen={false}
+      >
+        <Suspense fallback={<SavedQuotesSkeleton />}>
+          <SavedQuotesList entryId={entry.id} />
+        </Suspense>
+      </CollapsibleSection>
+
+      {/* Memorial Documents (#) - Collapsible */}
+      <CollapsibleSection
+        title="Memorial Documents"
+        icon="mdi:file-document-multiple-outline"
+        count={generatedImages.length}
+        defaultOpen={false}
+      >
+        <div className="space-y-3">
+          {generatedImages && generatedImages.length > 0 ? (
+            <>
+              <div className="space-y-2">
+                {generatedImages.slice(0, 5).map((image) => (
+                  <div
+                    key={image.id}
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
+                        <Icon
+                          icon="mdi:file-image-outline"
+                          className="w-6 h-6 text-muted-foreground"
+                        />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">
+                          Memorial Document #{image.epitaphId}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(image.createdAt), "MMM d, yyyy")}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      {image.status}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+              {generatedImages.length > 5 && (
+                <p className="text-xs text-muted-foreground text-center pt-2 border-t">
+                  +{generatedImages.length - 5} more documents
+                </p>
+              )}
+              <div className="flex gap-2 pt-2">
+                <Link
+                  href={`/${entry.id}/images`}
+                  className={buttonVariants({
+                    variant: "outline",
+                    size: "sm",
+                    className: "flex-1",
+                  })}
+                  aria-label="View all memorial documents"
+                >
+                  <Icon icon="mdi:eye" className="w-4 h-4 mr-2" />
+                  View All
+                </Link>
+                <Link
+                  href={`/${entry.id}/images/create`}
+                  className={buttonVariants({
+                    variant: "outline",
+                    size: "sm",
+                    className: "flex-1",
+                  })}
+                  aria-label="Create new memorial document"
+                >
+                  <Icon icon="mdi:plus" className="w-4 h-4 mr-2" />
+                  Create New
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                No memorial documents created yet.
+              </p>
+              <Link
+                href={`/${entry.id}/images/create`}
+                className={buttonVariants({
+                  variant: "outline",
+                  size: "sm",
+                  className: "w-full",
+                })}
+                aria-label="Create memorial document"
+              >
+                <Icon icon="mdi:plus" className="w-4 h-4 mr-2" />
+                Create Memorial Document
+              </Link>
+            </>
+          )}
+        </div>
+      </CollapsibleSection>
+
+      {/* Entry Feedback and Collaboration - Collapsible */}
+      <CollapsibleSection
+        title="Entry Feedback and Collaboration"
+        icon="mdi:comment-multiple-outline"
+        defaultOpen={false}
+      >
+        <Suspense fallback={<FeedbackSkeleton />}>
+          <EntryFeedbackPanel entryId={entry.id} />
+        </Suspense>
+      </CollapsibleSection>
+
+      {/* Entry Info - Collapsible */}
+      <CollapsibleSection
+        title="Entry Info"
+        icon="mdi:information-outline"
+        defaultOpen={false}
+      >
+        <div className="space-y-3 text-sm">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="font-medium text-muted-foreground mb-1">Created</p>
+              <p>{format(new Date(entry.createdAt), "MMM d, yyyy 'at' h:mm a")}</p>
+            </div>
+            <div>
+              <p className="font-medium text-muted-foreground mb-1">Last Updated</p>
+              <p>{format(new Date(entry.updatedAt), "MMM d, yyyy 'at' h:mm a")}</p>
+            </div>
+            <div>
+              <p className="font-medium text-muted-foreground mb-1">Owned by</p>
+              <p>{ownerName}</p>
+            </div>
+            <div>
+              <p className="font-medium text-muted-foreground mb-1">Last Edited By</p>
+              <p>{lastEditedName}</p>
+            </div>
+          </div>
+        </div>
+      </CollapsibleSection>
     </div>
   );
 };
