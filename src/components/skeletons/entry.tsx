@@ -10,9 +10,9 @@ export const EntryEditContentSkeleton = () => {
         <Skeleton className="h-9 w-32" />
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid xl:grid-cols-3 gap-8">
         {/* Main Edit Form - Takes up 2/3 */}
-        <div className="lg:col-span-2">
+        <div className="xl:col-span-2">
           <Card>
             <CardHeader>
               <CardTitle>
@@ -92,70 +92,6 @@ export const EntryEditContentSkeleton = () => {
 
         {/* Generated Content Sections - Takes up 1/3 */}
         <div className="space-y-6">
-          {/* Generated Obituaries */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Icon icon="mdi:file-document-outline" className="w-5 h-5" />
-                <Skeleton className="h-5 w-28" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {Array.from({ length: 2 }).map((_, i) => (
-                  <div key={i} className="p-3 border rounded-lg">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <Skeleton className="h-4 w-32 mb-1" />
-                        <Skeleton className="h-3 w-20 mb-2" />
-                        <Skeleton className="h-3 w-full" />
-                        <Skeleton className="h-3 w-3/4" />
-                      </div>
-                      <div className="flex gap-1">
-                        <Skeleton className="h-8 w-8" />
-                        <Skeleton className="h-8 w-8" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <Skeleton className="h-8 w-full" />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Memorial Images */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Icon icon="mdi:image-multiple-outline" className="w-5 h-5" />
-                <Skeleton className="h-5 w-32" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {Array.from({ length: 2 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between p-2 border rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="w-12 h-12 rounded-md" />
-                      <div>
-                        <Skeleton className="h-4 w-24 mb-1" />
-                        <Skeleton className="h-3 w-16" />
-                      </div>
-                    </div>
-                    <Skeleton className="h-5 w-12 rounded-full" />
-                  </div>
-                ))}
-                <div className="flex gap-2">
-                  <Skeleton className="h-8 flex-1" />
-                  <Skeleton className="h-8 flex-1" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Saved Quotes */}
           <Card>
             <CardHeader>
