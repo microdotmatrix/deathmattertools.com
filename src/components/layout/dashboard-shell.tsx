@@ -72,7 +72,14 @@ const adminLinks: SidebarLink[] = [
 
 export const DashboardShell = ({ children, sidebarContent }: DashboardShellProps) => {
   return (
-    <SidebarProvider>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "22rem",
+          "--sidebar-width-mobile": "20rem"
+        } as React.CSSProperties
+      }
+    >
       <Sidebar>
         <DashboardSidebar extraContent={sidebarContent} />
       </Sidebar>

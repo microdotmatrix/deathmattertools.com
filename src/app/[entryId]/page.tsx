@@ -1,5 +1,4 @@
 import { CachedImage } from "@/components/elements/image-cache";
-import { SavedQuotesList } from "@/components/quotes-scripture/saved-quotes-list";
 import { EntryDetailsCard } from "@/components/sections/entries/details-card";
 import { EntryDisplay } from "@/components/sections/entries/entry-display";
 import { EntryFeedbackPanel } from "@/components/sections/entry-feedback";
@@ -138,21 +137,6 @@ const EntryEditContent = async ({
 
         {/* Additional Entry Content - Takes up 1/3 */}
         <div className="space-y-6">
-          {/* Saved Quotes & Scripture */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Icon icon="mdi:format-quote-close" className="w-5 h-5" />
-                Saved Quotes & Scripture
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Suspense fallback={<SavedQuotesSkeleton />}>
-                <SavedQuotesList entryId={entry.id} />
-              </Suspense>
-            </CardContent>
-          </Card>
-
           {/* Entry Info */}
           <Card>
             <CardHeader>
@@ -205,14 +189,3 @@ const EntryEditContent = async ({
     </div>
   );
 };
-
-function SavedQuotesSkeleton() {
-  return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="h-12 w-12 rounded-full bg-muted animate-pulse mb-4"></div>
-      <div className="h-4 w-48 bg-muted animate-pulse mb-2"></div>
-      <div className="h-4 w-32 bg-muted animate-pulse mb-4"></div>
-      <div className="h-8 w-28 bg-muted animate-pulse rounded-md"></div>
-    </div>
-  );
-}
