@@ -56,13 +56,13 @@ export function SearchResultCard({ result, entryId, onSaved }: SearchResultCardP
 
   return (
     <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="pt-6">
+      <CardContent className="pt-3">
         <div className="flex items-start gap-3">
           <div className="mt-1 shrink-0">
             <Icon className="h-5 w-5 text-muted-foreground" />
           </div>
-          <div className="flex-1 space-y-2">
-            <p className="text-sm leading-relaxed">{result.content}</p>
+          <div className="flex-1 space-y-2 pr-6">
+            <p className="text-sm leading-relaxed text-pretty">{result.content}</p>
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="secondary" className="text-xs">
                 {result.citation}

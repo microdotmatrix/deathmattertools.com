@@ -1,6 +1,7 @@
 import { CachedImage } from "@/components/elements/image-cache";
 import { EntryDetailsCard } from "@/components/sections/entries/details-card";
 import { EntryDisplay } from "@/components/sections/entries/entry-display";
+import { EntryImageUpload } from "@/components/sections/entries/entry-image-upload";
 import { EntryFeedbackPanel } from "@/components/sections/entry-feedback";
 import { EntryEditContentSkeleton } from "@/components/skeletons/entry";
 import { FeedbackSkeleton } from "@/components/skeletons/feedback";
@@ -8,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
+import { getEntryImages } from "@/lib/db/queries";
 import { getUserById } from "@/lib/db/queries/auth";
 import { getEntryDetailsById, getEntryWithAccess } from "@/lib/db/queries/entries";
 import type { Entry, User } from "@/lib/db/schema";
@@ -54,10 +56,15 @@ const EntryEditContent = async ({
   isOrgOwner: boolean;
 }) => {
   // Fetch entry details and owner in parallel for better performance
-  const [entryDetails, ownerUser] = await Promise.all([
+  const [entryDetails, entryImagesResult, ownerUser] = await Promise.all([
     getEntryDetailsById(entry.id),
+    getEntryImages(entry.id),
     getUserById(entry.userId),
   ]);
+
+  const entryImages = entryImagesResult.success
+    ? entryImagesResult.images || []
+    : [];
 
   const lastEditedBy: User | null = ownerUser ?? null; // TODO: replace with real last-editor attribution when available
   const ownerName = ownerUser?.name ?? ownerUser?.email ?? "Unknown user";
@@ -184,6 +191,35 @@ const EntryEditContent = async ({
               </div>
             </CardContent>
           </Card>
+
+          {/* Photos & Images Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Icon icon="mdi:image-multiple" className="w-5 h-5" aria-hidden="true" />
+                  Photos & Images ({entryImages.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {canEdit ? (
+                    <p className="text-sm text-muted-foreground">
+                      Upload and manage photos for {entry.name}'s memorial.
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Photos uploaded for {entry.name}'s memorial.
+                    </p>
+                  )}
+                  <EntryImageUpload
+                    entryId={entry.id}
+                    initialImages={entryImages}
+                    readOnly={!canEdit}
+                    currentPrimaryImage={entry.image ?? undefined}
+                  />
+                </div>
+              </CardContent>
+            </Card>
         </div>
       </div>
     </div>

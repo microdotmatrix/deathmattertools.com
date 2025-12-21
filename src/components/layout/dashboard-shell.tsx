@@ -75,8 +75,8 @@ export const DashboardShell = ({ children, sidebarContent }: DashboardShellProps
     <SidebarProvider
       style={
         {
-          "--sidebar-width": "22rem",
-          "--sidebar-width-mobile": "20rem"
+          "--sidebar-width": "28rem",
+          "--sidebar-width-mobile": "24rem"
         } as React.CSSProperties
       }
     >
@@ -84,6 +84,10 @@ export const DashboardShell = ({ children, sidebarContent }: DashboardShellProps
         <DashboardSidebar extraContent={sidebarContent} />
       </Sidebar>
       <SidebarInset className="bg-transparent">
+        <div className="fixed top-3 left-4 z-100 flex flex-row items-center gap-2 group">
+          <SidebarTrigger className="group-has-data-[collapsible=offcanvas]/sidebar-wrapper:left-4 size-8 hover:text-primary group-hover:text-primary" size="lg" variant="ghost" />
+          <span className="text-xs lg:opacity-0 lg:translate-x-4 transition-all duration-200 ease-linear group-hover:opacity-100 group-hover:translate-x-0">Menu</span>
+        </div>
         <div className="flex min-h-svh flex-1 flex-col">
           <div className="flex flex-1 flex-col gap-8 px-4 pb-10 pt-6 md:px-8 lg:px-10">
             {children}
@@ -104,7 +108,6 @@ export const DashboardHeader = ({
     <div className="flex flex-col gap-4 border-b border-border/50 pb-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-start gap-3">
-          <SidebarTrigger className="mt-2 fixed inset-y-0 -ml-2" />
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.35em] text-muted-foreground">
               {eyebrow}
@@ -139,7 +142,7 @@ const DashboardSidebar = async ({
 
   return (
     <>
-      <SidebarHeader className="pt-6">
+      <SidebarHeader className="pt-12">
         <OrganizationSwitcherClient
           appearance={{
             elements: {

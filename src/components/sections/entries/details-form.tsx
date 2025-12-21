@@ -4,6 +4,14 @@ import { AnimatedInput } from "@/components/elements/form/animated-input";
 import Stepper, { Step } from "@/components/elements/multi-step";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { DateTimePicker } from "@/components/ui/date-picker";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
@@ -23,6 +31,7 @@ import {
 import { useEntryDetailsForm } from "@/lib/state";
 import { cn, formatTime } from "@/lib/utils";
 import { format } from "date-fns";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -877,6 +886,60 @@ const FamilyMemberInputs = ({
   );
 };
 
+type YearComboboxProps = {
+  value?: number;
+  years: number[];
+  onSelect: (year: number) => void;
+};
+
+const YearCombobox = ({ value, years, onSelect }: YearComboboxProps) => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="md:shrink-0 grow lg:max-w-24 justify-between"
+        >
+          {value ? value.toString() : "Year"}
+          <ChevronsUpDown className="opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[120px] p-0">
+        <Command>
+          <CommandInput placeholder="Search year..." className="h-9" />
+          <CommandList>
+            <CommandEmpty>No year found.</CommandEmpty>
+            <CommandGroup>
+              {years.map((year) => (
+                <CommandItem
+                  key={year}
+                  value={year.toString()}
+                  onSelect={() => {
+                    onSelect(year);
+                    setOpen(false);
+                  }}
+                >
+                  {year}
+                  <Check
+                    className={cn(
+                      "ml-auto",
+                      value === year ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
 const EducationInputs = ({
   formData,
   addEducation,
@@ -936,23 +999,13 @@ const EducationInputs = ({
                 </SelectContent>
               </Select>
   
-              <Select
-                value={education.yearGraduated?.toString()}
-                onValueChange={(value) =>
-                  updateEducation?.(education.id, "yearGraduated", parseInt(value, 10))
+              <YearCombobox
+                value={education.yearGraduated}
+                years={years}
+                onSelect={(year) =>
+                  updateEducation?.(education.id, "yearGraduated", year)
                 }
-              >
-                <SelectTrigger className="md:shrink-0 grow lg:max-w-24">
-                  <SelectValue placeholder="Year Graduated" />
-                </SelectTrigger>
-                <SelectContent>
-                  {years.map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
 
             <Input
@@ -967,7 +1020,7 @@ const EducationInputs = ({
             <Button
               type="button"
               variant="outline"
-            className="w-full lg:w-fit"
+              className="w-full md:w-fit"
               onClick={() => removeEducation?.(education.id)}
             >
               <Icon icon="lucide:trash" className="size-4" />

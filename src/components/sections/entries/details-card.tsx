@@ -111,7 +111,7 @@ export const EntryDetailsSection = ({
           (typeof value === "string" ? value.trim() !== "" : value !== null)
       ) ? (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid md:grid-cols-2 gap-3">
             <div className="space-y-2">
               {entryDetails.occupation && (
                 <div>
@@ -157,16 +157,6 @@ export const EntryDetailsSection = ({
               )}
             </div>
             <div className="space-y-2">
-              {entryDetails.education && (
-                <div>
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Education
-                  </span>
-                  <p className="text-sm whitespace-pre-wrap">
-                    {entryDetails.education}
-                  </p>
-                </div>
-              )}
               {entryDetails.educationDetails && (() => {
                 try {
                   const educationList = JSON.parse(entryDetails.educationDetails) as Array<{
@@ -192,7 +182,7 @@ export const EntryDetailsSection = ({
                   return (
                     <div>
                       <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Education History
+                        Education
                       </span>
                       <div className="space-y-1 mt-1">
                         {educationList.map((edu) => (
@@ -235,18 +225,21 @@ export const EntryDetailsSection = ({
                 </div>
               )}
             </div>
-            <div className="space-y-2 col-span-2">
-              {entryDetails.biographicalSummary && (
-                <div>
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          </div>
+          <div className="space-y-2 col-span-2">
+            {entryDetails.biographicalSummary && (
+              <div>
+                <Separator className="mb-4 mt-6" />
+                <div className="text-right -mt-7.5">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
                     Biographical Summary
                   </span>
-                  <p className="text-sm whitespace-pre-wrap">
-                    {entryDetails.biographicalSummary}
-                  </p>
                 </div>
-              )}  
-            </div>
+                <p className="text-sm whitespace-pre-wrap">
+                  {entryDetails.biographicalSummary}
+                </p>
+              </div>
+            )}  
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-2">
