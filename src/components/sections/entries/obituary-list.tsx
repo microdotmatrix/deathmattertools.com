@@ -85,7 +85,7 @@ export const ObituaryListItem = ({ obituary, entryId, canEdit }: { obituary: Obi
     <div
       className="px-3 py-2 border rounded-lg hover:bg-muted/50 transition-colors"
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-sm truncate">
             {obituary.title || "Untitled Obituary"}
@@ -94,7 +94,7 @@ export const ObituaryListItem = ({ obituary, entryId, canEdit }: { obituary: Obi
             Created {format(new Date(obituary.createdAt), "MMM d, yyyy")}
           </p>
           <div className="flex items-center gap-1.5 mt-2">
-            <StatusBadge status={obituary.status} showIcon={false} />
+            <StatusBadge status={obituary.status} showIcon={true} />
             {obituary.isPublic && (
               <Badge variant="secondary" className="text-xs">
                 Public
