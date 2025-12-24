@@ -1,14 +1,12 @@
 import { ObituaryComments } from "@/components/sections/obituaries/comments-panel";
 import { DynamicChat } from "@/components/sections/obituaries/dynamic-chat";
 import { DynamicCommentingSettings } from "@/components/sections/obituaries/dynamic-commenting-settings";
-import { ObituaryViewerWithComments } from "@/components/sections/obituaries/obituary-viewer-with-comments";
+import { ObituaryContentShell } from "@/components/sections/obituaries/obituary-content-shell";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { getDocumentWithAccess, listDocumentComments } from "@/lib/db/queries";
@@ -195,53 +193,25 @@ export default async function ObituaryPage({
 
       {/* Main Content Grid - Two Column Layout */}
       <div className="grid gap-6 xl:grid-cols-[1fr_480px] 3xl:grid-cols-[1fr_640px]">
-        {/* Left Column - Obituary Viewer (Wider) */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold">
-              {isOwner ? "Edit & Review" : "Memorial Overview"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Suspense fallback={<div>Loading...</div>}>
-              <ObituaryViewerWithComments
-                key={`${access.document.id}-${(access.document.content ?? "").length}`}
-                documentId={access.document.id}
-                entryId={entryId}
-                content={access.document.content ?? ""}
-                canComment={access.canComment}
-                canEdit={isOwner}
-                entryName={entry.name}
-                createdAt={access.document.createdAt}
-              />
-            </Suspense>
-          </CardContent>
+        {/* Left Column - Obituary Content with Info */}
+        <Card className="p-6">
+          <Suspense fallback={<div>Loading...</div>}>
+            <ObituaryContentShell
+              documentId={access.document.id}
+              entryId={entryId}
+              content={access.document.content ?? ""}
+              canComment={access.canComment}
+              canEdit={isOwner}
+              entryName={entry.name}
+              createdAt={access.document.createdAt}
+              createdAtLabel={createdAtLabel}
+              currentStatus={access.document.status}
+            />
+          </Suspense>
         </Card>
 
-        {/* Right Column - Sidebar with Details, Comments & Settings */}
+        {/* Right Column - Comments & Settings Only */}
         <div className="space-y-6">
-          {/* Obituary Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Icon icon="mdi:information-outline" className="size-5" />
-                {access.document.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="font-medium text-foreground">Honoring</span>
-                  <p className="text-muted-foreground mt-1">{entry.name}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-foreground">Created</span>
-                  <p className="text-muted-foreground mt-1">{createdAtLabel}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Comments Panel */}
           <Card>
             <CardContent className="py-6">

@@ -13,8 +13,7 @@ import {
 import { Icon } from "@/components/ui/icon";
 import type { AnchorData } from "@/lib/annotations";
 import dynamic from "next/dynamic";
-import { useRef, useState } from "react";
-import { ExportActionsBar } from "./export-actions-bar";
+import { type RefObject, useRef, useState } from "react";
 
 // Dynamic imports with SSR disabled for client-only rendering
 const ObituaryViewerSimple = dynamic(
@@ -53,10 +52,10 @@ interface ObituaryViewerWithCommentsProps {
   content: string;
   canComment: boolean;
   canEdit?: boolean;
-  /** Entry name for PDF export header */
-  entryName?: string;
-  /** Document creation date for PDF header */
-  createdAt?: Date;
+  /** External ref for content element (used by ExportActionsBar) */
+  contentRef?: RefObject<HTMLDivElement | null>;
+  /** Callback when editing state changes */
+  onEditingChange?: (isEditing: boolean) => void;
 }
 
 export const ObituaryViewerWithComments = ({
@@ -65,13 +64,19 @@ export const ObituaryViewerWithComments = ({
   content,
   canComment,
   canEdit = false,
-  entryName,
-  createdAt,
+  contentRef: externalContentRef,
+  onEditingChange,
 }: ObituaryViewerWithCommentsProps) => {
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [currentQuote, setCurrentQuote] = useState<AnchorData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const internalContentRef = useRef<HTMLDivElement>(null);
+  const contentRef = externalContentRef ?? internalContentRef;
+
+  const handleEditingChange = (editing: boolean) => {
+    setIsEditing(editing);
+    onEditingChange?.(editing);
+  };
 
   // React Compiler handles function stability - no useCallback needed
   const handleCreateQuotedComment = (anchor: AnchorData) => {
@@ -97,17 +102,6 @@ export const ObituaryViewerWithComments = ({
 
   return (
     <>
-      {/* Export actions - visible in read-only mode */}
-      {!isEditing && (
-        <ExportActionsBar
-          content={content}
-          contentRef={contentRef}
-          entryName={entryName}
-          createdAt={createdAt}
-          disabled={isEditing}
-        />
-      )}
-
       {/* Load editor only when editing */}
       {canEdit && isEditing ? (
         <ObituaryEditorInline
@@ -115,7 +109,7 @@ export const ObituaryViewerWithComments = ({
           entryId={entryId}
           initialContent={content}
           canEdit={canEdit}
-          onClose={() => setIsEditing(false)}
+          onClose={() => handleEditingChange(false)}
         />
       ) : (
         <div ref={contentRef} className="print-content">
@@ -132,7 +126,7 @@ export const ObituaryViewerWithComments = ({
       {canEdit && !isEditing && (
         <div className="mt-8 flex justify-end">
           <Button
-            onClick={() => setIsEditing(true)}
+            onClick={() => handleEditingChange(true)}
             variant="outline"
             size="lg"
           >

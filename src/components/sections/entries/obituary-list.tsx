@@ -3,8 +3,9 @@ import { ActionButton } from "@/components/elements/action-button";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { obitLimit } from "@/lib/config";
-import type { Document } from "@/lib/db/schema";
+import type { Document, DocumentStatus } from "@/lib/db/schema";
 import { format } from "date-fns";
 import Link from "next/link";
 
@@ -13,6 +14,7 @@ export type ObituaryListItemData = {
   title: string | null;
   createdAt: Date | string;
   isPublic: boolean;
+  status: DocumentStatus;
 };
 
 export const ObituaryList = ({ obituaries, entryId, canEdit }: { obituaries: Document[], entryId: string, canEdit: boolean }) => {
@@ -91,14 +93,16 @@ export const ObituaryListItem = ({ obituary, entryId, canEdit }: { obituary: Obi
           <p className="text-xs text-muted-foreground mt-1">
             Created {format(new Date(obituary.createdAt), "MMM d, yyyy")}
           </p>
-          
+          <div className="flex items-center gap-1.5 mt-2">
+            <StatusBadge status={obituary.status} showIcon={false} />
+            {obituary.isPublic && (
+              <Badge variant="secondary" className="text-xs">
+                Public
+              </Badge>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {obituary.isPublic && (
-            <Badge variant="secondary" className="text-xs">
-              Public
-            </Badge>
-          )}
           <Link
             href={`/${entryId}/obituaries/${obituary.id}`}
             className={buttonVariants({

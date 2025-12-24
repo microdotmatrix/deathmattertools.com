@@ -150,7 +150,7 @@ export const ExportActionsBar = ({
   };
 
   return (
-    <div className="flex flex-wrap items-center justify-end gap-2 mb-4 print:hidden">
+    <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 print:hidden">
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -159,9 +159,10 @@ export const ExportActionsBar = ({
             onClick={handleCopy}
             disabled={disabled}
             aria-label="Copy obituary to clipboard"
+            className="gap-2"
           >
-            <Icon icon="lucide:copy" className="mr-2 size-4" />
-            Copy
+            <Icon icon="lucide:copy" className="size-4" />
+            <span className="sr-only">Copy</span>
           </Button>
         </TooltipTrigger>
         <TooltipContent>Copy text to clipboard</TooltipContent>
@@ -175,9 +176,10 @@ export const ExportActionsBar = ({
             onClick={(e) => handlePrint(e)}
             disabled={disabled}
             aria-label="Print obituary"
+            className="gap-2"
           >
-            <Icon icon="lucide:printer" className="mr-2 size-4" />
-            Print
+            <Icon icon="lucide:printer" className="size-4" />
+            <span className="sr-only">Print</span>
           </Button>
         </TooltipTrigger>
         <TooltipContent>Open print dialog</TooltipContent>
@@ -191,16 +193,17 @@ export const ExportActionsBar = ({
             onClick={handleSavePDF}
             disabled={disabled || isGeneratingPDF}
             aria-label="Save obituary as PDF"
+            className="gap-2"
           >
             {isGeneratingPDF ? (
               <>
-                <Icon icon="lucide:loader-2" className="mr-2 size-4 animate-spin" />
-                Generating...
-              </>
+                <Icon icon="lucide:loader-2" className="size-4 animate-spin" />
+                <span className="sr-only">Generating...</span>
+              </> 
             ) : (
               <>
-                <Icon icon="lucide:file-down" className="mr-2 size-4" />
-                Save PDF
+                <Icon icon="lucide:file-down" className="size-4" />
+                <span className="sr-only">Save PDF</span>
               </>
             )}
           </Button>
@@ -216,9 +219,10 @@ export const ExportActionsBar = ({
             onClick={handleShare}
             disabled={disabled}
             aria-label="Share obituary"
+            className="gap-2"
           >
-            <Icon icon="lucide:share-2" className="mr-2 size-4" />
-            Share
+            <Icon icon="lucide:share-2" className="size-4" />
+            <span className="sr-only">Share</span>
           </Button>
         </TooltipTrigger>
         <TooltipContent>Share (coming soon)</TooltipContent>

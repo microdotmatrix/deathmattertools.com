@@ -12,6 +12,7 @@ import {
 import { pgTable } from "../utils";
 import { EntryTable } from "./entries";
 import { UserTable } from "./users";
+import { DOCUMENT_STATUSES } from "@/lib/document-status";
 
 export const DocumentTable = pgTable(
   "document",
@@ -34,6 +35,9 @@ export const DocumentTable = pgTable(
     kind: varchar("kind", { enum: ["obituary", "eulogy"] })
       .notNull()
       .default("obituary"),
+    status: text("status", { enum: DOCUMENT_STATUSES })
+      .notNull()
+      .default("draft"),
     isPublic: boolean("is_public").notNull().default(false),
     tokenUsage: integer("token_usage").default(0),
     createdAt: timestamp("created_at")
@@ -154,6 +158,9 @@ export const SuggestionRelations = relations(SuggestionTable, ({ one }) => ({
 export type Document = typeof DocumentTable.$inferSelect;
 export type DocumentComment = typeof DocumentCommentTable.$inferSelect;
 export type Suggestion = typeof SuggestionTable.$inferSelect;
+
+// Re-export DocumentStatus type for convenience
+export type { DocumentStatus } from "@/lib/document-status";
 
 // Anchor types
 export type AnchorStatus = "pending" | "approved" | "denied";
