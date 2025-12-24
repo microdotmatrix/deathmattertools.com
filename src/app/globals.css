@@ -272,34 +272,37 @@
       line-height: 1.5;
     }
 
-    p {
+    p,
+    label,
+    button,
+    input,
+    textarea {
       font-size: var(--text-base);
       font-weight: var(--font-weight-normal);
-      line-height: 1.5;
-    }
-
-    label {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    button {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
-
-    input {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
     }
   }
+
+  /* Ensure all clickable elements show pointer cursor */
   button:not(:disabled),
-  [role="button"]:not(:disabled) {
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  input[type="button"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="reset"]:not(:disabled),
+  select:not(:disabled),
+  [tabindex]:not([tabindex="-1"]):not(:disabled) {
     cursor: pointer;
   }
+
+  /* Disabled elements should show not-allowed cursor */
+  button:disabled,
+  [role="button"][aria-disabled="true"],
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    cursor: not-allowed;
+  }
+
   a[href]:not([href^="#"]) {
     color: var(--color-base-400);
     &:is(:hover, :focus-visible) {
@@ -315,6 +318,7 @@
       margin-left: 0.15rem;
     }
   }
+
   main {
     flex-grow: 1;
   }
