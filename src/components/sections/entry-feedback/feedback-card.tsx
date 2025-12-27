@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
+import { getEntryFeedbackTargetLabel } from "@/lib/entry-feedback/targets";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import { FeedbackActions } from "./feedback-actions";
 import { FeedbackForm } from "./feedback-form";
@@ -50,6 +51,7 @@ export const FeedbackCard = ({
   const [isEditing, setIsEditing] = useState(false);
   const isAuthor = feedback.userId === currentUserId;
   const config = STATUS_CONFIG[feedback.status];
+  const targetLabel = getEntryFeedbackTargetLabel(feedback.targetKey);
 
   const getInitials = (name: string) => {
     return name
@@ -101,6 +103,7 @@ export const FeedbackCard = ({
           existingFeedback={{
             id: feedback.id,
             content: feedback.content,
+            targetKey: feedback.targetKey,
           }}
           onCancel={() => setIsEditing(false)}
           onSuccess={() => setIsEditing(false)}
@@ -129,6 +132,10 @@ export const FeedbackCard = ({
             <Badge variant={config.variant} className="flex items-center gap-1">
               <Icon icon={config.icon} className="w-3 h-3" />
               {config.label}
+            </Badge>
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Icon icon="mdi:bullseye" className="w-3 h-3" />
+              Target: {targetLabel}
             </Badge>
           </div>
         </div>

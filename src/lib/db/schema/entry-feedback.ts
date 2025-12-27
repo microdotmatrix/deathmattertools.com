@@ -15,6 +15,7 @@ export const EntryFeedbackTable = pgTable(
       .notNull()
       .references(() => UserTable.id, { onDelete: "cascade" }),
     content: text("content").notNull(),
+    targetKey: text("target_key"),
     status: text("status", {
       enum: ["pending", "approved", "denied", "resolved"],
     })

@@ -12,6 +12,7 @@ export const createFeedback = async (data: {
   entryId: string;
   userId: string;
   content: string;
+  targetKey?: string | null;
 }): Promise<EntryFeedback> => {
   const [feedback] = await db
     .insert(EntryFeedbackTable)
@@ -19,6 +20,7 @@ export const createFeedback = async (data: {
       entryId: data.entryId,
       userId: data.userId,
       content: data.content,
+      targetKey: data.targetKey ?? null,
       status: "pending",
     })
     .returning();
@@ -34,11 +36,13 @@ export const updateFeedbackContent = async (data: {
   feedbackId: string;
   userId: string;
   content: string;
+  targetKey?: string | null;
 }): Promise<EntryFeedback | null> => {
   const [feedback] = await db
     .update(EntryFeedbackTable)
     .set({
       content: data.content,
+      targetKey: data.targetKey ?? null,
       updatedAt: new Date(),
     })
     .where(

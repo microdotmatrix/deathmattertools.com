@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
@@ -14,9 +13,11 @@ import { ActionButtons } from "./entry-action-buttons";
 export const FeaturedEntryCard = async ({
   entry,
   stats,
+  pendingFeedbackCount = 0,
 }: {
   entry: EntryWithObituaries | null;
   stats: { obituariesCount: number; imagesCount: number } | null;
+  pendingFeedbackCount?: number;
 }) => {
   const { userId } = await auth();
 
@@ -64,17 +65,20 @@ export const FeaturedEntryCard = async ({
             <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
               Most Recent
             </p>
-            {!isOwnEntry && (
+            {pendingFeedbackCount > 0 && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Badge variant="secondary" className="flex items-center gap-1 cursor-help">
-                      <Icon icon="mdi:account-group" className="w-3 h-3" />
-                      Team Entry
-                    </Badge>
+                    <span
+                      aria-label={`${pendingFeedbackCount} pending feedback items`}
+                      className="inline-flex size-2.5 rounded-full bg-primary"
+                    />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>This entry was created by a member of your organization</p>
+                    <p>
+                      {pendingFeedbackCount} pending{" "}
+                      {pendingFeedbackCount === 1 ? "feedback item" : "feedback items"}
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

@@ -7,6 +7,7 @@ import {
   updateFeedbackContent,
   updateFeedbackStatus,
 } from "@/lib/db/mutations/entry-feedback";
+import { isValidEntryFeedbackTarget } from "@/lib/entry-feedback/targets";
 import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import { getFeedbackById } from "@/lib/db/queries/entry-feedback";
 import { auth } from "@clerk/nextjs/server";
@@ -16,10 +17,24 @@ import { z } from "zod";
 // Validation schemas
 const CreateFeedbackSchema = z.object({
   content: z.string().min(1, "Feedback cannot be empty").max(2000, "Feedback is too long"),
+  targetKey: z
+    .string()
+    .optional()
+    .nullable()
+    .refine((value) => !value || isValidEntryFeedbackTarget(value), {
+      message: "Invalid target",
+    }),
 });
 
 const UpdateFeedbackSchema = z.object({
   content: z.string().min(1, "Feedback cannot be empty").max(2000, "Feedback is too long"),
+  targetKey: z
+    .string()
+    .optional()
+    .nullable()
+    .refine((value) => !value || isValidEntryFeedbackTarget(value), {
+      message: "Invalid target",
+    }),
 });
 
 const UpdateStatusSchema = z.object({
@@ -31,6 +46,12 @@ type FeedbackState = {
   success?: boolean;
   error?: string;
   feedback?: any;
+};
+
+const normalizeTargetKey = (value: FormDataEntryValue | null) => {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
 };
 
 /**
@@ -57,11 +78,15 @@ export async function createFeedbackAction(
 
     // Validate input
     const content = formData.get("content") as string;
-    const parsed = CreateFeedbackSchema.safeParse({ content });
+    const targetKey = normalizeTargetKey(formData.get("targetKey"));
+    const parsed = CreateFeedbackSchema.safeParse({ content, targetKey });
 
     if (!parsed.success) {
       return {
-        error: parsed.error.flatten().fieldErrors.content?.[0] || "Invalid input",
+        error:
+          parsed.error.flatten().fieldErrors.content?.[0] ||
+          parsed.error.flatten().fieldErrors.targetKey?.[0] ||
+          "Invalid input",
       };
     }
 
@@ -70,6 +95,7 @@ export async function createFeedbackAction(
       entryId,
       userId,
       content: parsed.data.content,
+      targetKey: parsed.data.targetKey ?? null,
     });
 
     // Immediately invalidate feedback cache for read-your-own-writes
@@ -115,11 +141,15 @@ export async function updateFeedbackAction(
 
     // Validate input
     const content = formData.get("content") as string;
-    const parsed = UpdateFeedbackSchema.safeParse({ content });
+    const targetKey = normalizeTargetKey(formData.get("targetKey"));
+    const parsed = UpdateFeedbackSchema.safeParse({ content, targetKey });
 
     if (!parsed.success) {
       return {
-        error: parsed.error.flatten().fieldErrors.content?.[0] || "Invalid input",
+        error:
+          parsed.error.flatten().fieldErrors.content?.[0] ||
+          parsed.error.flatten().fieldErrors.targetKey?.[0] ||
+          "Invalid input",
       };
     }
 
@@ -128,6 +158,7 @@ export async function updateFeedbackAction(
       feedbackId,
       userId,
       content: parsed.data.content,
+      targetKey: parsed.data.targetKey ?? null,
     });
 
     if (!feedback) {

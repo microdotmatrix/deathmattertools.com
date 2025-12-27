@@ -1,8 +1,8 @@
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { EntryWithObituaries } from "@/lib/db/queries/entries";
 import { format } from "date-fns";
 import Image from "next/image";
@@ -14,11 +14,13 @@ export const EntryListTabs = ({
   myEntries,
   teamEntries,
   userId,
+  pendingFeedbackByEntryId,
 }: {
   allEntries: EntryWithObituaries[];
   myEntries: EntryWithObituaries[];
   teamEntries: EntryWithObituaries[];
   userId: string;
+  pendingFeedbackByEntryId: Record<string, number>;
 }) => {
   const tabs = [
     {
@@ -45,7 +47,7 @@ export const EntryListTabs = ({
   ];
 
   return (
-    <Tabs defaultValue="all" className="w-full">
+    <Tabs defaultValue="my-entries" className="w-full">
       <TabsList className="flex w-full flex-wrap gap-2 rounded-2xl bg-muted/60 p-1">
         {tabs.map((tab) => (
           <TabsTrigger
@@ -64,6 +66,7 @@ export const EntryListTabs = ({
             entries={tab.entries}
             emptyMessage={tab.emptyMessage}
             userId={userId}
+            pendingFeedbackByEntryId={pendingFeedbackByEntryId}
           />
         </TabsContent>
       ))}
@@ -75,10 +78,12 @@ export const EntryList = ({
   entries,
   emptyMessage,
   userId,
+  pendingFeedbackByEntryId,
 }: {
   entries: EntryWithObituaries[];
   emptyMessage: string;
   userId: string;
+  pendingFeedbackByEntryId: Record<string, number>;
 }) => {
   if (entries.length === 0) {
     return (
@@ -93,13 +98,26 @@ export const EntryList = ({
   return (
     <div className="space-y-3">
       {entries.map((entry) => (
-        <EntryRow key={entry.id} entry={entry} isOwnEntry={entry.userId === userId} />
+        <EntryRow
+          key={entry.id}
+          entry={entry}
+          isOwnEntry={entry.userId === userId}
+          pendingFeedbackCount={pendingFeedbackByEntryId[entry.id] ?? 0}
+        />
       ))}
     </div>
   );
 };
 
-export const EntryRow = ({ entry, isOwnEntry }: { entry: EntryWithObituaries; isOwnEntry: boolean }) => {
+export const EntryRow = ({
+  entry,
+  isOwnEntry,
+  pendingFeedbackCount,
+}: {
+  entry: EntryWithObituaries;
+  isOwnEntry: boolean;
+  pendingFeedbackCount: number;
+}) => {
   return (
     <div className="rounded-2xl border border-border/70 bg-card/60 p-4 shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition hover:border-border">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -118,9 +136,24 @@ export const EntryRow = ({ entry, isOwnEntry }: { entry: EntryWithObituaries; is
               <Link href={`/${entry.id}`} className="font-semibold leading-tight">
                 {entry.name}
               </Link>
-              <Badge variant={isOwnEntry ? "default" : "outline"} className="text-xs">
-                {isOwnEntry ? "My Entry" : "Team"}
-              </Badge>
+              {pendingFeedbackCount > 0 && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span
+                        aria-label={`${pendingFeedbackCount} pending feedback items`}
+                        className="inline-flex size-2.5 rounded-full bg-primary"
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        {pendingFeedbackCount} pending{" "}
+                        {pendingFeedbackCount === 1 ? "feedback item" : "feedback items"}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
             {entry.locationBorn && (
               <p className="text-sm text-muted-foreground truncate">

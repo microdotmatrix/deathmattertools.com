@@ -12,6 +12,7 @@ import { Icon } from "@/components/ui/icon";
 import { getEntryImages } from "@/lib/db/queries";
 import { getUserById } from "@/lib/db/queries/auth";
 import { getEntryDetailsById, getEntryWithAccess } from "@/lib/db/queries/entries";
+import { getPendingFeedbackCounts } from "@/lib/db/queries/entry-feedback";
 import type { Entry, User } from "@/lib/db/schema";
 import { format } from "date-fns";
 import Link from "next/link";
@@ -56,11 +57,14 @@ const EntryEditContent = async ({
   isOrgOwner: boolean;
 }) => {
   // Fetch entry details and owner in parallel for better performance
-  const [entryDetails, entryImagesResult, ownerUser] = await Promise.all([
-    getEntryDetailsById(entry.id),
-    getEntryImages(entry.id),
-    getUserById(entry.userId),
-  ]);
+  const [entryDetails, entryImagesResult, ownerUser, pendingFeedbackByEntryId] =
+    await Promise.all([
+      getEntryDetailsById(entry.id),
+      getEntryImages(entry.id),
+      getUserById(entry.userId),
+      getPendingFeedbackCounts([entry.id]),
+    ]);
+  const pendingFeedbackCount = pendingFeedbackByEntryId[entry.id] ?? 0;
 
   const entryImages = entryImagesResult.success
     ? entryImagesResult.images || []
@@ -146,49 +150,38 @@ const EntryEditContent = async ({
         <div className="space-y-6">
           {/* Entry Info */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Icon icon="mdi:information-outline" className="w-5 h-5" />
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Icon icon="mdi:information-outline" className="w-4 h-4" />
                 Entry Info
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
+            <CardContent className="space-y-4">
+              {canEdit && pendingFeedbackCount > 0 && (
+                <div className="rounded-md border border-amber-200 bg-amber-50/70 px-3 py-2 text-sm text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-100">
+                  <div className="flex items-center gap-2 font-medium">
+                    <Icon icon="mdi:comment-alert" className="w-4 h-4 shrink-0" />
+                    <span>
+                      {pendingFeedbackCount} pending{" "}
+                      {pendingFeedbackCount === 1 ? "item" : "items"}
+                    </span>
+                  </div>
+                </div>
+              )}
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                 <div>
-                  <span className="font-medium">Created:</span>
-                  <br />
-                  <span className="text-muted-foreground">
-                    {format(
-                      new Date(entry.createdAt),
-                      "MMM d, yyyy 'at' h:mm a"
-                    )}
-                  </span>
+                  <dt className="text-muted-foreground text-xs uppercase tracking-wide">Created</dt>
+                  <dd className="font-medium">{format(new Date(entry.createdAt), "MMM d, yyyy")}</dd>
                 </div>
                 <div>
-                  <span className="font-medium">Last Updated:</span>
-                  <br />
-                  <span className="text-muted-foreground">
-                    {format(
-                      new Date(entry.updatedAt),
-                      "MMM d, yyyy 'at' h:mm a"
-                    )}
-                  </span>
+                  <dt className="text-muted-foreground text-xs uppercase tracking-wide">Updated</dt>
+                  <dd className="font-medium">{format(new Date(entry.updatedAt), "MMM d, yyyy")}</dd>
                 </div>
-                <div>
-                  <span className="font-medium">Owned by:</span>
-                  <br />
-                  <span className="text-muted-foreground">
-                    {ownerName}
-                  </span>
+                <div className="col-span-2">
+                  <dt className="text-muted-foreground text-xs uppercase tracking-wide">Owner</dt>
+                  <dd className="font-medium truncate">{ownerName}</dd>
                 </div>
-                <div>
-                  <span className="font-medium">Last Edited By:</span>
-                  <br />
-                  <span className="text-muted-foreground">
-                    {lastEditedName}
-                  </span>
-                </div>
-              </div>
+              </dl>
             </CardContent>
           </Card>
 

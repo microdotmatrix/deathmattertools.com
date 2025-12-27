@@ -3,15 +3,47 @@ import "server-only";
 import { entryFeedbackTag } from "@/lib/cache";
 import { db } from "@/lib/db";
 import {
-  EntryFeedbackTable,
-  type EntryFeedback,
-  type EntryFeedbackWithDetails,
-  type EntryFeedbackWithUser,
+    EntryFeedbackTable,
+    type EntryFeedback,
+    type EntryFeedbackWithDetails,
+    type EntryFeedbackWithUser,
 } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
 import { getEntryWithAccess } from "./entries";
+
+const isAbortError = (error: unknown): boolean => {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const err = error as { name?: unknown; message?: unknown; cause?: unknown };
+  if (err.name === "AbortError") {
+    return true;
+  }
+
+  if (typeof err.message === "string" && err.message.includes("AbortError")) {
+    return true;
+  }
+
+  if (err.cause && typeof err.cause === "object") {
+    const cause = err.cause as { name?: unknown; code?: unknown; message?: unknown };
+    if (cause.name === "AbortError") {
+      return true;
+    }
+
+    if (typeof cause.code === "number" && cause.code === 20) {
+      return true;
+    }
+
+    if (typeof cause.message === "string" && cause.message.includes("AbortError")) {
+      return true;
+    }
+  }
+
+  return false;
+};
 
 /**
  * Get all feedback for an entry with user information
@@ -144,6 +176,46 @@ export async function getFeedbackCounts(
     denied: feedback.filter((f) => f.status === "denied").length,
     resolved: feedback.filter((f) => f.status === "resolved").length,
   };
+}
+
+/**
+ * Get pending feedback counts for multiple entries
+ */
+export async function getPendingFeedbackCounts(
+  entryIds: string[]
+): Promise<Record<string, number>> {
+  const { userId } = await auth();
+
+  if (!userId || entryIds.length === 0) {
+    return {};
+  }
+
+  try {
+    const rows = await db
+      .select({
+        entryId: EntryFeedbackTable.entryId,
+        count: sql<number>`count(*)`,
+      })
+      .from(EntryFeedbackTable)
+      .where(
+        and(
+          inArray(EntryFeedbackTable.entryId, entryIds),
+          eq(EntryFeedbackTable.status, "pending")
+        )
+      )
+      .groupBy(EntryFeedbackTable.entryId);
+
+    return Object.fromEntries(
+      rows.map((row) => [row.entryId, Number(row.count)])
+    );
+  } catch (error) {
+    if (isAbortError(error)) {
+      return {};
+    }
+
+    console.error("Failed to get pending feedback counts:", error);
+    return {};
+  }
 }
 
 /**

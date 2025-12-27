@@ -9,6 +9,7 @@ import { PageContentSkeleton } from "@/components/skeletons/page";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
+import { getPendingFeedbackCounts } from "@/lib/db/queries/entry-feedback";
 import { getOrganizationEntries, getUserUploads } from "@/lib/db/queries/entries";
 import { getUserGeneratedImagesCount } from "@/lib/db/queries/media";
 import { auth } from "@clerk/nextjs/server";
@@ -67,6 +68,10 @@ const PageContent = async () => {
   const libraryEntries = entries.filter((entry) => entry.id !== featuredEntry?.id);
   const myLibraryEntries = libraryEntries.filter((entry) => entry.userId === userId);
   const teamLibraryEntries = libraryEntries.filter((entry) => entry.userId !== userId);
+
+  const pendingFeedbackByEntryId = await getPendingFeedbackCounts(
+    entries.map((entry) => entry.id)
+  );
 
   // Calculate server-side date stats to avoid hydration mismatch
   const now = new Date();
@@ -129,7 +134,13 @@ const PageContent = async () => {
       {header}
 
       <section className="rounded-3xl border bg-card/60 shadow-sm">
-        <FeaturedEntryCard entry={featuredEntry} stats={featuredEntryStats} />
+        <FeaturedEntryCard
+          entry={featuredEntry}
+          stats={featuredEntryStats}
+          pendingFeedbackCount={
+            featuredEntry ? pendingFeedbackByEntryId[featuredEntry.id] ?? 0 : 0
+          }
+        />
       </section>
 
       <div className="grid gap-8 xl:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]">
@@ -151,6 +162,7 @@ const PageContent = async () => {
               allEntries={libraryEntries}
               myEntries={myLibraryEntries}
               teamEntries={teamLibraryEntries}
+              pendingFeedbackByEntryId={pendingFeedbackByEntryId}
             />
           ) : (
             <Card className="border-dashed">
@@ -178,7 +190,6 @@ const PageContent = async () => {
     </div>
   );
 };
-
 
 
 
