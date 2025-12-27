@@ -8,7 +8,8 @@ import {
     type DocumentComment,
     type User,
 } from "@/lib/db/schema";
-import { and, asc, eq } from "drizzle-orm";
+import { auth } from "@clerk/nextjs/server";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
 
 export interface CommentWithAuthor {
@@ -67,4 +68,38 @@ export async function getDocumentCommentById(id: string) {
     .limit(1);
 
   return comment ?? null;
+}
+
+/**
+ * Get pending comment counts for multiple documents
+ */
+export async function getPendingDocumentCommentCounts(documentIds: string[]) {
+  const { userId } = await auth();
+
+  if (!userId || documentIds.length === 0) {
+    return {};
+  }
+
+  try {
+    const rows = await db
+      .select({
+        documentId: DocumentCommentTable.documentId,
+        count: sql<number>`count(*)`,
+      })
+      .from(DocumentCommentTable)
+      .where(
+        and(
+          inArray(DocumentCommentTable.documentId, documentIds),
+          eq(DocumentCommentTable.status, "pending")
+        )
+      )
+      .groupBy(DocumentCommentTable.documentId);
+
+    return Object.fromEntries(
+      rows.map((row) => [row.documentId, Number(row.count)])
+    );
+  } catch (error) {
+    console.error("Failed to get pending document comment counts:", error);
+    return {};
+  }
 }

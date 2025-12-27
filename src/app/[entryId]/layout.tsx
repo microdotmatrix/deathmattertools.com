@@ -1,4 +1,5 @@
 import { DashboardShell } from "@/components/layout/dashboard-shell";
+import { getPendingDocumentCommentCounts } from "@/lib/db/queries/comments";
 import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
 import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import { getUserGeneratedImages } from "@/lib/db/queries/media";
@@ -24,6 +25,9 @@ export default async function EntryLayout({ children, params }: LayoutProps) {
     getDocumentsByEntryId(entryId),
     getUserGeneratedImages(entry.userId!, entryId),
   ]);
+  const pendingCommentCounts = canEdit
+    ? await getPendingDocumentCommentCounts(obituaries.map((obituary) => obituary.id))
+    : {};
 
   const serializedObituaries = obituaries.map((o) => ({
     ...o,
@@ -42,6 +46,7 @@ export default async function EntryLayout({ children, params }: LayoutProps) {
           entryName={entry.name}
           canEdit={canEdit}
           obituaries={serializedObituaries}
+          pendingCommentCounts={pendingCommentCounts}
           generatedImages={serializedImages}
         />
       }

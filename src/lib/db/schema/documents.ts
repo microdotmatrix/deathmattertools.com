@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import {
     boolean,
     foreignKey,
+    index,
     integer,
     primaryKey,
     text,
@@ -72,6 +73,13 @@ export const DocumentCommentTable = pgTable(
       .notNull()
       .references(() => UserTable.id, { onDelete: "cascade" }),
     content: text("content").notNull(),
+    status: varchar("status", {
+      enum: ["pending", "approved", "denied", "resolved"],
+    })
+      .notNull()
+      .default("pending"),
+    statusChangedAt: timestamp("status_changed_at"),
+    statusChangedBy: text("status_changed_by").references(() => UserTable.id),
     parentId: uuid("parent_id"),
     createdAt: timestamp("created_at")
       .$defaultFn(() => new Date())
@@ -93,6 +101,7 @@ export const DocumentCommentTable = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.id, table.createdAt] }),
+    index("document_comment_status_idx").on(table.documentId, table.status),
     foreignKey({
       columns: [table.documentId, table.documentCreatedAt],
       foreignColumns: [DocumentTable.id, DocumentTable.createdAt],

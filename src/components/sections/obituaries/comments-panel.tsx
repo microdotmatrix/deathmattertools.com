@@ -1,25 +1,26 @@
 "use client";
 
-import { useMemo, useState, useOptimistic, useActionState, useTransition } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  createCommentAction,
+  deleteCommentAction,
+  updateCommentAction,
+  updateCommentStatusAction,
+} from "@/actions/comments";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { CommentContent } from "./comment-content";
-import {
-  createCommentAction,
-  updateCommentAction,
-  deleteCommentAction,
-} from "@/actions/comments";
+import { Textarea } from "@/components/ui/textarea";
 import { isEditingObituaryAtom } from "@/lib/state";
+import { cn, formatRelativeTime } from "@/lib/utils";
 import { useAtomValue } from "jotai";
+import { useEffect, useMemo, useOptimistic, useState, useTransition } from "react";
+import { toast } from "sonner";
+import { CommentContent } from "./comment-content";
 
 type SerializableComment = {
   id: string;
@@ -28,6 +29,9 @@ type SerializableComment = {
   parentId: string | null;
   createdAt: string;
   updatedAt: string;
+  status: "pending" | "approved" | "denied" | "resolved";
+  statusChangedAt?: string | null;
+  statusChangedBy?: string | null;
   author: {
     id: string;
     name: string | null;
@@ -97,8 +101,34 @@ const normalizeComment = (
     typeof comment.updatedAt === "string"
       ? comment.updatedAt
       : new Date(comment.updatedAt).toISOString(),
+  status: comment.status ?? "pending",
+  statusChangedAt: comment.statusChangedAt
+    ? typeof comment.statusChangedAt === "string"
+      ? comment.statusChangedAt
+      : new Date(comment.statusChangedAt).toISOString()
+    : null,
+  statusChangedBy: comment.statusChangedBy ?? null,
   author,
 });
+
+const COMMENT_STATUS_CONFIG = {
+  pending: {
+    label: "Pending",
+    className: "border-amber-200 bg-amber-50/60 text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-200",
+  },
+  approved: {
+    label: "Approved",
+    className: "border-green-200 bg-green-50/60 text-green-700 dark:border-green-900 dark:bg-green-950/50 dark:text-green-200",
+  },
+  denied: {
+    label: "Denied",
+    className: "border-red-200 bg-red-50/60 text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-200",
+  },
+  resolved: {
+    label: "Resolved",
+    className: "border-muted bg-muted/50 text-muted-foreground",
+  },
+};
 
 const initials = (name?: string | null) => {
   if (!name) return "U";
@@ -121,6 +151,10 @@ export const ObituaryComments = ({
     SerializableComment[],
     SerializableComment
   >(comments, (state, newComment) => [...state, newComment]);
+
+  useEffect(() => {
+    setComments(initialComments);
+  }, [initialComments]);
   
   const [newComment, setNewComment] = useState("");
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
@@ -162,6 +196,9 @@ export const ObituaryComments = ({
       parentId: parentId ?? null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      status: "pending",
+      statusChangedAt: null,
+      statusChangedBy: null,
       author: currentUser,
     };
 
@@ -265,12 +302,58 @@ export const ObituaryComments = ({
   };
 
   const canEdit = (comment: SerializableComment) =>
-    comment.userId === currentUser.id || canModerate;
+    comment.status === "pending" &&
+    (comment.userId === currentUser.id || canModerate);
+
+  const handleStatusUpdate = async (
+    commentId: string,
+    status: "approved" | "denied" | "resolved"
+  ) => {
+    startTransition(async () => {
+      const result = await updateCommentStatusAction(documentId, commentId, status);
+
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      if (result.comment) {
+        setComments((prev) =>
+          prev.map((item) =>
+            item.id === commentId
+              ? {
+                  ...item,
+                  status: result.comment.status,
+                  statusChangedAt: result.comment.statusChangedAt
+                    ? typeof result.comment.statusChangedAt === "string"
+                      ? result.comment.statusChangedAt
+                      : new Date(result.comment.statusChangedAt).toISOString()
+                    : null,
+                  statusChangedBy: result.comment.statusChangedBy ?? null,
+                  updatedAt:
+                    typeof result.comment.updatedAt === "string"
+                      ? result.comment.updatedAt
+                      : new Date(result.comment.updatedAt).toISOString(),
+                }
+              : item
+          )
+        );
+        toast.success(
+          status === "approved"
+            ? "Comment approved"
+            : status === "denied"
+            ? "Comment denied"
+            : "Comment resolved"
+        );
+      }
+    });
+  };
 
   const renderComment = (node: CommentNode, depth = 0) => {
-    const isAuthor = node.userId === currentUser.id;
+    // const isAuthor = node.userId === currentUser.id;
     const isEditing = editingId === node.id;
     const isReplying = replyingTo === node.id;
+    const statusConfig = COMMENT_STATUS_CONFIG[node.status];
 
     return (
       <div key={node.id} className="space-y-3">
@@ -298,9 +381,9 @@ export const ObituaryComments = ({
                 <span className="text-xs text-muted-foreground">
                   {formatRelativeTime(new Date(node.createdAt))}
                 </span>
-                {isAuthor && (
-                  <Badge variant="outline" className="text-xs">
-                    You
+                {statusConfig && (
+                  <Badge variant="outline" className={cn("text-xs", statusConfig.className)}>
+                    {statusConfig.label}
                   </Badge>
                 )}
               </div>
@@ -342,51 +425,90 @@ export const ObituaryComments = ({
               ) : (
                 <CommentContent content={node.content} />
               )}
-              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                {new Date(node.updatedAt).getTime() -
-                  new Date(node.createdAt).getTime() >
-                  60 * 1000 && <span>Edited</span>}
-                {canComment && (
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1 text-foreground hover:text-primary"
-                    onClick={() => {
-                      setReplyingTo(
-                        isReplying ? null : node.id
-                      );
-                    }}
-                  >
-                    <Icon icon="lucide:corner-down-right" className="size-3" />
-                    Reply
-                  </button>
-                )}
-                {canEdit(node) && (
-                  <>
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                {/* Left group: Edited indicator, Reply, Edit, Delete */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {new Date(node.updatedAt).getTime() -
+                    new Date(node.createdAt).getTime() >
+                    60 * 1000 && <span>Edited</span>}
+                  {canComment && (
                     <button
                       type="button"
                       className="inline-flex items-center gap-1 text-foreground hover:text-primary"
                       onClick={() => {
-                        setEditingId(node.id);
-                        setEditingDrafts((drafts) => ({
-                          ...drafts,
-                          [node.id]: node.content,
-                        }));
+                        setReplyingTo(
+                          isReplying ? null : node.id
+                        );
                       }}
                     >
-                      <Icon icon="lucide:pencil" className="size-3" />
-                      Edit
+                      <Icon icon="lucide:corner-down-right" className="size-3" />
+                      Reply
                     </button>
+                  )}
+                  {canEdit(node) && (
+                    <>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 text-foreground hover:text-primary"
+                        onClick={() => {
+                          setEditingId(node.id);
+                          setEditingDrafts((drafts) => ({
+                            ...drafts,
+                            [node.id]: node.content,
+                          }));
+                        }}
+                      >
+                        <Icon icon="lucide:pencil" className="size-3" />
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 text-destructive hover:text-destructive/80"
+                        onClick={() => handleDelete(node.id)}
+                        disabled={isPending}
+                      >
+                        <Icon icon="lucide:trash-2" className="size-3" />
+                        Delete
+                      </button>
+                    </>
+                  )}
+                </div>
+                {/* Right group: Approve, Deny, Resolve */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {canModerate && node.status === "pending" && (
+                    <>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 text-foreground hover:text-primary"
+                        onClick={() => handleStatusUpdate(node.id, "approved")}
+                        disabled={isPending}
+                      >
+                        <Icon icon="mdi:check-circle" className="size-3" />
+                        Approve
+                      </button>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 text-destructive hover:text-destructive/80"
+                        onClick={() => handleStatusUpdate(node.id, "denied")}
+                        disabled={isPending}
+                      >
+                        <Icon icon="mdi:close-circle" className="size-3" />
+                        Deny
+                      </button>
+                    </>
+                  )}
+                  {canModerate && node.status === "approved" && (
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 text-destructive hover:text-destructive/80"
-                      onClick={() => handleDelete(node.id)}
+                      className="inline-flex items-center gap-1 text-foreground hover:text-primary"
+                      onClick={() => handleStatusUpdate(node.id, "resolved")}
                       disabled={isPending}
                     >
-                      <Icon icon="lucide:trash-2" className="size-3" />
-                      Delete
+                      <Icon icon="mdi:check" className="size-3" />
+                      Resolve
                     </button>
-                  </>
-                )}
+                  )}
+                </div>
               </div>
               {isReplying && (
                 <div className="space-y-2">

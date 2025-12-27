@@ -46,6 +46,11 @@ const toSerializableComments = (comments: Awaited<
     parentId: item.comment.parentId,
     createdAt: item.comment.createdAt.toISOString(),
     updatedAt: item.comment.updatedAt.toISOString(),
+    status: item.comment.status ?? "pending",
+    statusChangedAt: item.comment.statusChangedAt
+      ? item.comment.statusChangedAt.toISOString()
+      : null,
+    statusChangedBy: item.comment.statusChangedBy ?? null,
     // Anchor fields for text-anchored comments
     anchorStart: item.comment.anchorStart,
     anchorEnd: item.comment.anchorEnd,

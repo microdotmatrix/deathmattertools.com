@@ -1,19 +1,20 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
-import { revalidateTag, revalidatePath } from "next/cache";
-import { z } from "zod";
+import { documentCommentsTag } from "@/lib/cache";
 import {
-  createDocumentComment,
-  updateDocumentComment,
-  deleteDocumentComment,
-  updateCommentAnchorStatus,
+    createDocumentComment,
+    deleteDocumentComment,
+    updateCommentAnchorStatus,
+    updateDocumentComment,
+    updateDocumentCommentStatus,
 } from "@/lib/db/mutations";
 import {
-  getDocumentWithAccess,
-  getDocumentCommentById,
+    getDocumentCommentById,
+    getDocumentWithAccess,
 } from "@/lib/db/queries";
-import { documentCommentsTag } from "@/lib/cache";
+import { auth } from "@clerk/nextjs/server";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { z } from "zod";
 
 const CommentSchema = z.object({
   content: z.string().min(1, "Comment cannot be empty"),
@@ -24,6 +25,10 @@ const CommentSchema = z.object({
   anchorText: z.string().nullish(),
   anchorPrefix: z.string().nullish(),
   anchorSuffix: z.string().nullish(),
+});
+
+const UpdateCommentStatusSchema = z.object({
+  status: z.enum(["approved", "denied", "resolved"]),
 });
 
 type CommentState = {
@@ -108,7 +113,7 @@ export async function createCommentAction(
     });
 
     // Revalidate both the cache tag and the page path
-    revalidateTag(documentCommentsTag(access.document.id), 'max');
+    revalidateTag(documentCommentsTag(access.document.id), "max");
     revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}`);
 
     return { success: true, comment };
@@ -162,6 +167,10 @@ export async function updateCommentAction(
       return { error: "Forbidden" };
     }
 
+    if (comment.status !== "pending") {
+      return { error: "Only pending comments can be edited" };
+    }
+
     const content = formData.get("content") as string;
     const parsed = z.string().min(1, "Comment cannot be empty").safeParse(content);
 
@@ -181,7 +190,7 @@ export async function updateCommentAction(
       return { error: "Unable to update comment" };
     }
 
-    revalidateTag(documentCommentsTag(access.document.id), 'max');
+    revalidateTag(documentCommentsTag(access.document.id), "max");
     revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}`);
 
     return { success: true, comment: updated };
@@ -232,6 +241,10 @@ export async function deleteCommentAction(
       return { error: "Forbidden" };
     }
 
+    if (comment.status !== "pending") {
+      return { error: "Only pending comments can be deleted" };
+    }
+
     const deleted = await deleteDocumentComment({
       commentId,
       documentId: access.document.id,
@@ -243,7 +256,7 @@ export async function deleteCommentAction(
       return { error: "Unable to delete comment" };
     }
 
-    revalidateTag(documentCommentsTag(access.document.id), 'max');
+    revalidateTag(documentCommentsTag(access.document.id), "max");
     revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}`);
 
     return { success: true };
@@ -311,12 +324,85 @@ export async function updateAnchorStatusAction(
       return { error: "Unable to update anchor status" };
     }
 
-    revalidateTag(documentCommentsTag(access.document.id), 'max');
+    revalidateTag(documentCommentsTag(access.document.id), "max");
     revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}`);
 
     return { success: true };
   } catch (error) {
     console.error("Error updating anchor status:", error);
     return { error: "Failed to update anchor status" };
+  }
+}
+
+type CommentStatusState = {
+  success?: boolean;
+  error?: string;
+  comment?: any;
+};
+
+export async function updateCommentStatusAction(
+  documentId: string,
+  commentId: string,
+  status: "approved" | "denied" | "resolved"
+): Promise<CommentStatusState> {
+  try {
+    const { userId, orgId } = await auth();
+
+    if (!userId) {
+      return { error: "Unauthorized" };
+    }
+
+    const access = await getDocumentWithAccess({
+      documentId,
+      userId,
+      orgId,
+    });
+
+    if (!access) {
+      return { error: "Forbidden" };
+    }
+
+    if (access.role !== "owner") {
+      return { error: "Only document owner can moderate comments" };
+    }
+
+    const parsed = UpdateCommentStatusSchema.safeParse({ status });
+    if (!parsed.success) {
+      return { error: "Invalid status" };
+    }
+
+    const comment = await getDocumentCommentById(commentId);
+
+    if (
+      !comment ||
+      comment.documentId !== access.document.id ||
+      comment.documentCreatedAt.getTime() !== access.document.createdAt.getTime()
+    ) {
+      return { error: "Comment not found" };
+    }
+
+    if (status === "resolved" && comment.status !== "approved") {
+      return { error: "Only approved comments can be marked as resolved" };
+    }
+
+    const updated = await updateDocumentCommentStatus({
+      commentId,
+      documentId: access.document.id,
+      documentCreatedAt: access.document.createdAt,
+      status,
+      statusChangedBy: userId,
+    });
+
+    if (!updated) {
+      return { error: "Unable to update comment status" };
+    }
+
+    revalidateTag(documentCommentsTag(access.document.id), "max");
+    revalidatePath(`/${access.document.entryId}/obituaries/${access.document.id}`);
+
+    return { success: true, comment: updated };
+  } catch (error) {
+    console.error("Error updating comment status:", error);
+    return { error: "Failed to update comment status" };
   }
 }

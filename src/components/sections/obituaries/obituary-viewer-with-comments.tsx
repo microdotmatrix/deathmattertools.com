@@ -13,6 +13,7 @@ import {
 import { Icon } from "@/components/ui/icon";
 import type { AnchorData } from "@/lib/annotations";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { type RefObject, useRef, useState } from "react";
 
 // Dynamic imports with SSR disabled for client-only rendering
@@ -67,6 +68,7 @@ export const ObituaryViewerWithComments = ({
   contentRef: externalContentRef,
   onEditingChange,
 }: ObituaryViewerWithCommentsProps) => {
+  const router = useRouter();
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [currentQuote, setCurrentQuote] = useState<AnchorData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -87,7 +89,7 @@ export const ObituaryViewerWithComments = ({
   const handleCommentSuccess = () => {
     setShowCommentForm(false);
     setCurrentQuote(null);
-    // Page will auto-refresh via revalidation
+    router.refresh();
   };
 
   const handleCommentCancel = () => {

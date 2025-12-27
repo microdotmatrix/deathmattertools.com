@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { obitLimit } from "@/lib/config";
+import type { DocumentStatus } from "@/lib/db/schema";
 import { format } from "date-fns";
 import { ChevronDown, Plus } from "lucide-react";
 import Link from "next/link";
@@ -26,7 +27,14 @@ type EntrySidebarContentProps = {
   entryId: string;
   entryName: string;
   canEdit: boolean;
-  obituaries: Array<{ id: string; title: string | null; createdAt: string; isPublic: boolean }>;
+  obituaries: Array<{
+    id: string;
+    title: string | null;
+    createdAt: string;
+    isPublic: boolean;
+    status: DocumentStatus;
+  }>;
+  pendingCommentCounts?: Record<string, number>;
   generatedImages: Array<{
     id: string;
     epitaphId: number | null;
@@ -40,8 +48,10 @@ export const EntrySidebarContent = ({
   entryName,
   canEdit,
   obituaries,
+  pendingCommentCounts,
   generatedImages,
 }: EntrySidebarContentProps) => {
+  const pendingCounts = pendingCommentCounts ?? {};
   return (
     <>
       <Collapsible defaultOpen className="group/collapsible">
@@ -73,7 +83,13 @@ export const EntrySidebarContent = ({
               {obituaries.length > 0 ? (
                 <SidebarMenu>
                   {obituaries.map((obituary) => (
-                    <ObituaryListItem key={obituary.id} obituary={obituary} entryId={entryId} canEdit={canEdit} />
+                    <ObituaryListItem
+                      key={obituary.id}
+                      obituary={obituary}
+                      entryId={entryId}
+                      canEdit={canEdit}
+                      pendingCommentCount={pendingCounts[obituary.id] ?? 0}
+                    />
                   ))}
                 </SidebarMenu>
               ) : (

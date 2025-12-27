@@ -146,3 +146,40 @@ export const updateCommentAnchorStatus = async ({
 
   return comment ?? null;
 };
+
+export const updateDocumentCommentStatus = async ({
+  commentId,
+  documentId,
+  documentCreatedAt,
+  status,
+  statusChangedBy,
+}: {
+  commentId: string;
+  documentId: string;
+  documentCreatedAt: Date;
+  status: "approved" | "denied" | "resolved";
+  statusChangedBy: string;
+}) => {
+  const now = new Date();
+  const [comment] = await db
+    .update(DocumentCommentTable)
+    .set({
+      status,
+      statusChangedAt: now,
+      statusChangedBy,
+      updatedAt: now,
+    })
+    .where(
+      and(
+        eq(DocumentCommentTable.id, commentId),
+        eq(DocumentCommentTable.documentId, documentId),
+        eq(
+          DocumentCommentTable.documentCreatedAt,
+          documentCreatedAt
+        )
+      )
+    )
+    .returning();
+
+  return comment ?? null;
+};

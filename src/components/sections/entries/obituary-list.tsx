@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { obitLimit } from "@/lib/config";
 import type { Document, DocumentStatus } from "@/lib/db/schema";
 import { format } from "date-fns";
@@ -17,14 +18,30 @@ export type ObituaryListItemData = {
   status: DocumentStatus;
 };
 
-export const ObituaryList = ({ obituaries, entryId, canEdit }: { obituaries: Document[], entryId: string, canEdit: boolean }) => {
+export const ObituaryList = ({
+  obituaries,
+  entryId,
+  canEdit,
+  pendingCommentCounts = {},
+}: {
+  obituaries: Document[];
+  entryId: string;
+  canEdit: boolean;
+  pendingCommentCounts?: Record<string, number>;
+}) => {
   return (
     <div className="space-y-4">
       {obituaries.length > 0 ? (
         <>
           <div className="space-y-2 max-h-96 overflow-y-auto scroll-style">
             {obituaries.map((obituary) => (
-              <ObituaryListItem key={obituary.id} obituary={obituary} entryId={entryId} canEdit={canEdit} />
+              <ObituaryListItem
+                key={obituary.id}
+                obituary={obituary}
+                entryId={entryId}
+                canEdit={canEdit}
+                pendingCommentCount={pendingCommentCounts[obituary.id] ?? 0}
+              />
             ))}
           </div>
           
@@ -80,7 +97,17 @@ export const ObituaryList = ({ obituaries, entryId, canEdit }: { obituaries: Doc
   )
 }
 
-export const ObituaryListItem = ({ obituary, entryId, canEdit }: { obituary: ObituaryListItemData, entryId: string, canEdit: boolean }) => {
+export const ObituaryListItem = ({
+  obituary,
+  entryId,
+  canEdit,
+  pendingCommentCount = 0,
+}: {
+  obituary: ObituaryListItemData;
+  entryId: string;
+  canEdit: boolean;
+  pendingCommentCount?: number;
+}) => {
   return (
     <div
       className="px-3 py-2 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -99,6 +126,24 @@ export const ObituaryListItem = ({ obituary, entryId, canEdit }: { obituary: Obi
               <Badge variant="secondary" className="text-xs">
                 Public
               </Badge>
+            )}
+            {canEdit && pendingCommentCount > 0 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span
+                      aria-label={`${pendingCommentCount} pending comments`}
+                      className="inline-flex size-2.5 rounded-full bg-primary"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      {pendingCommentCount} pending{" "}
+                      {pendingCommentCount === 1 ? "comment" : "comments"}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
         </div>

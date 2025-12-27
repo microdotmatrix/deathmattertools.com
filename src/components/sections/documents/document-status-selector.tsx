@@ -1,11 +1,11 @@
 "use client";
 
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { updateDocumentStatusAction } from "@/lib/db/mutations/document-status";
@@ -83,7 +83,7 @@ export function DocumentStatusSelector({
     >
       <SelectTrigger
         size="sm"
-        className={cn("w-fit", isPending && "opacity-50", className)}
+        className={cn("w-fit border-none", isPending && "opacity-50", className)}
       >
         <SelectValue>
           <StatusBadge status={optimisticStatus} />
