@@ -16,15 +16,20 @@ import {
   PromptInput,
   PromptInputSubmit,
   PromptInputTextarea,
-} from "@/components/ai-elements/prompt-input"; // Replaced with AI Elements version
+} from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { convertToUIMessages } from "@/lib/ai/utils";
-import { isEditingObituaryAtom, obituaryUpdateProcessingAtom } from "@/lib/state";
+import {
+  expandChatBubbleAtom,
+  isEditingObituaryAtom,
+  obituaryUpdateProcessingAtom,
+  prefilledChatMessageAtom,
+} from "@/lib/state";
 import { generateUUID } from "@/lib/utils";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -62,12 +67,18 @@ export const FloatingChatBubble = ({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [input, setInput] = useState("");
   const [hasNewResponse, setHasNewResponse] = useState(false);
-  
+
   // Jotai atom to coordinate loading state with ObituaryViewerSimple
   const setObituaryUpdateProcessing = useSetAtom(obituaryUpdateProcessingAtom);
-  
+
   // Check if obituary is being edited - disable AI assistant during manual editing
   const isEditingObituary = useAtomValue(isEditingObituaryAtom);
+
+  // Pre-filled chat message atom (for "Apply with AI" button on comments)
+  const [prefilledMessage, setPrefilledMessage] = useAtom(prefilledChatMessageAtom);
+
+  // External expand control (for programmatic expansion)
+  const [shouldExpand, setShouldExpand] = useAtom(expandChatBubbleAtom);
 
   // React Compiler handles memoization - no useMemo needed
   const chatId = initialChat?.id || generateUUID();
@@ -122,6 +133,24 @@ export const FloatingChatBubble = ({
     }
   }, [isExpanded]);
 
+  // Handle pre-filled messages from external triggers (e.g., "Apply with AI" button)
+  useEffect(() => {
+    if (prefilledMessage) {
+      setInput(prefilledMessage.message);
+      setIsExpanded(true);
+      // Clear the atom after using it
+      setPrefilledMessage(null);
+    }
+  }, [prefilledMessage, setPrefilledMessage]);
+
+  // Handle external expand control
+  useEffect(() => {
+    if (shouldExpand) {
+      setIsExpanded(true);
+      setShouldExpand(false);
+    }
+  }, [shouldExpand, setShouldExpand]);
+
   // React Compiler handles function stability - no useCallback needed
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,7 +170,7 @@ export const FloatingChatBubble = ({
         .filter(p => p.type === "text")
         .map(p => (p as { type: "text"; text: string }).text)
         .join(" ");
-      
+
       if (text) {
         setObituaryUpdateProcessing(true);
         sendMessage({ text });

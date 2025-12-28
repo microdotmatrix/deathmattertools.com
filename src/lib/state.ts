@@ -49,3 +49,19 @@ export const isEditingObituaryAtom = atom<boolean>(false);
  * coordinate their loading states.
  */
 export const obituaryUpdateProcessingAtom = atom<boolean>(false);
+
+/**
+ * Stores a pre-filled message to be inserted into the AI chat.
+ * Used when triggering the AI assistant from external sources like
+ * the "Apply with AI" button on comments.
+ */
+export const prefilledChatMessageAtom = atom<{
+  message: string;
+  commentId?: string;
+} | null>(null);
+
+/**
+ * Controls whether the AI chat bubble should be expanded.
+ * Used to programmatically open the chat from external triggers.
+ */
+export const expandChatBubbleAtom = atom<boolean>(false);

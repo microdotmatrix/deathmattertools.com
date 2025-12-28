@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { DocumentCommentTable } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 export const createDocumentComment = async ({
   documentId,
@@ -182,4 +182,50 @@ export const updateDocumentCommentStatus = async ({
     .returning();
 
   return comment ?? null;
+};
+
+/**
+ * Bulk resolve multiple approved comments in a single transaction.
+ * Only resolves comments that are currently in "approved" status.
+ */
+export const bulkResolveComments = async ({
+  commentIds,
+  documentId,
+  documentCreatedAt,
+  statusChangedBy,
+}: {
+  commentIds: string[];
+  documentId: string;
+  documentCreatedAt: Date;
+  statusChangedBy: string;
+}): Promise<{ resolvedCount: number; resolvedIds: string[] }> => {
+  if (commentIds.length === 0) {
+    return { resolvedCount: 0, resolvedIds: [] };
+  }
+
+  const now = new Date();
+
+  const resolvedComments = await db
+    .update(DocumentCommentTable)
+    .set({
+      status: "resolved",
+      statusChangedAt: now,
+      statusChangedBy,
+      updatedAt: now,
+    })
+    .where(
+      and(
+        inArray(DocumentCommentTable.id, commentIds),
+        eq(DocumentCommentTable.documentId, documentId),
+        eq(DocumentCommentTable.documentCreatedAt, documentCreatedAt),
+        // Only resolve comments that are currently approved
+        eq(DocumentCommentTable.status, "approved")
+      )
+    )
+    .returning({ id: DocumentCommentTable.id });
+
+  return {
+    resolvedCount: resolvedComments.length,
+    resolvedIds: resolvedComments.map((c) => c.id),
+  };
 };

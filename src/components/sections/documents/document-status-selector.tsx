@@ -83,7 +83,7 @@ export function DocumentStatusSelector({
     >
       <SelectTrigger
         size="sm"
-        className={cn("w-fit border-none", isPending && "opacity-50", className)}
+        className={cn("w-fit border-none bg-transparent!", isPending && "opacity-50", className)}
       >
         <SelectValue>
           <StatusBadge status={optimisticStatus} />

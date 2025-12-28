@@ -38,7 +38,7 @@ type SidebarLink = {
 
 const workspaceLinks: SidebarLink[] = [
   {
-    label: "Overview",
+    label: "Entries",
     href: "/dashboard",
     icon: "mdi:view-dashboard-outline",
   },

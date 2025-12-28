@@ -15,9 +15,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Textarea } from "@/components/ui/textarea";
-import { isEditingObituaryAtom } from "@/lib/state";
+import {
+  expandChatBubbleAtom,
+  isEditingObituaryAtom,
+  prefilledChatMessageAtom,
+} from "@/lib/state";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { useAtomValue } from "jotai";
+import {
+  formatBulkCommentsForChatMessage,
+  formatCommentForChatMessage,
+} from "@/lib/ai/comment-formatter";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useMemo, useOptimistic, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { CommentContent } from "./comment-content";
@@ -32,6 +40,14 @@ type SerializableComment = {
   status: "pending" | "approved" | "denied" | "resolved";
   statusChangedAt?: string | null;
   statusChangedBy?: string | null;
+  // Anchor fields for text-anchored comments
+  anchorStart?: number | null;
+  anchorEnd?: number | null;
+  anchorText?: string | null;
+  anchorPrefix?: string | null;
+  anchorSuffix?: string | null;
+  anchorValid?: boolean | null;
+  anchorStatus?: string | null;
   author: {
     id: string;
     name: string | null;
@@ -155,15 +171,84 @@ export const ObituaryComments = ({
   useEffect(() => {
     setComments(initialComments);
   }, [initialComments]);
-  
+
   const [newComment, setNewComment] = useState("");
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const [editingDrafts, setEditingDrafts] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  
+
+  // Track collapsed comments - resolved and denied comments are collapsed by default
+  const [collapsedComments, setCollapsedComments] = useState<Set<string>>(() => {
+    const collapsedIds = initialComments
+      .filter((c) => c.status === "resolved" || c.status === "denied")
+      .map((c) => c.id);
+    return new Set(collapsedIds);
+  });
+
+  // Update collapsed state when comments change (e.g., new resolved/denied comments)
+  useEffect(() => {
+    setCollapsedComments((prev) => {
+      const newCollapsed = new Set(prev);
+      // Auto-collapse newly resolved or denied comments
+      for (const comment of comments) {
+        if ((comment.status === "resolved" || comment.status === "denied") && !prev.has(comment.id)) {
+          newCollapsed.add(comment.id);
+        }
+      }
+      return newCollapsed;
+    });
+  }, [comments]);
+
+  const toggleCollapse = (commentId: string) => {
+    setCollapsedComments((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(commentId)) {
+        newSet.delete(commentId);
+      } else {
+        newSet.add(commentId);
+      }
+      return newSet;
+    });
+  };
+
   const isEditingObituary = useAtomValue(isEditingObituaryAtom);
+  const setPrefilledMessage = useSetAtom(prefilledChatMessageAtom);
+  const setExpandChatBubble = useSetAtom(expandChatBubbleAtom);
+
+  // Handle applying a comment with AI assistant
+  const handleApplyWithAI = (comment: SerializableComment) => {
+    const message = formatCommentForChatMessage({
+      content: comment.content,
+      authorName: comment.author.name ?? "Anonymous",
+      anchorText: comment.anchorText,
+    });
+    setPrefilledMessage({ message, commentId: comment.id });
+    setExpandChatBubble(true);
+  };
+
+  // Compute approved comments for bulk apply
+  const approvedComments = useMemo(
+    () => comments.filter((c) => c.status === "approved" && !c.parentId),
+    [comments]
+  );
+
+  // Handle applying all approved comments with AI assistant
+  const handleApplyAllWithAI = () => {
+    if (approvedComments.length === 0) return;
+
+    const formattedComments = approvedComments.map((c) => ({
+      id: c.id,
+      content: c.content,
+      authorName: c.author.name ?? "Anonymous",
+      anchorText: c.anchorText,
+    }));
+
+    const message = formatBulkCommentsForChatMessage(formattedComments);
+    setPrefilledMessage({ message });
+    setExpandChatBubble(true);
+  };
 
   const commentTree = useMemo(
     () => buildCommentTree(optimisticComments),
@@ -353,79 +438,106 @@ export const ObituaryComments = ({
     // const isAuthor = node.userId === currentUser.id;
     const isEditing = editingId === node.id;
     const isReplying = replyingTo === node.id;
+    const isCollapsed = collapsedComments.has(node.id);
     const statusConfig = COMMENT_STATUS_CONFIG[node.status];
 
     return (
       <div key={node.id} className="space-y-3">
         <div
           className={cn(
-            "rounded-lg border border-border/50 bg-card/40 p-4",
-            depth > 0 && "bg-muted/40"
+            "rounded-lg border border-border/50 bg-card/40",
+            depth > 0 && "bg-muted/40",
+            isCollapsed ? "p-3" : "p-4"
           )}
         >
           <div className="flex items-start gap-3">
-            <Avatar className="mt-1 size-9">
-              {node.author.imageUrl ? (
-                <AvatarImage src={node.author.imageUrl} />
-              ) : (
-                <AvatarFallback>
-                  {initials(node.author.name)}
-                </AvatarFallback>
-              )}
-            </Avatar>
-            <div className="flex-1 space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="text-sm font-semibold">
-                  {node.author.name ?? node.author.email ?? "Unknown user"}
-                </p>
-                <span className="text-xs text-muted-foreground">
-                  {formatRelativeTime(new Date(node.createdAt))}
-                </span>
-                {statusConfig && (
-                  <Badge variant="outline" className={cn("text-xs", statusConfig.className)}>
-                    {statusConfig.label}
-                  </Badge>
+            {!isCollapsed && (
+              <Avatar className="mt-1 size-9 flex-shrink-0">
+                {node.author.imageUrl ? (
+                  <AvatarImage src={node.author.imageUrl} />
+                ) : (
+                  <AvatarFallback>
+                    {initials(node.author.name)}
+                  </AvatarFallback>
                 )}
-              </div>
-              {isEditing ? (
-                <div className="space-y-2">
-                  <Textarea
-                    value={editingDrafts[node.id] ?? ""}
-                    onChange={(event) =>
-                      setEditingDrafts((drafts) => ({
-                        ...drafts,
-                        [node.id]: event.target.value,
-                      }))
-                    }
-                    rows={3}
-                  />
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => handleUpdate(node.id)}
-                      disabled={isPending}
-                    >
-                      Save
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        setEditingId(null);
-                        setEditingDrafts((drafts) => ({
-                          ...drafts,
-                          [node.id]: "",
-                        }));
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
+              </Avatar>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
+                  <p className="text-sm font-semibold">
+                    {node.author.name ?? node.author.email ?? "Unknown user"}
+                  </p>
+                  <span className="text-xs text-muted-foreground">
+                    {formatRelativeTime(new Date(node.createdAt))}
+                  </span>
+                  {statusConfig && (
+                    <Badge variant="outline" className={cn("text-xs", statusConfig.className)}>
+                      {statusConfig.label}
+                    </Badge>
+                  )}
+                  {isCollapsed && (
+                    <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                      — {node.content.slice(0, 50)}{node.content.length > 50 ? "..." : ""}
+                    </span>
+                  )}
                 </div>
-              ) : (
-                <CommentContent content={node.content} />
-              )}
-              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                {/* Collapse/Expand toggle button */}
+                <button
+                  type="button"
+                  onClick={() => toggleCollapse(node.id)}
+                  className="flex-shrink-0 p-1 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={isCollapsed ? "Expand comment" : "Collapse comment"}
+                >
+                  <Icon
+                    icon={isCollapsed ? "mdi:chevron-down" : "mdi:chevron-up"}
+                    className="size-4"
+                  />
+                </button>
+              </div>
+              {!isCollapsed && (
+                <>
+                  {isEditing ? (
+                    <div className="space-y-2 mt-3">
+                      <Textarea
+                        value={editingDrafts[node.id] ?? ""}
+                        onChange={(event) =>
+                          setEditingDrafts((drafts) => ({
+                            ...drafts,
+                            [node.id]: event.target.value,
+                          }))
+                        }
+                        rows={3}
+                      />
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleUpdate(node.id)}
+                          disabled={isPending}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setEditingId(null);
+                            setEditingDrafts((drafts) => ({
+                              ...drafts,
+                              [node.id]: "",
+                            }));
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-3">
+                      <CommentContent content={node.content} />
+                    </div>
+                  )}
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground mt-3">
                 {/* Left group: Edited indicator, Reply, Edit, Delete */}
                 <div className="flex flex-wrap items-center gap-2">
                   {new Date(node.updatedAt).getTime() -
@@ -498,15 +610,27 @@ export const ObituaryComments = ({
                     </>
                   )}
                   {canModerate && node.status === "approved" && (
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-1 text-foreground hover:text-primary"
-                      onClick={() => handleStatusUpdate(node.id, "resolved")}
-                      disabled={isPending}
-                    >
-                      <Icon icon="mdi:check" className="size-3" />
-                      Resolve
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 text-primary hover:text-primary/80"
+                        onClick={() => handleApplyWithAI(node)}
+                        disabled={isPending}
+                        title="Open AI assistant with this comment"
+                      >
+                        <Icon icon="mdi:sparkles" className="size-3" />
+                        Apply with AI
+                      </button>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 text-foreground hover:text-primary"
+                        onClick={() => handleStatusUpdate(node.id, "resolved")}
+                        disabled={isPending}
+                      >
+                        <Icon icon="mdi:check" className="size-3" />
+                        Resolve
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -541,6 +665,8 @@ export const ObituaryComments = ({
                   </div>
                 </div>
               )}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -559,14 +685,27 @@ export const ObituaryComments = ({
         <h3 className="text-lg font-semibold">
           Comments ({comments.length})
         </h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={resetStates}
-          className="text-xs"
-        >
-          Reset
-        </Button>
+        <div className="flex items-center gap-2">
+          {canModerate && approvedComments.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleApplyAllWithAI}
+              className="text-xs"
+            >
+              <Icon icon="mdi:sparkles" className="mr-1 size-3" />
+              Apply {approvedComments.length} with AI
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={resetStates}
+            className="text-xs"
+          >
+            Reset
+          </Button>
+        </div>
       </div>
       {canComment ? (
         <div className="space-y-3">
