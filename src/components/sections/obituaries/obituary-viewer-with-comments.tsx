@@ -4,11 +4,11 @@ import { createCommentAction } from "@/actions/comments";
 import { QuotedCommentForm } from "@/components/annotations/quoted-comment-form";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Icon } from "@/components/ui/icon";
 import type { AnchorData } from "@/lib/annotations";
@@ -53,7 +53,7 @@ interface ObituaryViewerWithCommentsProps {
   content: string;
   canComment: boolean;
   canEdit?: boolean;
-  /** External ref for content element (used by ExportActionsBar) */
+  /** External ref for content element (used for print styling) */
   contentRef?: RefObject<HTMLDivElement | null>;
   /** Callback when editing state changes */
   onEditingChange?: (isEditing: boolean) => void;

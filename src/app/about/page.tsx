@@ -64,23 +64,21 @@ export default function About() {
         <div className="absolute inset-0 bg-linear-to-b from-primary/5 via-transparent to-transparent" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[600px] rounded-full bg-primary/5 blur-3xl" />
 
-        <div className="relative max-w-4xl mx-auto text-center space-y-8">
+        <div className="relative max-w-4xl mx-auto text-center space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
             <Icon icon="mdi:heart-outline" className="size-4" />
             Our Mission
           </div>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter">
-            Changing How the World
-            <span className="block text-primary">Talks About Death</span>
+            Changing How the World{" "}
+            <span className="text-primary">Talks About Death</span>
           </h1>
 
-          <p className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground leading-relaxed">
+          <p className="max-w-xl mx-auto text-base text-muted-foreground leading-relaxed">
             What started as a passion project has grown into Death Matter
             Tools&mdash;conversation, curiosity, and connection around
-            life&apos;s final chapter. We&apos;ve developed a range of products
-            to help navigate these challenges and make everything easier and
-            more emotionally open.
+            life&apos;s final chapter.
           </p>
         </div>
       </section>

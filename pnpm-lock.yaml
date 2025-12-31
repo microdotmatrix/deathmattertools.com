@@ -141,6 +141,9 @@ importers:
       jotai:
         specifier: ^2.16.0
         version: 2.16.0(@types/react@19.2.2)(react@19.2.3)
+      jspdf:
+        specifier: ^3.0.4
+        version: 3.0.4
       lucide-react:
         specifier: ^0.525.0
         version: 0.525.0(react@19.2.3)

@@ -64,7 +64,6 @@ export const ObituaryContentShell = ({
         {!isEditing && (
           <ExportActionsBar
             content={content}
-            contentRef={contentRef}
             entryName={entryName}
             createdAt={createdAt}
             disabled={isEditing}
