@@ -1,6 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useCreateForm } from "@/lib/state";
 import { Icon } from "@iconify/react";
 
 type FeatureItem = {
@@ -58,6 +60,8 @@ const FeatureCard = ({ icon, title, description }: FeatureItem) => (
 );
 
 export const DashboardEmptyState = () => {
+  const { setOpen } = useCreateForm();
+
   return (
     <div className="space-y-10">
       <section className="max-w-3xl space-y-4">
@@ -113,6 +117,17 @@ export const DashboardEmptyState = () => {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="flex justify-center pt-4">
+        <Button
+          size="lg"
+          className="h-14 px-10 text-lg"
+          onClick={() => setOpen(true)}
+        >
+          <Icon icon="mdi:rocket-launch-outline" className="mr-2 size-5" />
+          Get Started
+        </Button>
       </div>
     </div>
   );

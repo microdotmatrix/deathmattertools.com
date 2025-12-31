@@ -1,7 +1,5 @@
 import { DashboardHeader, DashboardShell } from "@/components/layout/dashboard-shell";
 import { CreatePortal } from "@/components/sections/dashboard/create-dialog";
-import { CreateEntryForm } from "@/components/sections/dashboard/create-form";
-import { CreateEntryImage } from "@/components/sections/dashboard/create-image";
 import { DashboardEmptyState } from "@/components/sections/dashboard/empty-state";
 import { EntryListTabs } from "@/components/sections/dashboard/entry-list";
 import { FeaturedEntryCard } from "@/components/sections/dashboard/featured-entry-card";
@@ -117,16 +115,6 @@ const PageContent = async () => {
       <div className="space-y-8">
         {header}
         <DashboardEmptyState />
-        <div className="grid items-start gap-8 lg:grid-cols-2">
-          <Card className="border-dashed">
-            <CardContent className="p-6">
-              <CreateEntryForm />
-            </CardContent>
-          </Card>
-          <div className="rounded-2xl border border-dashed bg-muted/30 p-4">
-            <CreateEntryImage />
-          </div>
-        </div>
       </div>
     );
   }
