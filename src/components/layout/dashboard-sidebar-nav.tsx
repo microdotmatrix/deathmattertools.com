@@ -5,10 +5,10 @@ import { usePathname } from "next/navigation";
 
 import { Icon } from "@/components/ui/icon";
 import {
-    SidebarMenu,
-    SidebarMenuBadge,
-    SidebarMenuButton,
-    SidebarMenuItem,
+  SidebarMenu,
+  SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
 type SidebarLink = {

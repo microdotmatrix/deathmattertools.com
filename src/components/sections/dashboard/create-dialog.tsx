@@ -22,7 +22,7 @@ export const CreatePortal = () => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="default" className="flex items-center gap-2">
-          Create New <Icon icon="mdi:plus" className="-mt-0.5" />
+          <Icon icon="mdi:plus" className="-mt-0.5" /> New Entry
         </Button>
       </DialogTrigger>
       <DialogContent

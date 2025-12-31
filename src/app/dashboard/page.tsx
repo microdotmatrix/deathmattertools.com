@@ -2,6 +2,7 @@ import { DashboardHeader, DashboardShell } from "@/components/layout/dashboard-s
 import { CreatePortal } from "@/components/sections/dashboard/create-dialog";
 import { CreateEntryForm } from "@/components/sections/dashboard/create-form";
 import { CreateEntryImage } from "@/components/sections/dashboard/create-image";
+import { DashboardEmptyState } from "@/components/sections/dashboard/empty-state";
 import { EntryListTabs } from "@/components/sections/dashboard/entry-list";
 import { FeaturedEntryCard } from "@/components/sections/dashboard/featured-entry-card";
 import { UserStats } from "@/components/sections/dashboard/user-stats";
@@ -9,8 +10,8 @@ import { PageContentSkeleton } from "@/components/skeletons/page";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
-import { getPendingFeedbackCounts } from "@/lib/db/queries/entry-feedback";
 import { getOrganizationEntries, getUserUploads } from "@/lib/db/queries/entries";
+import { getPendingFeedbackCounts } from "@/lib/db/queries/entry-feedback";
 import { getUserGeneratedImagesCount } from "@/lib/db/queries/media";
 import { auth } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
@@ -115,6 +116,7 @@ const PageContent = async () => {
     return (
       <div className="space-y-8">
         {header}
+        <DashboardEmptyState />
         <div className="grid items-start gap-8 lg:grid-cols-2">
           <Card className="border-dashed">
             <CardContent className="p-6">
