@@ -65,9 +65,9 @@ export const DashboardEmptyState = () => {
   return (
     <div className="space-y-10">
       <section className="max-w-3xl space-y-4">
-        <h2 className="text-2xl font-semibold tracking-tight">Welcome to Death Matters Tools</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">Welcome to Death Matter Tools</h2>
         <p className="text-base leading-relaxed text-muted-foreground">
-          Death Matters Tools were designed to make the process of death easier and more
+          Death Matter Tools were designed to make the process of death easier and more
           compassionate. Whether you&apos;re an individual navigating loss or a death care
           professional supporting others, we provide the tools and information you need to guide
           you through what you&apos;re facing.
