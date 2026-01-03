@@ -157,7 +157,7 @@ export const updateDocumentCommentStatus = async ({
   commentId: string;
   documentId: string;
   documentCreatedAt: Date;
-  status: "approved" | "denied" | "resolved";
+  status: "pending" | "approved" | "denied" | "resolved";
   statusChangedBy: string;
 }) => {
   const now = new Date();

@@ -1,30 +1,30 @@
 "use client";
 
 import {
-  createCommentAction,
-  deleteCommentAction,
-  updateCommentAction,
-  updateCommentStatusAction,
+    createCommentAction,
+    deleteCommentAction,
+    updateCommentAction,
+    updateCommentStatusAction,
 } from "@/actions/comments";
 import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
+    Avatar,
+    AvatarFallback,
+    AvatarImage,
 } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  expandChatBubbleAtom,
-  isEditingObituaryAtom,
-  prefilledChatMessageAtom,
+    formatBulkCommentsForChatMessage,
+    formatCommentForChatMessage,
+} from "@/lib/ai/comment-formatter";
+import {
+    expandChatBubbleAtom,
+    isEditingObituaryAtom,
+    prefilledChatMessageAtom,
 } from "@/lib/state";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import {
-  formatBulkCommentsForChatMessage,
-  formatCommentForChatMessage,
-} from "@/lib/ai/comment-formatter";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useMemo, useOptimistic, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -392,7 +392,7 @@ export const ObituaryComments = ({
 
   const handleStatusUpdate = async (
     commentId: string,
-    status: "approved" | "denied" | "resolved"
+    status: "pending" | "approved" | "denied" | "resolved"
   ) => {
     startTransition(async () => {
       const result = await updateCommentStatusAction(documentId, commentId, status);
@@ -428,7 +428,9 @@ export const ObituaryComments = ({
             ? "Comment approved"
             : status === "denied"
             ? "Comment denied"
-            : "Comment resolved"
+            : status === "resolved"
+            ? "Comment resolved"
+            : "Comment reopened"
         );
       }
     });
@@ -631,6 +633,17 @@ export const ObituaryComments = ({
                         Resolve
                       </button>
                     </>
+                  )}
+                  {canModerate && (node.status === "denied" || node.status === "resolved") && (
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 text-foreground hover:text-primary"
+                      onClick={() => handleStatusUpdate(node.id, "pending")}
+                      disabled={isPending}
+                    >
+                      <Icon icon="mdi:refresh" className="size-3" />
+                      Reopen
+                    </button>
                   )}
                 </div>
               </div>

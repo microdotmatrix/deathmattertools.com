@@ -7,11 +7,11 @@ import type { DocumentStatus, StatusConfig } from "./types";
  */
 export const DOCUMENT_STATUS_CONFIG: Record<DocumentStatus, StatusConfig> = {
   draft: {
-    icon: "mdi:file-document-outline",
+    icon: "mdi:file-document-edit-outline",
     label: "Draft",
     variant: "outline",
     className:
-      "border-muted bg-muted/30 text-muted-foreground dark:border-muted dark:bg-muted/20",
+      "border-slate-300 bg-slate-100/80 text-slate-700 dark:border-slate-600 dark:bg-slate-800/60 dark:text-slate-300",
     description: "Document is being drafted",
   },
   awaiting_review: {

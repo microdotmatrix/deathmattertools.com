@@ -1,7 +1,5 @@
 "use client";
 
-import { DocumentStatusSelector } from "@/components/sections/documents/document-status-selector";
-import type { DocumentStatus } from "@/lib/document-status";
 import { useRef, useState } from "react";
 import { ExportActionsBar } from "./export-actions-bar";
 import { ObituaryViewerWithComments } from "./obituary-viewer-with-comments";
@@ -15,7 +13,6 @@ interface ObituaryContentShellProps {
   entryName: string;
   createdAt: Date;
   createdAtLabel: string;
-  currentStatus: DocumentStatus;
 }
 
 export const ObituaryContentShell = ({
@@ -27,7 +24,6 @@ export const ObituaryContentShell = ({
   entryName,
   createdAt,
   createdAtLabel,
-  currentStatus,
 }: ObituaryContentShellProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -51,25 +47,17 @@ export const ObituaryContentShell = ({
         </div>
       </div>
 
-      {/* Two-column row: Status selector (left) + Export actions (right) */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-foreground">Status:</span>
-          <DocumentStatusSelector
-            documentId={documentId}
-            currentStatus={currentStatus}
-            canEdit={canEdit}
-          />
-        </div>
-        {!isEditing && (
+      {/* Export actions row */}
+      {!isEditing && (
+        <div className="flex items-center justify-end">
           <ExportActionsBar
             content={content}
             entryName={entryName}
             createdAt={createdAt}
             disabled={isEditing}
           />
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Obituary content viewer */}
       <ObituaryViewerWithComments

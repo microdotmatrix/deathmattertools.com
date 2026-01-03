@@ -1,3 +1,4 @@
+import { DocumentStatusSelector } from "@/components/sections/documents/document-status-selector";
 import { ObituaryComments } from "@/components/sections/obituaries/comments-panel";
 import { DynamicChat } from "@/components/sections/obituaries/dynamic-chat";
 import { DynamicCommentingSettings } from "@/components/sections/obituaries/dynamic-commenting-settings";
@@ -5,14 +6,14 @@ import { ObituaryContentShell } from "@/components/sections/obituaries/obituary-
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
+    Card,
+    CardContent,
 } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { getDocumentWithAccess, listDocumentComments } from "@/lib/db/queries";
 import {
-  getChatByDocumentId,
-  getMessagesByChatId,
+    getChatByDocumentId,
+    getMessagesByChatId,
 } from "@/lib/db/queries/chats";
 import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import { auth, clerkClient } from "@clerk/nextjs/server";
@@ -193,7 +194,14 @@ export default async function ObituaryPage({
           <Icon icon="mdi:arrow-left" className="mr-2 size-4" />
           Back to entry
         </Link>
-        <Badge variant="secondary">{roleLabel(access.role)}</Badge>
+        <div className="flex items-center gap-3">
+          <DocumentStatusSelector
+            documentId={access.document.id}
+            currentStatus={access.document.status}
+            canEdit={isOwner}
+          />
+          <Badge variant="secondary">{roleLabel(access.role)}</Badge>
+        </div>
       </div>
 
       {/* Main Content Grid - Two Column Layout */}
@@ -210,7 +218,6 @@ export default async function ObituaryPage({
               entryName={entry.name}
               createdAt={access.document.createdAt}
               createdAtLabel={createdAtLabel}
-              currentStatus={access.document.status}
             />
           </Suspense>
         </Card>

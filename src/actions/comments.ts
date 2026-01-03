@@ -28,7 +28,7 @@ const CommentSchema = z.object({
 });
 
 const UpdateCommentStatusSchema = z.object({
-  status: z.enum(["approved", "denied", "resolved"]),
+  status: z.enum(["pending", "approved", "denied", "resolved"]),
 });
 
 type CommentState = {
@@ -343,7 +343,7 @@ type CommentStatusState = {
 export async function updateCommentStatusAction(
   documentId: string,
   commentId: string,
-  status: "approved" | "denied" | "resolved"
+  status: "pending" | "approved" | "denied" | "resolved"
 ): Promise<CommentStatusState> {
   try {
     const { userId, orgId } = await auth();
@@ -383,6 +383,10 @@ export async function updateCommentStatusAction(
 
     if (status === "resolved" && comment.status !== "approved") {
       return { error: "Only approved comments can be marked as resolved" };
+    }
+
+    if (status === "pending" && comment.status !== "denied" && comment.status !== "resolved") {
+      return { error: "Only denied or resolved comments can be reopened" };
     }
 
     const updated = await updateDocumentCommentStatus({
