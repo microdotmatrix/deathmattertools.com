@@ -30,4 +30,4 @@ export const navigationLinks = [
   { href: "/contact", label: "Contact", icon: InboxIcon },
 ];
 
-export const obitLimit = 10;
+export const obitLimit = 50;

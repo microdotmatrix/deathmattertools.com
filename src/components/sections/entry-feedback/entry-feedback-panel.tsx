@@ -1,4 +1,3 @@
-import { auth } from "@clerk/nextjs/server";
 import {
   Card,
   CardContent,
@@ -6,10 +5,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Icon } from "@/components/ui/icon";
-import { getEntryFeedback, canManageFeedback } from "@/lib/db/queries";
+import { canManageFeedback, getEntryFeedback } from "@/lib/db/queries";
+import { auth } from "@clerk/nextjs/server";
 import { FeedbackForm } from "./feedback-form";
+import { FeedbackInfoAlert } from "./feedback-info-alert";
 import { FeedbackStatusSection } from "./feedback-status-section";
 
 interface EntryFeedbackPanelProps {
@@ -56,7 +56,7 @@ export const EntryFeedbackPanel = async ({
               />
             </div>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 space-y-1">
             <CardTitle>Entry Feedback & Collaboration</CardTitle>
             <CardDescription>
               {canManage
@@ -69,29 +69,20 @@ export const EntryFeedbackPanel = async ({
 
       <CardContent className="space-y-6">
         {/* Info Alert */}
-        <Alert>
-          <Icon icon="mdi:information" className="w-4 h-4" />
-          <AlertDescription className="text-sm">
-            {canManage ? (
-              <>
-                Organization members can provide feedback on entry details. You
-                can approve, deny, or mark feedback as resolved.
-              </>
-            ) : (
-              <>
-                Use this section to suggest corrections, report errors, or
-                provide additional information about this entry.
-              </>
-            )}
-          </AlertDescription>
-        </Alert>
+        <FeedbackInfoAlert canManage={canManage} />
 
         {/* Add Feedback Form */}
-        <div>
-          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold flex items-center gap-2">
             <Icon icon="mdi:plus-circle" className="w-4 h-4" />
             Add Feedback
           </h3>
+          <p className="text-xs text-muted-foreground">
+            Use the{" "}
+            <Icon icon="mdi:bullseye-arrow" className="inline w-3.5 h-3.5 align-text-bottom" />{" "}
+            target button to link your feedback to a specific field (e.g., name, dates, biography).
+            This helps reviewers understand exactly what your comment refers to.
+          </p>
           <FeedbackForm entryId={entryId} />
         </div>
 

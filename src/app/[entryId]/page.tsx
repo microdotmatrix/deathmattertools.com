@@ -6,7 +6,7 @@ import { EntryFeedbackPanel } from "@/components/sections/entry-feedback";
 import { EntryEditContentSkeleton } from "@/components/skeletons/entry";
 import { FeedbackSkeleton } from "@/components/skeletons/feedback";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { getEntryImages } from "@/lib/db/queries";
@@ -137,6 +137,35 @@ const EntryEditContent = async ({
           <div className="mt-6">
             <EntryDetailsCard entry={entry} entryDetails={entryDetails!} canEdit={canEdit} isOrgOwner={isOrgOwner} />
           </div>
+
+          {/* Mobile-only Create Obituary CTA */}
+          {canEdit && (
+            <div className="mt-4 xl:hidden">
+              <Button
+                asChild={!!entryDetails}
+                disabled={!entryDetails}
+                className="w-full"
+                size="lg"
+              >
+                {entryDetails ? (
+                  <Link href={`/${entry.id}/obituaries/create`}>
+                    <Icon icon="mdi:file-document-plus" className="w-5 h-5 mr-2" />
+                    Create Obituary
+                  </Link>
+                ) : (
+                  <>
+                    <Icon icon="mdi:file-document-plus" className="w-5 h-5 mr-2" />
+                    Create Obituary
+                  </>
+                )}
+              </Button>
+              {!entryDetails && (
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Add obituary details above to create an obituary
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Entry Feedback Section */}
           <div className="mt-6">

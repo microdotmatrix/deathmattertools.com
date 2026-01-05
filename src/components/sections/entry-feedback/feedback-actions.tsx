@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Button } from "@/components/ui/button";
-import { Icon } from "@/components/ui/icon";
+import {
+  deleteFeedbackAction,
+  updateFeedbackStatusAction,
+} from "@/actions/entry-feedback";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,11 +14,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Icon } from "@/components/ui/icon";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import {
-  updateFeedbackStatusAction,
-  deleteFeedbackAction,
-} from "@/actions/entry-feedback";
 
 interface FeedbackActionsProps {
   feedbackId: string;
@@ -66,70 +65,69 @@ export const FeedbackActions = ({
 
   return (
     <>
-      <div className="flex items-center gap-2 flex-wrap">
-        {actions.includes("approve") && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handleStatusUpdate("approved")}
-            disabled={isPending}
-            className="text-green-600 hover:text-green-700 hover:bg-green-50"
-          >
-            <Icon icon="mdi:check-circle" className="w-4 h-4 mr-1.5" />
-            Approve
-          </Button>
-        )}
+      <div className="flex items-center justify-between gap-4 text-xs text-muted-foreground">
+        {/* Left group: Edit, Delete */}
+        <div className="flex items-center gap-2">
+          {actions.includes("edit") && onEdit && (
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 text-foreground hover:text-primary disabled:opacity-50"
+              onClick={onEdit}
+              disabled={isPending}
+            >
+              <Icon icon="lucide:pencil" className="size-3" />
+              Edit
+            </button>
+          )}
+          {actions.includes("delete") && (
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 text-destructive hover:text-destructive/80 disabled:opacity-50"
+              onClick={() => setShowDeleteDialog(true)}
+              disabled={isPending}
+            >
+              <Icon icon="lucide:trash-2" className="size-3" />
+              Delete
+            </button>
+          )}
+        </div>
 
-        {actions.includes("deny") && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handleStatusUpdate("denied")}
-            disabled={isPending}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-          >
-            <Icon icon="mdi:close-circle" className="w-4 h-4 mr-1.5" />
-            Deny
-          </Button>
-        )}
-
-        {actions.includes("resolve") && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handleStatusUpdate("resolved")}
-            disabled={isPending}
-            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-          >
-            <Icon icon="mdi:check" className="w-4 h-4 mr-1.5" />
-            Mark as Resolved
-          </Button>
-        )}
-
-        {actions.includes("edit") && onEdit && (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={onEdit}
-            disabled={isPending}
-          >
-            <Icon icon="mdi:pencil" className="w-4 h-4 mr-1.5" />
-            Edit
-          </Button>
-        )}
-
-        {actions.includes("delete") && (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setShowDeleteDialog(true)}
-            disabled={isPending}
-            className="text-red-600 hover:text-red-700"
-          >
-            <Icon icon="mdi:delete" className="w-4 h-4 mr-1.5" />
-            Delete
-          </Button>
-        )}
+        {/* Right group: Approve, Deny, Resolve */}
+        <div className="flex items-center gap-2">
+          {actions.includes("approve") && (
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 text-foreground hover:text-primary disabled:opacity-50"
+              onClick={() => handleStatusUpdate("approved")}
+              disabled={isPending}
+            >
+              <Icon icon="mdi:check-circle" className="size-3" />
+              Approve
+            </button>
+          )}
+          {actions.includes("deny") && (
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 text-destructive hover:text-destructive/80 disabled:opacity-50"
+              onClick={() => handleStatusUpdate("denied")}
+              disabled={isPending}
+            >
+              <Icon icon="mdi:close-circle" className="size-3" />
+              Deny
+            </button>
+          )}
+          {actions.includes("resolve") && (
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 text-foreground hover:text-primary disabled:opacity-50"
+              onClick={() => handleStatusUpdate("resolved")}
+              disabled={isPending}
+            >
+              <Icon icon="mdi:check" className="size-3" />
+              Resolve
+            </button>
+          )}
+        </div>
       </div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

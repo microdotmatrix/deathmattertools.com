@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
+import type { EntryFeedbackWithUser } from "@/lib/db/schema";
 import { getEntryFeedbackTargetLabel } from "@/lib/entry-feedback/targets";
 import { cn, formatRelativeTime } from "@/lib/utils";
+import { useState } from "react";
 import { FeedbackActions } from "./feedback-actions";
 import { FeedbackForm } from "./feedback-form";
-import type { EntryFeedbackWithUser } from "@/lib/db/schema";
 
 interface FeedbackCardProps {
   feedback: EntryFeedbackWithUser;
@@ -80,7 +80,7 @@ export const FeedbackCard = ({
   if (isEditing) {
     return (
       <div className={cn("rounded-lg border p-4", config.className)}>
-        <div className="flex items-start gap-3 mb-3">
+        <div className="flex items-center gap-3 mb-3">
           <Avatar className="h-8 w-8">
             <AvatarImage src={feedback.user.imageUrl || undefined} />
             <AvatarFallback className="text-xs">
@@ -115,7 +115,7 @@ export const FeedbackCard = ({
   return (
     <div className={cn("rounded-lg border p-4 space-y-3", config.className)}>
       {/* Header */}
-      <div className="flex items-start gap-3">
+      <div className="flex items-center gap-3">
         <Avatar className="h-8 w-8">
           <AvatarImage src={feedback.user.imageUrl || undefined} />
           <AvatarFallback className="text-xs">

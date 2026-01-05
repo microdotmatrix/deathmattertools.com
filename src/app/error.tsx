@@ -42,7 +42,7 @@ const ErrorPage = ({ error, reset }: ErrorPageProps) => {
           <button
             type="button"
             onClick={reset}
-            className={cn(buttonVariants({ size: "lg" }))}
+            className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto")}
           >
             <Icon icon="mdi:refresh" className="size-5" />
             Try again

@@ -1,7 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { type ReactNode } from "react";
 
-import { OrganizationSwitcherClient } from "@/components/auth/organization-switcher";
 import { DashboardSidebarNav } from "@/components/layout/dashboard-sidebar-nav";
 import {
   Sidebar,
@@ -54,10 +53,9 @@ const workspaceLinks: SidebarLink[] = [
     icon: "mdi:cog-outline",
   },
   {
-    label: "Organization Preferences",
+    label: "Organization",
     href: "/dashboard/organization",
     icon: "mdi:account-group-outline",
-    disabled: true,
   },
 ];
 
@@ -142,16 +140,7 @@ const DashboardSidebar = async ({
 
   return (
     <>
-      <SidebarHeader className="pt-12">
-        <OrganizationSwitcherClient
-          appearance={{
-            elements: {
-              rootBox: "w-full",
-              organizationSwitcherTrigger: "w-full justify-between",
-            },
-          }}
-        />
-      </SidebarHeader>
+      <SidebarHeader className="pt-12" />
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Workspace</SidebarGroupLabel>

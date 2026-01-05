@@ -64,8 +64,8 @@ export const EntrySidebarContent = ({
             </CollapsibleTrigger>
           </SidebarGroupLabel>
           {canEdit && (
-            <SidebarGroupAction asChild title={obituaries.length >= obitLimit ? "Create Obituary" : "Obituary Limit Reached"}>
-              {obituaries.length >= obitLimit ? (
+            <SidebarGroupAction asChild title={obituaries.length < obitLimit ? "Create Obituary" : "Obituary Limit Reached"}>
+              {obituaries.length < obitLimit ? (
                 <Link href={`/${entryId}/obituaries/create`}>
                   <Plus />
                   <span className="sr-only">Create obituary</span>
@@ -93,9 +93,19 @@ export const EntrySidebarContent = ({
                   ))}
                 </SidebarMenu>
               ) : (
-                <p className="text-xs text-muted-foreground px-2">
-                  No obituaries created yet.
-                </p>
+                <div className="px-2 space-y-3">
+                  <p className="text-xs text-muted-foreground">
+                    No obituaries created yet.
+                  </p>
+                  {canEdit && (
+                    <Button asChild variant="default" size="sm" className="w-full">
+                      <Link href={`/${entryId}/obituaries/create`}>
+                        <Plus className="size-4 mr-2" />
+                        Get Started
+                      </Link>
+                    </Button>
+                  )}
+                </div>
               )}
             </SidebarGroupContent>
           </CollapsibleContent>
