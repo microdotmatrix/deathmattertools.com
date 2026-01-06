@@ -58,12 +58,136 @@ export function OrganizationDetailsForm({
 
   if (!isAdmin) {
     return (
-      <Alert>
-        <Icon icon="mdi:shield-lock" className="h-4 w-4" />
-        <AlertDescription>
-          Only organization administrators can edit organization details.
-        </AlertDescription>
-      </Alert>
+      <div className="space-y-6">
+        <Alert>
+          <Icon icon="mdi:shield-lock" className="h-4 w-4" />
+          <AlertDescription>
+            Only organization administrators can edit organization details.
+          </AlertDescription>
+        </Alert>
+
+        {/* Read-only Business Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon icon="mdi:office-building" className="w-5 h-5" aria-hidden="true" />
+              Business Information
+            </CardTitle>
+            <CardDescription>
+              Details about your organization.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <dt className="text-sm font-medium text-muted-foreground">Business Name</dt>
+                <dd className="text-sm">{initialDetails?.businessName || organizationName}</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-sm font-medium text-muted-foreground">Business Type</dt>
+                <dd className="text-sm">
+                  {businessTypes.find((t) => t.value === initialDetails?.businessType)?.label || "Not specified"}
+                </dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-sm font-medium text-muted-foreground">Business Email</dt>
+                <dd className="text-sm">{initialDetails?.businessEmail || "Not specified"}</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-sm font-medium text-muted-foreground">Business Phone</dt>
+                <dd className="text-sm">{initialDetails?.businessPhone || "Not specified"}</dd>
+              </div>
+              <div className="space-y-1 md:col-span-2">
+                <dt className="text-sm font-medium text-muted-foreground">Website URL</dt>
+                <dd className="text-sm">
+                  {initialDetails?.websiteUrl ? (
+                    <a
+                      href={initialDetails.websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      {initialDetails.websiteUrl}
+                    </a>
+                  ) : (
+                    "Not specified"
+                  )}
+                </dd>
+              </div>
+            </dl>
+          </CardContent>
+        </Card>
+
+        {/* Read-only Address */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon icon="mdi:map-marker" className="w-5 h-5" aria-hidden="true" />
+              Address
+            </CardTitle>
+            <CardDescription>
+              Your organization&apos;s physical address.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-1 md:col-span-3">
+                <dt className="text-sm font-medium text-muted-foreground">Street Address</dt>
+                <dd className="text-sm">
+                  {initialDetails?.addressLine1 || "Not specified"}
+                  {initialDetails?.addressLine2 && (
+                    <>
+                      <br />
+                      {initialDetails.addressLine2}
+                    </>
+                  )}
+                </dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-sm font-medium text-muted-foreground">City</dt>
+                <dd className="text-sm">{initialDetails?.city || "Not specified"}</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-sm font-medium text-muted-foreground">State / Province</dt>
+                <dd className="text-sm">{initialDetails?.state || "Not specified"}</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-sm font-medium text-muted-foreground">Postal Code</dt>
+                <dd className="text-sm">{initialDetails?.postalCode || "Not specified"}</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-sm font-medium text-muted-foreground">Country</dt>
+                <dd className="text-sm">{initialDetails?.country || "Not specified"}</dd>
+              </div>
+            </dl>
+          </CardContent>
+        </Card>
+
+        {/* Read-only Legal & Compliance */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon icon="mdi:file-document" className="w-5 h-5" aria-hidden="true" />
+              Legal &amp; Compliance
+            </CardTitle>
+            <CardDescription>
+              Licensing and tax information.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <dt className="text-sm font-medium text-muted-foreground">License Number</dt>
+                <dd className="text-sm">{initialDetails?.licenseNumber || "Not specified"}</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="text-sm font-medium text-muted-foreground">Tax ID / EIN</dt>
+                <dd className="text-sm">{initialDetails?.taxId || "Not specified"}</dd>
+              </div>
+            </dl>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 

@@ -8,9 +8,9 @@ import { z } from "zod";
 
 const OrganizationDetailsSchema = z.object({
   businessName: z.string().optional().nullable(),
-  businessEmail: z.string().email().optional().nullable().or(z.literal("")),
+  businessEmail: z.email().optional().nullable().or(z.literal("")),
   businessPhone: z.string().optional().nullable(),
-  websiteUrl: z.string().url().optional().nullable().or(z.literal("")),
+  websiteUrl: z.url().optional().nullable().or(z.literal("")),
   addressLine1: z.string().optional().nullable(),
   addressLine2: z.string().optional().nullable(),
   city: z.string().optional().nullable(),
@@ -45,7 +45,7 @@ export async function updateOrganizationDetails(
 
     // Check if user has admin role in the organization
     const orgRole = session.orgRole;
-    if (orgRole !== "org:admin") {
+    if (orgRole === "org:member" || orgRole === "org:guest") {
       return { error: "Only organization admins can update organization details" };
     }
 
