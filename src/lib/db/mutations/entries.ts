@@ -194,6 +194,7 @@ export const deleteEntryAction = async (id: string) => {
 
 const UpdateEntryDetailsSchema = z.object({
   id: z.string(),
+  nickname: z.string().nullable().optional(),
   occupation: z.string().nullable().optional(),
   jobTitle: z.string().nullable().optional(),
   companyName: z.string().nullable().optional(),
@@ -260,6 +261,7 @@ export const updateEntryDetailsAction = action(
       await db
         .update(EntryDetailsTable)
         .set({
+          nickname: data.nickname,
           occupation: data.occupation,
           jobTitle: data.jobTitle,
           companyName: data.companyName,
@@ -371,6 +373,7 @@ export const updateEntryDetailsDirectAction = async (
     // Use proper upsert pattern with onConflictDoUpdate
     // Note: neon-http adapter doesn't return rowCount, so we use Postgres ON CONFLICT
     const detailsData = {
+      nickname: result.data.nickname,
       occupation: result.data.occupation,
       jobTitle: result.data.jobTitle,
       companyName: result.data.companyName,

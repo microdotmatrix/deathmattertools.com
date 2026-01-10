@@ -50,6 +50,9 @@ export const EntryDetailsTable = pgTable("entry_details", {
     .notNull()
     .references(() => EntryTable.id, { onDelete: "cascade" })
     .unique(),
+  // Personal identifiers
+  nickname: text("nickname"),
+
   // Occupation details
   occupation: text("occupation"),
   jobTitle: text("job_title"),

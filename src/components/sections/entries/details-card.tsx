@@ -1,8 +1,8 @@
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,6 +80,7 @@ export const EntryDetailsSection = ({
   return (
     <>
       {[
+        entryDetails.nickname,
         entryDetails.occupation,
         entryDetails.jobTitle,
         entryDetails.companyName,
@@ -113,6 +114,14 @@ export const EntryDetailsSection = ({
         <>
           <div className="grid md:grid-cols-2 gap-3">
             <div className="space-y-2">
+              {entryDetails.nickname && (
+                <div>
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Nickname
+                  </span>
+                  <p className="text-sm">&ldquo;{entryDetails.nickname}&rdquo;</p>
+                </div>
+              )}
               {entryDetails.occupation && (
                 <div>
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">

@@ -5,28 +5,28 @@ import Stepper, { Step } from "@/components/elements/multi-step";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
 } from "@/components/ui/command";
 import { DateTimePicker } from "@/components/ui/date-picker";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { useEntryDetailsForm } from "@/lib/state";
 import { cn, formatTime } from "@/lib/utils";
@@ -36,6 +36,9 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 interface ObituaryFormData {
+  // Personal identifiers
+  nickname?: string;
+
   // Biographical details
   occupation?: string;
   jobTitle?: string;
@@ -479,6 +482,15 @@ const BiographicalDetailsStep = ({ data, onChange, addEducation, updateEducation
           Tell us about their career, education, and life story
         </p>
       </div>
+
+      <AnimatedInput
+        label="Nickname"
+        name="nickname"
+        controlled={true}
+        value={data.nickname || ""}
+        onChange={(e) => onChange({ nickname: e.target.value })}
+        placeholder="e.g., Bobby, Liz, Coach"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
         <AnimatedInput
