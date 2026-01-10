@@ -5,47 +5,81 @@ import { SavedQuoteSelector } from "@/components/quotes-scripture/saved-quote-se
 import { SearchDialog } from "@/components/quotes-scripture/search-dialog";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import type { Entry, SavedQuote, UserUpload } from "@/lib/db/schema";
-import type { PlacidRequest } from "@/lib/services/placid";
+import type { MemorialTemplateKey } from "@/lib/db/mutations/media";
+import type {
+  Entry,
+  EntryDetails,
+  SavedQuote,
+  UserUpload,
+} from "@/lib/db/schema";
+import { formatServices } from "@/lib/helpers";
+import type { PlacidCardRequest } from "@/lib/services/placid";
 import type { ActionState } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { ColorPicker } from "./color-picker";
+import {
+  templateOptions,
+  TemplateSelector,
+  type TemplateKey,
+} from "./template-selector";
+
+interface CreateImageProps {
+  action: (
+    formData: PlacidCardRequest,
+    templateKey: MemorialTemplateKey,
+    entryId: string,
+  ) => Promise<ActionState>;
+  userId: string | null;
+  deceased: Entry;
+  entryId: string;
+  entryDetails?: EntryDetails | null;
+  savedQuotes?: SavedQuote[];
+  userUploads?: UserUpload[];
+}
 
 export function CreateImage({
   action,
   userId,
   deceased,
   entryId,
+  entryDetails,
   savedQuotes = [],
   userUploads = [],
-}: {
-  action: (formData: PlacidRequest, userId: string) => Promise<ActionState>;
-  userId: string | null;
-  deceased: Entry;
-  entryId: string;
-  savedQuotes?: SavedQuote[];
-  userUploads?: UserUpload[];
-}) {
-  const [formData, setFormData] = useState<PlacidRequest>({
+}: CreateImageProps) {
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<TemplateKey>("bookmark");
+
+  const [formData, setFormData] = useState<PlacidCardRequest>({
     name: deceased.name,
+    portrait: deceased.image || "",
+    birth: deceased.dateOfBirth
+      ? format(deceased.dateOfBirth, "MMMM d, yyyy")
+      : "",
+    death: deceased.dateOfDeath
+      ? format(deceased.dateOfDeath, "MMMM d, yyyy")
+      : "",
     epitaph: "",
-    citation: "",
-    birth: format(deceased.dateOfBirth!, "MMMM d, yyyy"),
-    death: format(deceased.dateOfDeath!, "MMMM d, yyyy"),
-    portrait: deceased.image!,
+    overlay: "#1a1a2e",
+    background_image: "",
+    icon: "",
+    service: formatServices(entryDetails?.serviceDetails) || "",
+    obit_summary: entryDetails?.biographicalSummary || "",
   });
 
-  const [selectedImageUrl, setSelectedImageUrl] = useState<string>(deceased.image!);
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string>(
+    deceased.image || "",
+  );
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const router = useRouter();
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -67,21 +101,18 @@ export function CreateImage({
     }));
   };
 
+  const handleColorChange = (color: string) => {
+    setFormData((prev) => ({ ...prev, overlay: color }));
+  };
+
   const handleSearchDialogClose = (open: boolean) => {
     setSearchDialogOpen(open);
-    // When dialog closes, the page will need to refresh to show newly saved quotes
-    // This happens automatically on navigation or we could add a refresh mechanism
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     startTransition(async () => {
-      // if (!formData.epitaph.trim()) {
-      //   toast("Please enter an epitaph");
-      //   return;
-      // }
-      console.log("Form data", formData);
-      const result = await action(formData, userId!);
+      const result = await action(formData, selectedTemplate, entryId);
       if (result.error) {
         setError(result.error);
         return;
@@ -92,141 +123,234 @@ export function CreateImage({
     });
   };
 
+  const handleReset = () => {
+    setFormData({
+      name: deceased.name,
+      portrait: deceased.image || "",
+      birth: deceased.dateOfBirth
+        ? format(deceased.dateOfBirth, "MMMM d, yyyy")
+        : "",
+      death: deceased.dateOfDeath
+        ? format(deceased.dateOfDeath, "MMMM d, yyyy")
+        : "",
+      epitaph: "",
+      overlay: "#1a1a2e",
+      background_image: "",
+      icon: "",
+      service: formatServices(entryDetails?.serviceDetails) || "",
+      obit_summary: entryDetails?.biographicalSummary || "",
+    });
+    setSelectedImageUrl(deceased.image || "");
+    setSelectedTemplate("bookmark");
+    setError(null);
+    router.replace(`/${entryId}/images/create`);
+  };
+
+  const selectedTemplateConfig = templateOptions.find(
+    (t) => t.key === selectedTemplate,
+  );
+  const showEpitaphField =
+    selectedTemplate === "bookmark" || selectedTemplate === "prayerCard";
+  const showIconField = selectedTemplate === "prayerCard";
+  const showServiceField =
+    selectedTemplate === "prayerCard" ||
+    selectedTemplate === "singlePageMemorial";
+  const showObitSummaryField = selectedTemplate === "singlePageMemorial";
+  const showPortraitField = true;
+
   return (
     <div className="w-full max-w-lg p-6 mx-auto">
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Display deceased information */}
+        <TemplateSelector
+          selectedTemplate={selectedTemplate}
+          onTemplateChange={setSelectedTemplate}
+        />
+
+        {selectedTemplateConfig && (
+          <p className="text-sm text-muted-foreground text-center">
+            {selectedTemplateConfig.description}
+          </p>
+        )}
+
         <div className="space-y-4">
           <div className="text-center">
-            <h2 className="text-2xl font-bold">
-              {deceased.name}
-            </h2>
-            <p className="text-muted-foreground">
-              {format(deceased.dateOfBirth!, "MMMM d, yyyy")} -{" "}
-              {format(deceased.dateOfDeath!, "MMMM d, yyyy")}
-            </p>
-          </div>
-
-          {/* Display the selected image */}
-          <div className="flex justify-center">
-            <div className="relative w-48 h-48 rounded-lg overflow-hidden border-2 border-border shadow-lg">
-              <Image
-                src={selectedImageUrl}
-                alt={deceased.name}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 192px"
-              />
-            </div>
-          </div>
-
-          {/* Thumbnail gallery for uploaded photos */}
-          {userUploads.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-sm text-center text-muted-foreground">
-                Select a different photo:
+            <h2 className="text-2xl font-bold">{deceased.name}</h2>
+            {deceased.dateOfBirth && deceased.dateOfDeath && (
+              <p className="text-muted-foreground">
+                {format(deceased.dateOfBirth, "MMMM d, yyyy")} -{" "}
+                {format(deceased.dateOfDeath, "MMMM d, yyyy")}
               </p>
-              <div className="flex flex-wrap justify-center gap-2">
-                {/* Default entry image thumbnail - only show if not already in uploads */}
-                {!userUploads.some((upload) => upload.url === deceased.image) && (
-                  <button
-                    type="button"
-                    onClick={() => handleImageSelect(deceased.image!)}
-                    className={cn(
-                      "relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all hover:scale-105",
-                      selectedImageUrl === deceased.image
-                        ? "border-primary"
-                        : "border-gray-300 hover:border-primary"
-                    )}
-                    title="Default entry photo"
-                  >
-                    <Image
-                      src={deceased.image!}
-                      alt={`${deceased.name} - Default`}
-                      fill
-                      className="object-cover size-full"
-                      sizes="150px"
-                    />
-                  </button>
-                )}
+            )}
+          </div>
 
-                {/* User-uploaded photo thumbnails */}
-                {userUploads.map((upload) => (
-                  <button
-                    key={upload.id}
-                    type="button"
-                    onClick={() => handleImageSelect(upload.url)}
-                    className={cn(
-                      "relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all hover:scale-105",
-                      selectedImageUrl === upload.url
-                        ? "border-primary"
-                        : "border-gray-300 hover:border-primary"
-                    )}
-                    title={`Uploaded ${format(upload.createdAt, "MMM d, yyyy")}`}
-                  >
-                    <Image
-                      src={upload.url}
-                      alt={`${deceased.name} - Photo ${format(upload.createdAt, "MMM d")}`}
-                      fill
-                      className="object-cover size-full"
-                      sizes="150px"
-                    />
-                  </button>
-                ))}
+          {showPortraitField && selectedImageUrl && (
+            <>
+              <div className="flex justify-center">
+                <div className="relative w-48 h-48 rounded-lg overflow-hidden border-2 border-border shadow-lg">
+                  <Image
+                    src={selectedImageUrl}
+                    alt={deceased.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 192px"
+                  />
+                </div>
               </div>
-            </div>
+
+              {userUploads.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm text-center text-muted-foreground">
+                    Select a different photo:
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {!userUploads.some(
+                      (upload) => upload.url === deceased.image,
+                    ) &&
+                      deceased.image && (
+                        <button
+                          type="button"
+                          onClick={() => handleImageSelect(deceased.image!)}
+                          className={cn(
+                            "relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all hover:scale-105",
+                            selectedImageUrl === deceased.image
+                              ? "border-primary"
+                              : "border-gray-300 hover:border-primary",
+                          )}
+                          title="Default entry photo"
+                        >
+                          <Image
+                            src={deceased.image}
+                            alt={`${deceased.name} - Default`}
+                            fill
+                            className="object-cover size-full"
+                            sizes="150px"
+                          />
+                        </button>
+                      )}
+
+                    {userUploads.map((upload) => (
+                      <button
+                        key={upload.id}
+                        type="button"
+                        onClick={() => handleImageSelect(upload.url)}
+                        className={cn(
+                          "relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all hover:scale-105",
+                          selectedImageUrl === upload.url
+                            ? "border-primary"
+                            : "border-gray-300 hover:border-primary",
+                        )}
+                        title={`Uploaded ${format(upload.createdAt, "MMM d, yyyy")}`}
+                      >
+                        <Image
+                          src={upload.url}
+                          alt={`${deceased.name} - Photo ${format(upload.createdAt, "MMM d")}`}
+                          fill
+                          className="object-cover size-full"
+                          sizes="150px"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        <div className="space-y-3">
-          <div className="relative">
+        <ColorPicker
+          value={formData.overlay || "#1a1a2e"}
+          onChange={handleColorChange}
+        />
+
+        <AnimatedInput
+          name="background_image"
+          label="Background Image URL (optional)"
+          controlled={true}
+          value={formData.background_image || ""}
+          onChange={handleChange}
+          placeholder="https://example.com/image.jpg"
+          type="url"
+        />
+
+        {showEpitaphField && (
+          <div className="space-y-3">
             <AnimatedInput
               name="epitaph"
               label="Epitaph"
               type="textarea"
               controlled={true}
-              value={formData.epitaph}
+              value={formData.epitaph || ""}
               onChange={handleChange}
               placeholder="Is there a quote or phrase you'd like to remember them by?"
             />
-          </div>
 
-          <AnimatedInput
-            name="citation"
-            label="Citation"
-            controlled={true}
-            value={formData.citation}
-            onChange={handleChange}
-            placeholder="Who said it?"
-          />
+            <AnimatedInput
+              name="citation"
+              label="Citation"
+              controlled={true}
+              value={formData.citation || ""}
+              onChange={handleChange}
+              placeholder="Who said it?"
+            />
 
-          <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setSearchDialogOpen(true)}
-              disabled={isPending}
-            >
-              <Icon icon="mdi:magnify" className="w-4 h-4 mr-2" />
-              Search Quotes & Scripture
-            </Button>
-            
-            {savedQuotes.length > 0 && (
-              <SavedQuoteSelector
-                quotes={savedQuotes}
-                onSelect={handleQuoteSelect}
+            <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setSearchDialogOpen(true)}
                 disabled={isPending}
-              />
-            )}
-          </div>
-        </div>
+              >
+                <Icon icon="mdi:magnify" className="w-4 h-4 mr-2" />
+                Search Quotes
+              </Button>
 
-        {/* Hidden inputs for the form data that's auto-populated */}
-        <input type="hidden" name="name" value={formData.name} />
-        <input type="hidden" name="birth" value={formData.birth} />
-        <input type="hidden" name="death" value={formData.death} />
-        <input type="hidden" name="portrait" value={formData.portrait} />
+              {savedQuotes.length > 0 && (
+                <SavedQuoteSelector
+                  quotes={savedQuotes}
+                  onSelect={handleQuoteSelect}
+                  disabled={isPending}
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+        {showIconField && (
+          <AnimatedInput
+            name="icon"
+            label="Icon/Prayer Image URL"
+            controlled={true}
+            value={formData.icon || ""}
+            onChange={handleChange}
+            placeholder="https://example.com/icon.png"
+            type="url"
+          />
+        )}
+
+        {showServiceField && (
+          <AnimatedInput
+            name="service"
+            label="Service Details"
+            type="textarea"
+            controlled={true}
+            value={formData.service || ""}
+            onChange={handleChange}
+            placeholder="Date, time, and location of service..."
+          />
+        )}
+
+        {showObitSummaryField && (
+          <AnimatedInput
+            name="obit_summary"
+            label="Obituary Summary"
+            type="textarea"
+            controlled={true}
+            value={formData.obit_summary || ""}
+            onChange={handleChange}
+            placeholder="A brief summary of their life..."
+          />
+        )}
 
         <div className="flex flex-col items-center gap-2 sm:flex-row">
           <Button
@@ -234,25 +358,13 @@ export function CreateImage({
             className="flex-1 w-full sm:w-auto"
             disabled={isPending}
           >
-            Generate Image
+            {isPending ? "Generating..." : "Generate Image"}
           </Button>
           <Button
-            type="reset"
+            type="button"
             variant="outline"
             className="flex-1 w-full sm:w-auto"
-            onClick={() => {
-              setFormData({
-                name: deceased.name,
-                epitaph: "",
-                citation: "",
-                birth: format(deceased.dateOfBirth!, "MMMM d, yyyy"),
-                death: format(deceased.dateOfDeath!, "MMMM d, yyyy"),
-                portrait: deceased.image!,
-              });
-              setSelectedImageUrl(deceased.image!);
-              setError(null);
-              router.replace(`/${entryId}/images/create`);
-            }}
+            onClick={handleReset}
           >
             Reset
           </Button>

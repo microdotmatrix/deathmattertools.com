@@ -20,10 +20,10 @@ interface ImagePollerProps {
 
 export function ImageResult({ initialImageData, id }: ImagePollerProps) {
   const [imageData, setImageData] = useState<PlacidImage | undefined>(
-    initialImageData
+    initialImageData,
   );
   const [isPolling, setIsPolling] = useState(
-    initialImageData.status === "queued"
+    initialImageData.status === "queued",
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -64,7 +64,7 @@ export function ImageResult({ initialImageData, id }: ImagePollerProps) {
 
   if (error || imageData?.status === "error") {
     return (
-      <div className="grid place-content-center p-4 lg:p-8 aspect-square w-full">
+      <div className="grid place-content-center p-4 lg:p-8 min-h-48 w-full">
         <Icon icon="carbon:warning-alt" className="mx-auto size-12" />
         <p className="text-center">{error || "Error generating image"}</p>
       </div>
@@ -73,7 +73,7 @@ export function ImageResult({ initialImageData, id }: ImagePollerProps) {
 
   if (imageData?.status === "queued") {
     return (
-      <div className="grid place-content-center p-4 lg:p-8 aspect-square w-full">
+      <div className="grid place-content-center p-4 lg:p-8 min-h-48 w-full">
         <Icon icon="mdi:loading" className="animate-spin mx-auto size-12" />
         <p className="text-center">Image is processing</p>
       </div>
@@ -83,14 +83,14 @@ export function ImageResult({ initialImageData, id }: ImagePollerProps) {
   return (
     <div className="w-full">
       {imageData?.image_url ? (
-        <figure className="border rounded-md overflow-hidden relative aspect-square size-full">
+        <figure className="border rounded-md overflow-hidden relative">
           <Image
             src={imageData.image_url}
             alt="Generated Epitaph"
             width={1200}
-            height={1200}
+            height={1800}
             priority
-            className="w-full h-auto object-contain"
+            className="w-full h-auto"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
 
@@ -104,7 +104,7 @@ export function ImageResult({ initialImageData, id }: ImagePollerProps) {
                   onClick={() =>
                     downloadImage(
                       imageData?.image_url,
-                      `epitaph-${imageData?.id}`
+                      `epitaph-${imageData?.id}`,
                     )
                   }
                   className="p-2.5 lg:p-2 rounded-sm transition-colors"
@@ -138,7 +138,7 @@ export function ImageResult({ initialImageData, id }: ImagePollerProps) {
           </div>
         </figure>
       ) : (
-        <div className="grid place-content-center mx-auto p-4 lg:p-8 aspect-square w-full">
+        <div className="grid place-content-center mx-auto p-4 lg:p-8 min-h-48 w-full">
           <Icon icon="tabler:alert-triangle" className="size-8 text-red-700" />
           <p>Image not available</p>
         </div>
@@ -149,13 +149,14 @@ export function ImageResult({ initialImageData, id }: ImagePollerProps) {
 
 const ImageContainer = ({ image }: { image: PlacidImage }) => {
   return (
-    <figure className="border rounded-md overflow-hidden relative aspect-square size-full">
+    <figure className="border rounded-md overflow-hidden relative">
       <Image
         src={image?.image_url}
         alt="Generated epitaph"
-        fill
+        width={1200}
+        height={1800}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        className="object-cover size-full"
+        className="w-full h-auto"
       />
     </figure>
   );

@@ -3,11 +3,17 @@ import { ImageResult } from "@/components/sections/memorials/image-results";
 import { buttonVariants } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { db } from "@/lib/db";
-import { createEpitaphs } from "@/lib/db/mutations";
-import { getEntryWithAccess } from "@/lib/db/queries/entries";
+import {
+  createMemorialImage,
+  type MemorialTemplateKey,
+} from "@/lib/db/mutations/media";
+import {
+  getEntryWithAccess,
+  getEntryDetailsById,
+} from "@/lib/db/queries/entries";
 import { getSavedQuotesByEntryId } from "@/lib/db/queries/quotes";
 import { UserUploadTable } from "@/lib/db/schema";
-import type { PlacidImage, PlacidRequest } from "@/lib/services/placid";
+import type { PlacidImage, PlacidCardRequest } from "@/lib/services/placid";
 import { fetchImage } from "@/lib/services/placid";
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
@@ -42,47 +48,47 @@ export default async function Create({
 
   if (imageIds.length > 0) {
     images = (await Promise.all(
-      imageIds.map(async (id) => await getEpitaphImage(id))
+      imageIds.map(async (id) => await getEpitaphImage(id)),
     )) as PlacidImage[];
   }
   const { userId } = await auth();
-  
+
   if (!userId) {
     redirect("/sign-in");
   }
 
-  // Check access to entry - ONLY OWNERS can create images
   const access = await getEntryWithAccess(entryId);
-  
+
   if (!access) {
     notFound();
   }
 
-  // Organization members can view but not create
   if (access.role !== "owner") {
     redirect(`/${entryId}/images`);
   }
 
   const deceased = access.entry;
 
-  // Fetch saved quotes for this entry
-  const savedQuotes = await getSavedQuotesByEntryId(entryId);
+  const [savedQuotes, userUploads, entryDetails] = await Promise.all([
+    getSavedQuotesByEntryId(entryId),
+    db
+      .select()
+      .from(UserUploadTable)
+      .where(eq(UserUploadTable.entryId, entryId)),
+    getEntryDetailsById(entryId),
+  ]);
 
-  // Fetch user uploaded photos for this entry
-  const userUploads = await db
-    .select()
-    .from(UserUploadTable)
-    .where(eq(UserUploadTable.entryId, entryId));
-
-  // Create action wrapper that includes the entryId
-  const createEpitaphsAction = async (formData: PlacidRequest) => {
+  const createMemorialImageAction = async (
+    formData: PlacidCardRequest,
+    templateKey: MemorialTemplateKey,
+    entryIdArg: string,
+  ) => {
     "use server";
-    return createEpitaphs(formData, entryId);
+    return createMemorialImage(formData, templateKey, entryIdArg);
   };
 
   return (
     <div className="min-h-screen">
-      {/* Back to Entry Button */}
       <Link
         href={`/${entryId}`}
         className={buttonVariants({ variant: "outline", size: "sm" })}
@@ -93,10 +99,11 @@ export default async function Create({
       <div className="flex flex-col lg:flex-row items-center lg:items-start relative pb-12 lg:pb-24">
         <aside className="flex-none lg:flex-1/3 sticky lg:top-32 mt-4 order-2 lg:order-1">
           <CreateImage
-            action={createEpitaphsAction}
+            action={createMemorialImageAction}
             userId={userId}
             deceased={deceased}
             entryId={entryId}
+            entryDetails={entryDetails}
             savedQuotes={savedQuotes}
             userUploads={userUploads}
           />
@@ -129,7 +136,10 @@ export default async function Create({
                       to generate a new image
                     </span>
                   </h6>
-                  <Icon icon="line-md:arrow-down" className="size-8 lg:hidden" />
+                  <Icon
+                    icon="line-md:arrow-down"
+                    className="size-8 lg:hidden"
+                  />
                 </div>
               </div>
             )}
