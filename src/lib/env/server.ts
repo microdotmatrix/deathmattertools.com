@@ -14,6 +14,7 @@ export const env = createEnv({
     STANDS4_TOKENID: z.string().min(1),
     ARCJET_KEY: z.string().min(1),
     RESEND_API_KEY: z.string().min(1),
+    PEXELS_API_KEY: z.string().min(1),
     RESEND_EMAIL_FROM: z.string().min(1),
     RESEND_EMAIL_TO: z.string().min(1),
   },

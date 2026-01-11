@@ -1,5 +1,27 @@
 import { env } from "@/lib/env/server";
 
+/**
+ * Calculates a contrasting text color (black or white) based on the background color luminance.
+ * Uses the WCAG relative luminance formula for accessibility.
+ * @param hexColor - The background color in hex format (e.g., "#1a1a2e")
+ * @returns "#FFFFFF" for dark backgrounds, "#000000" for light backgrounds
+ */
+export const getContrastingTextColor = (hexColor: string): string => {
+  const hex = hexColor.replace("#", "");
+  
+  const r = Number.parseInt(hex.substring(0, 2), 16) / 255;
+  const g = Number.parseInt(hex.substring(2, 4), 16) / 255;
+  const b = Number.parseInt(hex.substring(4, 6), 16) / 255;
+
+  const toLinear = (c: number) =>
+    c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+
+  const luminance =
+    0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+
+  return luminance > 0.179 ? "#000000" : "#FFFFFF";
+};
+
 export const fetchJwtToken = async () => {
   const response = await fetch(
     `https://api.placid.app/api/editor/accesstokens`,
@@ -145,6 +167,7 @@ export interface PlacidCardRequest {
   name: string; // Name of the deceased
   epitaph?: string; // epitaph text
   overlay?: string; // overlay color (hex code)
+  text_color?: string; // text color (hex code) - calculated from overlay if not provided
   birth?: string; // birth date
   death?: string; // death date
   background_image?: string; // background image
@@ -164,6 +187,10 @@ export const generateBookmark = async ({
   variables: PlacidCardRequest;
   templateId: string;
 }) => {
+  const textColor =
+    variables.text_color ||
+    (variables.overlay ? getContrastingTextColor(variables.overlay) : "#000000");
+
   const response = await fetch("https://api.placid.app/api/rest/images", {
     method: "POST",
     headers: {
@@ -179,18 +206,22 @@ export const generateBookmark = async ({
         },
         name: {
           text: variables.name,
+          text_color: textColor,
         },
         excerpt: {
           text: variables.epitaph,
+          text_color: textColor,
         },
         overlay: {
           background_color: variables.overlay,
         },
         birth: {
           text: variables.birth,
+          text_color: textColor,
         },
         death: {
           text: variables.death,
+          text_color: textColor,
         },
         background_image: {
           image: variables.background_image,
@@ -209,6 +240,10 @@ export const generatePrayerCardFront = async ({
   variables: PlacidCardRequest;
   templateId: string;
 }) => {
+  const textColor =
+    variables.text_color ||
+    (variables.overlay ? getContrastingTextColor(variables.overlay) : "#000000");
+
   const response = await fetch("https://api.placid.app/api/rest/images", {
     method: "POST",
     headers: {
@@ -224,24 +259,29 @@ export const generatePrayerCardFront = async ({
         },
         name: {
           text: variables.name,
+          text_color: textColor,
         },
         epitaph: {
           text: variables.epitaph,
+          text_color: textColor,
         },
         overlay: {
           background_color: variables.overlay,
         },
         birth: {
           text: variables.birth,
+          text_color: textColor,
         },
         death: {
           text: variables.death,
+          text_color: textColor,
         },
         background_image: {
           image: variables.background_image,
         },
         icon: {
           image: variables.icon,
+          hide: variables.icon ? false : true,
         }
       },
     }),
@@ -257,6 +297,10 @@ export const generatePrayerCardBack = async ({
   variables: PlacidCardRequest;
   templateId: string;
 }) => {
+  const textColor =
+    variables.text_color ||
+    (variables.overlay ? getContrastingTextColor(variables.overlay) : "#000000");
+
   const response = await fetch("https://api.placid.app/api/rest/images", {
     method: "POST",
     headers: {
@@ -269,6 +313,7 @@ export const generatePrayerCardBack = async ({
       layers: {
         service: {
           text: variables.service,
+          text_color: textColor,
         },
         overlay: {
           background_color: variables.overlay,
@@ -293,6 +338,10 @@ export const generateSinglePageMemorial = async ({
   variables: PlacidCardRequest;
   templateId: string;
 }) => {
+  const textColor =
+    variables.text_color ||
+    (variables.overlay ? getContrastingTextColor(variables.overlay) : "#000000");
+
   const response = await fetch("https://api.placid.app/api/rest/images", {
     method: "POST",
     headers: {
@@ -308,24 +357,29 @@ export const generateSinglePageMemorial = async ({
         },
         name: {
           text: variables.name,
+          text_color: textColor,
         },
         obit_summary: {
           text: variables.obit_summary,
+          text_color: textColor,
         },
         overlay: {
           background_color: variables.overlay,
         },
         birth: {
           text: variables.birth,
+          text_color: textColor,
         },
         death: {
           text: variables.death,
+          text_color: textColor,
         },
         background_image: {
           image: variables.background_image,
         },
         service: {
           text: variables.service,
+          text_color: textColor,
         }
       },
     }),

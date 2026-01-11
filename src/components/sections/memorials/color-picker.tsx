@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
@@ -12,18 +11,18 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 const presetColors = [
-  "#000000",
-  "#1a1a2e",
-  "#16213e",
-  "#0f3460",
-  "#2c3e50",
-  "#34495e",
-  "#4a4a4a",
-  "#6b5b95",
-  "#2e4a62",
-  "#1e3a5f",
-  "#3d5a80",
-  "#4a5568",
+  "#ffffff",
+  "#fefce8",
+  "#f8fafc",
+  "#f1f5f9",
+  "#e2e8f0",
+  "#cbd5e1",
+  "#94a3b8",
+  "#64748b",
+  "#475569",
+  "#334155",
+  "#1e293b",
+  "#0f172a",
 ];
 
 interface ColorPickerProps {
@@ -54,8 +53,10 @@ export function ColorPicker({
   };
 
   return (
-    <div className="space-y-2">
-      <Label>{label}</Label>
+    <div className="relative pt-4">
+      <span className="absolute left-0 top-0 text-sm scale-85 text-foreground/50">
+        {label}
+      </span>
       <Popover>
         <PopoverTrigger asChild>
           <Button

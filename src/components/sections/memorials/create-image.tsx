@@ -21,6 +21,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { ColorPicker } from "./color-picker";
+import { PexelsImageSelector } from "./pexels-image-selector";
 import {
   templateOptions,
   TemplateSelector,
@@ -76,6 +77,7 @@ export function CreateImage({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  const [pexelsSelectorOpen, setPexelsSelectorOpen] = useState(false);
   const router = useRouter();
 
   const handleChange = (
@@ -107,6 +109,10 @@ export function CreateImage({
 
   const handleSearchDialogClose = (open: boolean) => {
     setSearchDialogOpen(open);
+  };
+
+  const handleBackgroundImageSelect = (imageUrl: string) => {
+    setFormData((prev) => ({ ...prev, background_image: imageUrl }));
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -262,18 +268,33 @@ export function CreateImage({
           onChange={handleColorChange}
         />
 
-        <AnimatedInput
-          name="background_image"
-          label="Background Image URL (optional)"
-          controlled={true}
-          value={formData.background_image || ""}
-          onChange={handleChange}
-          placeholder="https://example.com/image.jpg"
-          type="url"
-        />
+        <div className="flex gap-1 items-end">
+          <div className="flex-1">
+            <AnimatedInput
+              name="background_image"
+              label="Background Image URL (optional)"
+              controlled={true}
+              value={formData.background_image || ""}
+              onChange={handleChange}
+              placeholder="https://example.com/image.jpg"
+              type="url"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            className="shrink-0"
+            onClick={() => setPexelsSelectorOpen(true)}
+            disabled={isPending}
+          >
+            <Icon icon="mdi:image-search" className="w-4 h-4 mr-2" />
+            Browse Stock Images
+          </Button>
+        </div>
 
         {showEpitaphField && (
-          <div className="space-y-3">
+          <div className="space-y-6">
             <AnimatedInput
               name="epitaph"
               label="Epitaph"
@@ -293,7 +314,7 @@ export function CreateImage({
               placeholder="Who said it?"
             />
 
-            <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="-mt-5 grid grid-cols-1 sm:grid-cols-2 gap-1">
               <Button
                 type="button"
                 variant="outline"
@@ -376,6 +397,12 @@ export function CreateImage({
         open={searchDialogOpen}
         onOpenChange={handleSearchDialogClose}
         entryId={entryId}
+      />
+
+      <PexelsImageSelector
+        open={pexelsSelectorOpen}
+        onOpenChange={setPexelsSelectorOpen}
+        onSelect={handleBackgroundImageSelect}
       />
     </div>
   );
