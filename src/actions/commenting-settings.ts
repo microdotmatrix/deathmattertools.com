@@ -1,14 +1,14 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
-import { revalidateTag } from "next/cache";
-import { z } from "zod";
+import { documentTag } from "@/lib/cache";
 import {
   setDocumentOrganization,
   updateDocumentOrganizationCommenting,
 } from "@/lib/db/mutations";
 import { getDocumentById } from "@/lib/db/queries";
-import { documentTag } from "@/lib/cache";
+import { auth } from "@clerk/nextjs/server";
+import { revalidateTag } from "next/cache";
+import { z } from "zod";
 
 const UpdateSchema = z.object({
   enabled: z.boolean(),
@@ -85,7 +85,7 @@ export async function updateCommentingSettingsAction(
       return { error: updateResult.error ?? "Failed to update settings" };
     }
 
-    revalidateTag(documentTag(document.id));
+    revalidateTag(documentTag(document.id), "max");
 
     return {
       success: true,

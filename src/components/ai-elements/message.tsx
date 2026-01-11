@@ -2,27 +2,27 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  ButtonGroup,
-  ButtonGroupText,
+    ButtonGroup,
+    ButtonGroupText,
 } from "@/components/ui/button-group";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { FileUIPart, UIMessage } from "ai";
 import {
-  CheckIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  CopyIcon,
-  PaperclipIcon,
-  RefreshCwIcon,
-  ThumbsDownIcon,
-  ThumbsUpIcon,
-  XIcon,
+    CheckIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    CopyIcon,
+    PaperclipIcon,
+    RefreshCwIcon,
+    ThumbsDownIcon,
+    ThumbsUpIcon,
+    XIcon,
 } from "lucide-react";
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
 import { createContext, memo, useContext, useEffect, useState } from "react";
@@ -476,9 +476,26 @@ export const MessageFeedback = ({
     onFeedback?.(messageId, type);
     
     try {
-      // Dynamic import to avoid bundling server code in client
-      const { createOrUpdateVote } = await import("@/lib/db/mutations/votes");
-      await createOrUpdateVote(chatId, messageId, type === "positive");
+      const response = await fetch("/api/votes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          chatId,
+          messageId,
+          isUpvoted: type === "positive",
+        }),
+      });
+
+      const data: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        const errorMessage =
+          typeof data === "object" && data !== null && "error" in data
+            ? String((data as { error: unknown }).error)
+            : "Failed to save vote";
+        throw new Error(errorMessage);
+      }
     } catch (error) {
       console.error("Failed to submit feedback:", error);
       // Revert on error

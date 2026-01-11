@@ -1,30 +1,30 @@
 "use client";
 
 import {
-  Conversation,
-  ConversationContent,
-  ConversationEmptyState,
+    Conversation,
+    ConversationContent,
+    ConversationEmptyState,
 } from "@/components/ai-elements/conversation";
 import {
-  ChatMessageActions,
-  Message,
-  MessageContent,
-  MessageFeedback,
-  MessageResponse
+    ChatMessageActions,
+    Message,
+    MessageContent,
+    MessageFeedback,
+    MessageResponse
 } from "@/components/ai-elements/message";
 import {
-  PromptInput,
-  PromptInputSubmit,
-  PromptInputTextarea,
+    PromptInput,
+    PromptInputSubmit,
+    PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { convertToUIMessages } from "@/lib/ai/utils";
 import {
-  expandChatBubbleAtom,
-  isEditingObituaryAtom,
-  obituaryUpdateProcessingAtom,
-  prefilledChatMessageAtom,
+    expandChatBubbleAtom,
+    isEditingObituaryAtom,
+    obituaryUpdateProcessingAtom,
+    prefilledChatMessageAtom,
 } from "@/lib/state";
 import { generateUUID } from "@/lib/utils";
 import { useChat } from "@ai-sdk/react";
@@ -94,6 +94,7 @@ export const FloatingChatBubble = ({
     stop,
   } = useChat({
     id: chatId,
+    generateId: generateUUID,
     messages: convertedMessages, // Pass directly instead of useEffect + setMessages
     transport: new DefaultChatTransport({
       api: `/api/create`,

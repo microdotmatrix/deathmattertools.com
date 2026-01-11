@@ -1,9 +1,10 @@
+import { deleteObituaryAction } from "@/actions/documents";
+import { ActionButton } from "@/components/elements/action-button";
 import { DocumentStatusSelector } from "@/components/sections/documents/document-status-selector";
 import { ObituaryComments } from "@/components/sections/obituaries/comments-panel";
 import { DynamicChat } from "@/components/sections/obituaries/dynamic-chat";
 import { DynamicCommentingSettings } from "@/components/sections/obituaries/dynamic-commenting-settings";
 import { ObituaryContentShell } from "@/components/sections/obituaries/obituary-content-shell";
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
     Card,
@@ -25,17 +26,6 @@ import { Suspense } from "react";
 // Caching handled by "use cache" in query functions with on-demand revalidation via tags
 
 type PageParams = Promise<{ entryId: string; id: string }>;
-
-const roleLabel = (role: string) => {
-  switch (role) {
-    case "owner":
-      return "Owner";
-    case "commenter":
-      return "Commenter";
-    default:
-      return "Viewer";
-  }
-};
 
 const toSerializableComments = (comments: Awaited<
   ReturnType<typeof listDocumentComments>
@@ -200,7 +190,18 @@ export default async function ObituaryPage({
             currentStatus={access.document.status}
             canEdit={isOwner}
           />
-          <Badge variant="secondary">{roleLabel(access.role)}</Badge>
+          {isOwner && (
+            <ActionButton
+              action={deleteObituaryAction.bind(null, access.document.id, entryId)}
+              requireAreYouSure
+              areYouSureDescription={`Are you sure you want to delete this obituary? This action cannot be undone.`}
+              variant="destructive"
+              size="sm"
+            >
+              <Icon icon="mdi:delete" className="mr-2 size-4" />
+              Delete
+            </ActionButton>
+          )}
         </div>
       </div>
 

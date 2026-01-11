@@ -50,6 +50,16 @@ export async function POST(request: NextRequest) {
     return new Response("Invalid chat ID format", { status: 400 });
   }
 
+  if (!message || typeof message !== "object" || !("id" in message)) {
+    return new Response("Invalid message", { status: 400 });
+  }
+
+  const messageId = String((message as { id: unknown }).id);
+  if (!uuidRegex.test(messageId)) {
+    console.error("Invalid message ID format:", messageId);
+    return new Response("Invalid message ID format", { status: 400 });
+  }
+
   const chat = await getChatById({ id });
 
   if (!chat) {
@@ -91,9 +101,6 @@ export async function POST(request: NextRequest) {
     ? formatCommentsForAI(approvedComments)
     : "";
 
-  // Generate proper UUID for message ID
-  const messageId = generateUUID();
-
   await saveMessages({
     messages: [
       {
@@ -107,7 +114,14 @@ export async function POST(request: NextRequest) {
     ],
   });
 
+  const existingMessageIds = new Set<string>([
+    ...messagesFromDb.map((m) => m.id),
+    messageId,
+  ]);
+
   const stream = createUIMessageStream({
+    originalMessages: uiMessages,
+    generateId: generateUUID,
     execute: ({ writer }) => {
       const result = streamText({
         model: models.assistant,
@@ -290,11 +304,17 @@ export async function POST(request: NextRequest) {
       writer.merge(result.toUIMessageStream());
     },
     onFinish: async ({ messages }) => {
+      const newMessages = messages.filter(
+        (streamedMessage) => !existingMessageIds.has(streamedMessage.id)
+      );
+
+      if (newMessages.length === 0) return;
+
       await saveMessages({
-        messages: messages.map((message) => ({
-          id: generateUUID(), // Generate proper UUID for AI response messages
-          role: message.role,
-          parts: message.parts,
+        messages: newMessages.map((streamedMessage) => ({
+          id: streamedMessage.id,
+          role: streamedMessage.role,
+          parts: streamedMessage.parts,
           attachments: [],
           chatId: id,
           createdAt: new Date(),

@@ -2,15 +2,15 @@
 
 import { documentCommentsTag } from "@/lib/cache";
 import {
-    createDocumentComment,
-    deleteDocumentComment,
-    updateCommentAnchorStatus,
-    updateDocumentComment,
-    updateDocumentCommentStatus,
+  createDocumentComment,
+  deleteDocumentComment,
+  updateCommentAnchorStatus,
+  updateDocumentComment,
+  updateDocumentCommentStatus,
 } from "@/lib/db/mutations";
 import {
-    getDocumentCommentById,
-    getDocumentWithAccess,
+  getDocumentCommentById,
+  getDocumentWithAccess,
 } from "@/lib/db/queries";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath, revalidateTag } from "next/cache";
