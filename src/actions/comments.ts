@@ -182,7 +182,7 @@ export async function updateCommentAction(
       commentId,
       documentId: access.document.id,
       documentCreatedAt: access.document.createdAt,
-      userId: comment.userId,
+      userId: comment.userId!,
       content: parsed.data,
     });
 
@@ -249,7 +249,7 @@ export async function deleteCommentAction(
       commentId,
       documentId: access.document.id,
       documentCreatedAt: access.document.createdAt,
-      userId: comment.userId,
+      userId: comment.userId!,
     });
 
     if (!deleted) {

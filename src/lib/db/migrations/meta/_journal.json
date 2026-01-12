@@ -148,6 +148,13 @@
       "when": 1768069577486,
       "tag": "0020_dazzling_speedball",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1768245770408,
+      "tag": "0021_cute_shocker",
+      "breakpoints": true
     }
   ]
 }
