@@ -17,6 +17,8 @@ export const env = createEnv({
     PEXELS_API_KEY: z.string().min(1),
     RESEND_EMAIL_FROM: z.string().min(1),
     RESEND_EMAIL_TO: z.string().min(1),
+    // JWT secret for guest commenter tokens (min 32 chars for security)
+    SHARE_LINK_SECRET: z.string().min(32),
   },
   emptyStringAsUndefined: true,
   experimental__runtimeEnv: process.env,

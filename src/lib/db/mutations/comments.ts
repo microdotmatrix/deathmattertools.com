@@ -5,7 +5,8 @@ import { and, eq, inArray } from "drizzle-orm";
 export const createDocumentComment = async ({
   documentId,
   documentCreatedAt,
-  userId,
+  userId = null,
+  guestCommenterId = null,
   content,
   parentId = null,
   anchorStart = null,
@@ -16,7 +17,8 @@ export const createDocumentComment = async ({
 }: {
   documentId: string;
   documentCreatedAt: Date;
-  userId: string;
+  userId?: string | null;
+  guestCommenterId?: string | null;
   content: string;
   parentId?: string | null;
   anchorStart?: number | null;
@@ -25,9 +27,14 @@ export const createDocumentComment = async ({
   anchorPrefix?: string | null;
   anchorSuffix?: string | null;
 }) => {
+  // Either userId or guestCommenterId must be provided
+  if (!userId && !guestCommenterId) {
+    throw new Error("Either userId or guestCommenterId must be provided");
+  }
+
   const now = new Date();
   const commentId = crypto.randomUUID();
-  
+
   const [comment] = await db
     .insert(DocumentCommentTable)
     .values({
@@ -35,6 +42,7 @@ export const createDocumentComment = async ({
       documentId,
       documentCreatedAt,
       userId,
+      guestCommenterId,
       content,
       parentId,
       createdAt: now,

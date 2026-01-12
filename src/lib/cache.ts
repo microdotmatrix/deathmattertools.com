@@ -76,6 +76,16 @@ export const chatByDocumentTag = (documentId: string) =>
   `chat:document:${documentId}`;
 export const chatMessagesTag = (chatId: string) => `chat:${chatId}:messages`;
 
+// Share link tags
+export const shareLinkTag = (token: string) => `share:${token}`;
+export const shareLinksByDocumentTag = (documentId: string) =>
+  `share:document:${documentId}`;
+export const shareLinksByImageTag = (imageId: string) =>
+  `share:image:${imageId}`;
+export const shareLinksByEntryTag = (entryId: string) =>
+  `share:entry:${entryId}`;
+export const publicShareTag = "share:public";
+
 // ============================================================================
 // Cache Profile Types (matches next.config.ts cacheLife profiles)
 // ============================================================================

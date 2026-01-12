@@ -117,7 +117,7 @@ const PageContent = async ({
                     <div className="size-full aspect-square bg-muted animate-pulse" />
                   }
                 >
-                  <ImageResult key={image.id} image={image} entryId={entryId} />
+                  <ImageResult key={image.id} image={image} entryId={entryId} isOwner={isOwner} />
                 </Suspense>
               </figure>
             ))}
@@ -142,7 +142,7 @@ const PageContent = async ({
                           <div className="size-full aspect-square bg-muted animate-pulse" />
                         }
                       >
-                        <ImageResult key={image.id} image={image} entryId={entryId} />
+                        <ImageResult key={image.id} image={image} entryId={entryId} isOwner={isOwner} />
                       </Suspense>
                     </figure>
                   </li>
@@ -156,13 +156,22 @@ const PageContent = async ({
   );
 };
 
-const ImageResult = async ({ 
+const ImageResult = async ({
   image,
   entryId,
-}: { 
+  isOwner,
+}: {
   image: UserGeneratedImage;
   entryId: string;
+  isOwner: boolean;
 }) => {
   const epitaphImage = await fetchImage(image.epitaphId);
-  return <EpitaphThumbnail image={epitaphImage} entryId={entryId} />;
+  return (
+    <EpitaphThumbnail
+      image={epitaphImage}
+      entryId={entryId}
+      imageId={image.id}
+      canShare={isOwner}
+    />
+  );
 };

@@ -69,9 +69,12 @@ export const DocumentCommentTable = pgTable(
     id: uuid("id").notNull().defaultRandom(),
     documentId: uuid("document_id").notNull(),
     documentCreatedAt: timestamp("document_created_at").notNull(),
-    userId: text("user_id")
-      .notNull()
-      .references(() => UserTable.id, { onDelete: "cascade" }),
+    // userId is now nullable to support guest comments
+    userId: text("user_id").references(() => UserTable.id, {
+      onDelete: "cascade",
+    }),
+    // Guest commenter ID for comments from share link viewers
+    guestCommenterId: uuid("guest_commenter_id"),
     content: text("content").notNull(),
     status: varchar("status", {
       enum: ["pending", "approved", "denied", "resolved"],
@@ -87,7 +90,7 @@ export const DocumentCommentTable = pgTable(
     updatedAt: timestamp("updated_at")
       .$defaultFn(() => new Date())
       .notNull(),
-    
+
     // Text anchor fields (nullable for backward compatibility)
     anchorStart: integer("anchor_start"),
     anchorEnd: integer("anchor_end"),
@@ -95,13 +98,16 @@ export const DocumentCommentTable = pgTable(
     anchorPrefix: text("anchor_prefix"),
     anchorSuffix: text("anchor_suffix"),
     anchorValid: boolean("anchor_valid").notNull().default(true),
-    anchorStatus: varchar("anchor_status", { 
-      enum: ["pending", "approved", "denied"] 
-    }).notNull().default("pending"),
+    anchorStatus: varchar("anchor_status", {
+      enum: ["pending", "approved", "denied"],
+    })
+      .notNull()
+      .default("pending"),
   },
   (table) => [
     primaryKey({ columns: [table.id, table.createdAt] }),
     index("document_comment_status_idx").on(table.documentId, table.status),
+    index("document_comment_guest_idx").on(table.guestCommenterId),
     foreignKey({
       columns: [table.documentId, table.documentCreatedAt],
       foreignColumns: [DocumentTable.id, DocumentTable.createdAt],

@@ -5,6 +5,7 @@ import { ObituaryComments } from "@/components/sections/obituaries/comments-pane
 import { DynamicChat } from "@/components/sections/obituaries/dynamic-chat";
 import { DynamicCommentingSettings } from "@/components/sections/obituaries/dynamic-commenting-settings";
 import { ObituaryContentShell } from "@/components/sections/obituaries/obituary-content-shell";
+import { ShareDialog } from "@/components/sections/share/share-dialog";
 import { buttonVariants } from "@/components/ui/button";
 import {
     Card,
@@ -190,6 +191,14 @@ export default async function ObituaryPage({
             currentStatus={access.document.status}
             canEdit={isOwner}
           />
+          {isOwner && (
+            <ShareDialog
+              type="document"
+              resourceId={access.document.id}
+              entryId={entryId}
+              resourceTitle={access.document.title}
+            />
+          )}
           {isOwner && (
             <ActionButton
               action={deleteObituaryAction.bind(null, access.document.id, entryId)}
