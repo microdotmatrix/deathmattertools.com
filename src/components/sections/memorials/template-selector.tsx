@@ -1,16 +1,16 @@
 "use client";
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardTitle,
 } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 
-export type TemplateKey = "bookmark" | "prayerCard" | "singlePageMemorial";
+export type TemplateKey = "bookmark" | "prayerCard" | "singlePageMemorial" | "thankyouCard";
 
 export interface TemplateOption {
   key: TemplateKey;
@@ -35,6 +35,12 @@ export const templateOptions: TemplateOption[] = [
     title: "Single Page Memorial",
     description:
       "A full memorial page with obituary summary and service details.",
+  },
+  {
+    key: "thankyouCard",
+    title: "Thank You Card",
+    description:
+      "A thank you card with personalized message and sign-off from the family.",
   },
 ];
 

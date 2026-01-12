@@ -7,30 +7,28 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import type { MemorialTemplateKey } from "@/lib/db/mutations/media";
 import type {
-    Entry,
-    EntryDetails,
-    SavedQuote,
-    UserUpload,
+  Entry,
+  EntryDetails,
+  SavedQuote,
+  UserUpload,
 } from "@/lib/db/schema";
 import { formatServices } from "@/lib/helpers";
 import type { PlacidCardRequest } from "@/lib/services/placid";
-import { getContrastingTextColor } from "@/lib/services/placid";
 import type { ActionState } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { ColorPicker } from "./color-picker";
 import { PexelsImageSelector } from "./pexels-image-selector";
-import { PlacidCanvasPreview } from "./placid-canvas-preview";
 import {
-    templateOptions,
-    TemplateSelector,
-    type TemplateKey,
+  templateOptions,
+  TemplateSelector,
+  type TemplateKey,
 } from "./template-selector";
 
-interface CreateImageProps {
+interface CreateImageFormProps {
   action: (
     formData: PlacidCardRequest,
     templateKey: MemorialTemplateKey,
@@ -42,10 +40,11 @@ interface CreateImageProps {
   entryDetails?: EntryDetails | null;
   savedQuotes?: SavedQuote[];
   userUploads?: UserUpload[];
-  canvasToken?: string;
+  // Callback to notify parent of form data changes for preview
+  onFormDataChange?: (formData: PlacidCardRequest, templateKey: TemplateKey) => void;
 }
 
-export function CreateImage({
+export function CreateImageForm({
   action,
   userId,
   deceased,
@@ -53,8 +52,8 @@ export function CreateImage({
   entryDetails,
   savedQuotes = [],
   userUploads = [],
-  canvasToken,
-}: CreateImageProps) {
+  onFormDataChange,
+}: CreateImageFormProps) {
   const [selectedTemplate, setSelectedTemplate] =
     useState<TemplateKey>("bookmark");
 
@@ -71,6 +70,7 @@ export function CreateImage({
     overlay: "#1a1a2e",
     background_image: "",
     icon: "",
+    prayer: "",
     service: formatServices(entryDetails?.serviceDetails) || "",
     obit_summary: entryDetails?.biographicalSummary || "",
     thank_you_message: "",
@@ -85,6 +85,11 @@ export function CreateImage({
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const [pexelsSelectorOpen, setPexelsSelectorOpen] = useState(false);
   const router = useRouter();
+
+  // Notify parent of form data changes
+  useEffect(() => {
+    onFormDataChange?.(formData, selectedTemplate);
+  }, [formData, selectedTemplate, onFormDataChange]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -149,6 +154,7 @@ export function CreateImage({
       overlay: "#1a1a2e",
       background_image: "",
       icon: "",
+      prayer: "",
       service: formatServices(entryDetails?.serviceDetails) || "",
       obit_summary: entryDetails?.biographicalSummary || "",
       thank_you_message: "",
@@ -166,6 +172,7 @@ export function CreateImage({
   const showEpitaphField =
     selectedTemplate === "bookmark" || selectedTemplate === "prayerCard";
   const showIconField = selectedTemplate === "prayerCard";
+  const showPrayerField = selectedTemplate === "prayerCard";
   const showServiceField =
     selectedTemplate === "prayerCard" ||
     selectedTemplate === "singlePageMemorial";
@@ -173,40 +180,15 @@ export function CreateImage({
   const showThankYouFields = selectedTemplate === "thankyouCard";
   const showPortraitField = selectedTemplate !== "thankyouCard";
 
-  // Compute text color for canvas preview based on overlay
-  const formDataWithTextColor = useMemo(() => ({
-    ...formData,
-    text_color: formData.overlay ? getContrastingTextColor(formData.overlay) : "#FFFFFF",
-  }), [formData]);
-
   return (
-    <div className="w-full max-w-5xl p-6 mx-auto">
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Canvas Preview - Shows on top (mobile) or right (desktop) */}
-        {canvasToken && (
-          <div className="lg:order-2 lg:sticky lg:top-6 lg:self-start w-full lg:w-80 shrink-0">
-            <PlacidCanvasPreview
-              accessToken={canvasToken}
-              templateKey={selectedTemplate}
-              formData={formDataWithTextColor}
-            />
-          </div>
-        )}
-
-        {/* Form Controls */}
-        <div className="flex-1 lg:order-1">
+    <div className="w-full max-w-lg p-6 mx-auto">
       <form onSubmit={handleSubmit} className="space-y-6">
         <TemplateSelector
           selectedTemplate={selectedTemplate}
           onTemplateChange={setSelectedTemplate}
         />
 
-        {selectedTemplateConfig && (
-          <p className="text-sm text-muted-foreground text-center">
-            {selectedTemplateConfig.description}
-          </p>
-        )}
-
+        
         <div className="space-y-4">
           <div className="text-center">
             <h2 className="text-2xl font-bold">{deceased.name}</h2>
@@ -219,25 +201,23 @@ export function CreateImage({
           </div>
 
           {showPortraitField && selectedImageUrl && (
-            <>
-              <div className="flex justify-center">
-                <div className="relative w-48 h-48 rounded-lg overflow-hidden border-2 border-border shadow-lg">
-                  <Image
-                    src={selectedImageUrl}
-                    alt={deceased.name}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 192px"
-                  />
-                </div>
+            <div className="flex justify-center items-start gap-4">
+              <div className="relative w-48 h-48 rounded-lg overflow-hidden border-2 border-border shadow-lg shrink-0">
+                <Image
+                  src={selectedImageUrl}
+                  alt={deceased.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 192px"
+                />
               </div>
 
               {userUploads.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm text-center text-muted-foreground">
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs text-muted-foreground">
                     Select a different photo:
                   </p>
-                  <div className="flex flex-wrap justify-center gap-2">
+                  <div className="flex flex-col gap-2">
                     {!userUploads.some(
                       (upload) => upload.url === deceased.image,
                     ) &&
@@ -246,7 +226,7 @@ export function CreateImage({
                           type="button"
                           onClick={() => handleImageSelect(deceased.image!)}
                           className={cn(
-                            "relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all hover:scale-105",
+                            "relative w-14 h-14 rounded-md overflow-hidden border-2 transition-all hover:scale-105",
                             selectedImageUrl === deceased.image
                               ? "border-primary"
                               : "border-gray-300 hover:border-primary",
@@ -269,7 +249,7 @@ export function CreateImage({
                         type="button"
                         onClick={() => handleImageSelect(upload.url)}
                         className={cn(
-                          "relative w-16 h-16 rounded-md overflow-hidden border-2 transition-all hover:scale-105",
+                          "relative w-14 h-14 rounded-md overflow-hidden border-2 transition-all hover:scale-105",
                           selectedImageUrl === upload.url
                             ? "border-primary"
                             : "border-gray-300 hover:border-primary",
@@ -288,7 +268,7 @@ export function CreateImage({
                   </div>
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
 
@@ -369,12 +349,24 @@ export function CreateImage({
         {showIconField && (
           <AnimatedInput
             name="icon"
-            label="Icon/Prayer Image URL"
+            label="Icon/Prayer Image URL (optional)"
             controlled={true}
             value={formData.icon || ""}
             onChange={handleChange}
             placeholder="https://example.com/icon.png"
             type="url"
+          />
+        )}
+
+        {showPrayerField && (
+          <AnimatedInput
+            name="prayer"
+            label="Prayer (optional)"
+            type="textarea"
+            controlled={true}
+            value={formData.prayer || ""}
+            onChange={handleChange}
+            placeholder="Enter a prayer or blessing..."
           />
         )}
 
@@ -444,8 +436,6 @@ export function CreateImage({
         </div>
         {error && <p className="text-destructive">{error}</p>}
       </form>
-        </div>
-      </div>
 
       <SearchDialog
         open={searchDialogOpen}

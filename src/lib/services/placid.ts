@@ -69,6 +69,7 @@ export const templateIds = {
   prayerCardFront: "rwkhdblq0lu3e",
   prayerCardBack: "0ji5jui4zn8gk",
   singlePageMemorial: "aebmcazbf4nsw",
+  thankyouCard: "pqeyinmx14loe",
 }
 
 export const fetchTemplate = async (uuid: string) => {
@@ -177,6 +178,8 @@ export interface PlacidCardRequest {
   citation?: string; // citation text
   quote?: string; // quote text
   obit_summary?: string; // obituary summary
+  thank_you_message?: string; // thank you message for thank you cards
+  sign_off?: string; // sign off text (e.g., "The Smith Family")
 }
 
 
@@ -322,8 +325,9 @@ export const generatePrayerCardBack = async ({
           image: variables.background_image,
         },
         prayer: {
-          image: variables.icon,
-        }
+          text: variables.prayer,
+          text_color: textColor,
+        },
       },
     }),
   });
@@ -381,6 +385,48 @@ export const generateSinglePageMemorial = async ({
           text: variables.service,
           text_color: textColor,
         }
+      },
+    }),
+  });
+
+  return (await response.json()) as PlacidImage;
+};
+
+export const generateThankYouCard = async ({
+  variables,
+  templateId,
+}: {
+  variables: PlacidCardRequest;
+  templateId: string;
+}) => {
+  const textColor =
+    variables.text_color ||
+    (variables.overlay ? getContrastingTextColor(variables.overlay) : "#000000");
+
+  const response = await fetch("https://api.placid.app/api/rest/images", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.PLACID_PRIVATE_TOKEN}`,
+      "Content-Type": "application/json",
+      "X-RateLimit-Limit": "8",
+    },
+    body: JSON.stringify({
+      template_uuid: templateId,
+      layers: {
+        sign_off: {
+          text: variables.sign_off,
+          text_color: textColor,
+        },
+        thank_you_message: {
+          text: variables.thank_you_message,
+          text_color: textColor,
+        },
+        overlay: {
+          background_color: variables.overlay,
+        },
+        background_image: {
+          image: variables.background_image,
+        },
       },
     }),
   });

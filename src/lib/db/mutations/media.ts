@@ -4,15 +4,16 @@ import { TAGS } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { UserGeneratedImageTable } from "@/lib/db/schema";
 import {
-  fetchTemplates,
-  generateImage,
-  generateBookmark,
-  generatePrayerCardFront,
-  generatePrayerCardBack,
-  generateSinglePageMemorial,
-  templateIds,
-  type PlacidRequest,
-  type PlacidCardRequest,
+    fetchTemplates,
+    generateBookmark,
+    generateImage,
+    generatePrayerCardBack,
+    generatePrayerCardFront,
+    generateSinglePageMemorial,
+    generateThankYouCard,
+    templateIds,
+    type PlacidCardRequest,
+    type PlacidRequest,
 } from "@/lib/services/placid";
 import type { ActionState } from "@/lib/utils";
 import { auth } from "@clerk/nextjs/server";
@@ -22,7 +23,8 @@ import { revalidateTag } from "next/cache";
 export type MemorialTemplateKey =
   | "bookmark"
   | "prayerCard"
-  | "singlePageMemorial";
+  | "singlePageMemorial"
+  | "thankyouCard";
 
 export async function createEpitaphs(
   formData: PlacidRequest,
@@ -197,6 +199,30 @@ export async function createMemorialImage(
         metadata: {
           variables: formData,
           templateName: "Single Page Memorial",
+          generatedAt: new Date().toISOString(),
+        },
+      });
+
+      imageIds.push(result.id);
+    } else if (templateKey === "thankyouCard") {
+      const result = await generateThankYouCard({
+        variables: formData,
+        templateId: templateIds.thankyouCard,
+      });
+
+      if (!result?.id) {
+        throw new Error("Failed to generate thank you card image");
+      }
+
+      await db.insert(UserGeneratedImageTable).values({
+        id: crypto.randomUUID(),
+        userId: userId,
+        entryId: entryId,
+        epitaphId: result.id,
+        templateId: templateIds.thankyouCard,
+        metadata: {
+          variables: formData,
+          templateName: "Thank You Card",
           generatedAt: new Date().toISOString(),
         },
       });
