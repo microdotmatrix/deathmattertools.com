@@ -1,5 +1,7 @@
 "use client";
 
+import { Streamdown } from "streamdown";
+
 interface SharedDocumentViewerProps {
   content: string;
 }
@@ -13,26 +15,11 @@ export function SharedDocumentViewer({ content }: SharedDocumentViewerProps) {
     );
   }
 
-  // Split content into paragraphs and render with proper formatting
-  const paragraphs = content.split(/\n\n+/);
-
   return (
     <article className="prose prose-neutral dark:prose-invert max-w-none">
-      {paragraphs.map((paragraph, index) => {
-        // Handle single line breaks within paragraphs
-        const lines = paragraph.split(/\n/);
-
-        return (
-          <p key={index} className="mb-4 text-base leading-relaxed">
-            {lines.map((line, lineIndex) => (
-              <span key={lineIndex}>
-                {line}
-                {lineIndex < lines.length - 1 && <br />}
-              </span>
-            ))}
-          </p>
-        );
-      })}
+      <Streamdown className="[&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+        {content}
+      </Streamdown>
     </article>
   );
 }

@@ -1,35 +1,33 @@
 "use client";
 
-import { useState, useActionState, useEffect } from "react";
+import {
+    createDocumentShareLinkAction,
+    createImageShareLinkAction,
+    deleteShareLinkAction,
+    getDocumentShareLinksAction,
+    getImageShareLinksAction,
+} from "@/actions/share-links";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Icon } from "@/components/ui/icon";
+import { Label } from "@/components/ui/label";
 import {
-  createDocumentShareLinkAction,
-  createImageShareLinkAction,
-  deleteShareLinkAction,
-  getDocumentShareLinksAction,
-  getImageShareLinksAction,
-} from "@/actions/share-links";
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
+import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 // ============================================================================
@@ -221,7 +219,7 @@ function ShareLinkItem({
         <div className="min-w-0 flex-1">
           {/* URL */}
           <div className="flex items-center gap-2">
-            <code className="block truncate rounded bg-muted px-2 py-1 text-xs">
+            <code className="min-w-0 flex-1 truncate rounded bg-muted px-2 py-1 text-xs">
               {link.url}
             </code>
             <Button

@@ -5,10 +5,11 @@ import { usePathname } from "next/navigation";
 
 import { Icon } from "@/components/ui/icon";
 import {
-  SidebarMenu,
-  SidebarMenuBadge,
-  SidebarMenuButton,
-  SidebarMenuItem,
+    SidebarMenu,
+    SidebarMenuBadge,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    useSidebar,
 } from "@/components/ui/sidebar";
 
 type SidebarLink = {
@@ -25,6 +26,13 @@ type DashboardSidebarNavProps = {
 
 export const DashboardSidebarNav = ({ links }: DashboardSidebarNavProps) => {
   const pathname = usePathname();
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -58,7 +66,11 @@ export const DashboardSidebarNav = ({ links }: DashboardSidebarNavProps) => {
               </>
             ) : (
               <SidebarMenuButton asChild isActive={isActive}>
-                <Link href={item.href} className="flex items-center gap-2">
+                <Link
+                  href={item.href}
+                  className="flex items-center gap-2"
+                  onClick={handleLinkClick}
+                >
                   {buttonLabel}
                 </Link>
               </SidebarMenuButton>
