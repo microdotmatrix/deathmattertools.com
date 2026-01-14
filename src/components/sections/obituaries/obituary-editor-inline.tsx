@@ -17,7 +17,6 @@ interface ObituaryEditorInlineProps {
   documentId: string;
   entryId: string;
   initialContent: string;
-  canEdit: boolean;
   onClose?: () => void;
 }
 
@@ -25,11 +24,9 @@ export const ObituaryEditorInline = ({
   documentId,
   entryId,
   initialContent,
-  canEdit,
   onClose,
 }: ObituaryEditorInlineProps) => {
   const [isEditing, setIsEditing] = useState(true);
-  const [content, setContent] = useState(initialContent);
   const [retryCount, setRetryCount] = useState(0);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -60,7 +57,6 @@ export const ObituaryEditorInline = ({
     },
     onUpdate: ({ editor }) => {
       // Store as HTML internally while editing
-      setContent(editor.getHTML());
     },
   });
 
@@ -69,7 +65,6 @@ export const ObituaryEditorInline = ({
     if (editor) {
       // Restore original content
       editor.commands.setContent(markdownToHtml(initialContent));
-      setContent(initialContent);
       setRetryCount(0);
     }
     // Set editing to false first so the global atom gets updated via useEffect
@@ -139,7 +134,6 @@ export const ObituaryEditorInline = ({
             editor.setEditable(false);
           }
           setIsEditing(false);
-          setContent(markdownContent);
           setRetryCount(0);
           
           toast.success("Changes saved successfully");

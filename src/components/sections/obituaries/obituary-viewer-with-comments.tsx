@@ -15,22 +15,7 @@ import type { AnchorData } from "@/lib/annotations";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { type RefObject, useRef, useState } from "react";
-
-// Dynamic imports with SSR disabled for client-only rendering
-const ObituaryViewerSimple = dynamic(
-  () => import("./obituary-viewer-simple").then((mod) => mod.ObituaryViewerSimple),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex items-center justify-center py-12">
-        <div className="flex flex-col items-center gap-2">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-sm text-muted-foreground">Loading obituary...</p>
-        </div>
-      </div>
-    ),
-  }
-);
+import { ObituaryViewerSimple } from "./obituary-viewer-simple";
 
 const ObituaryEditorInline = dynamic(
   () => import("./obituary-editor-inline").then((mod) => mod.ObituaryEditorInline),
@@ -110,7 +95,6 @@ export const ObituaryViewerWithComments = ({
           documentId={documentId}
           entryId={entryId}
           initialContent={content}
-          canEdit={canEdit}
           onClose={() => handleEditingChange(false)}
         />
       ) : (
