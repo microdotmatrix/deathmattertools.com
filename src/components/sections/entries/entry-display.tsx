@@ -75,11 +75,11 @@ export const EntryDisplay = ({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <span className="text-xs text-muted-foreground uppercase">Birth Date</span>
-            <p className="text-sm">{formatDate(entry.dateOfBirth)}</p>
+            <p className="text-base">{formatDate(entry.dateOfBirth)}</p>
           </div>
           <div>
             <span className="text-xs text-muted-foreground uppercase">Death Date</span>
-            <p className="text-sm">{formatDate(entry.dateOfDeath)}</p>
+            <p className="text-base">{formatDate(entry.dateOfDeath)}</p>
           </div>
         </div>
 

@@ -5,28 +5,28 @@ import Stepper, { Step } from "@/components/elements/multi-step";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import { DateTimePicker } from "@/components/ui/date-picker";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { useEntryDetailsForm } from "@/lib/state";
 import { cn, formatTime } from "@/lib/utils";
@@ -86,6 +86,7 @@ interface Service {
   id: string;
   location: string;
   address: string;
+  url?: string;
   type: string;
   date?: Date;
   startTime?: string;
@@ -173,6 +174,7 @@ const deserializeServices = (data: string | undefined): Service[] => {
           date: service.date ? new Date(service.date) : undefined,
           startTime: service.startTime || "",
           endTime: service.endTime || "",
+          url: service.url || "",
         }));
     }
   } catch {
@@ -288,6 +290,7 @@ export const EntryDetailsForm = ({
       id: Date.now().toString(),
       location: "",
       address: "",
+      url: "",
       type: "Funeral",
       date: undefined,
       startTime: "",
@@ -1106,14 +1109,24 @@ const ServiceInputs = ({
               }
             />
             <Input
-              name="address"
-              placeholder="Address"
-              value={service.address}
+              name="url"
+              type="url"
+              placeholder="Website URL (e.g., https://example.com)"
+              value={service.url || ""}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                updateService?.(service.id, "address", e.target.value)
+                updateService?.(service.id, "url", e.target.value)
               }
             />
           </div>
+
+          <Input
+            name="address"
+            placeholder="Address"
+            value={service.address}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              updateService?.(service.id, "address", e.target.value)
+            }
+          />
 
           <div className="flex flex-col md:flex-row items-center gap-4">
             <Select

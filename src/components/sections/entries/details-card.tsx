@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { Separator } from "@/components/ui/separator";
 import { Entry, EntryDetails } from "@/lib/db/schema";
-import { formatFamilyMembers, formatServices } from "@/lib/helpers";
+import { formatFamilyMembers } from "@/lib/helpers";
 import { EntryDetailsDialog } from "./details-dialog";
 
 interface DetailsCardProps {
@@ -400,17 +400,79 @@ export const EntryDetailsSection = ({
               </div>
               <div className="grid lg:grid-cols-2 gap-3">
                 <div className="lg:col-span-1">
-                  {entryDetails.serviceDetails &&
-                    formatServices(entryDetails.serviceDetails) && (
-                      <div>
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Service Details
-                        </span>
-                        <p className="text-sm whitespace-pre-wrap">
-                          {formatServices(entryDetails.serviceDetails)}
-                        </p>
-                      </div>
-                    )}
+                  {entryDetails.serviceDetails && (() => {
+                    try {
+                      const services = JSON.parse(entryDetails.serviceDetails) as Array<{
+                        id: string;
+                        location: string;
+                        address?: string;
+                        url?: string;
+                        type?: string;
+                        date?: string;
+                        startTime?: string;
+                        endTime?: string;
+                      }>;
+                      if (!Array.isArray(services) || services.length === 0) return null;
+
+                      const formatTime = (time: string) => {
+                        const [hours, minutes] = time.split(":");
+                        const h = parseInt(hours, 10);
+                        const ampm = h >= 12 ? "PM" : "AM";
+                        const h12 = h % 12 || 12;
+                        return `${h12}:${minutes} ${ampm}`;
+                      };
+
+                      return (
+                        <div>
+                          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            Service Details
+                          </span>
+                          <div className="space-y-1 mt-1">
+                            {services.filter((s) => s && s.location).map((service) => {
+                              const address = service.address ? ` at ${service.address}` : "";
+                              const type = service.type ? `${service.type}: ` : "";
+
+                              let dateTimeInfo = "";
+                              if (service.date) {
+                                const date = new Date(service.date).toLocaleDateString();
+                                const timeRange =
+                                  service.startTime && service.endTime
+                                    ? `${formatTime(service.startTime)} - ${formatTime(service.endTime)}`
+                                    : service.startTime
+                                    ? formatTime(service.startTime)
+                                    : service.endTime
+                                    ? `until ${formatTime(service.endTime)}`
+                                    : "";
+                                dateTimeInfo = ` on ${date}${timeRange ? ` at ${timeRange}` : ""}`;
+                              }
+
+                              return (
+                                <p key={service.id} className="text-sm">
+                                  {type}
+                                  {service.url ? (
+                                    <a
+                                      href={service.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-primary underline hover:text-primary/80"
+                                    >
+                                      {service.location}
+                                    </a>
+                                  ) : (
+                                    service.location
+                                  )}
+                                  {address}
+                                  {dateTimeInfo}
+                                </p>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    } catch {
+                      return null;
+                    }
+                  })()}
                   {entryDetails.donationRequests && (
                     <div>
                       <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
