@@ -1,29 +1,29 @@
 "use client";
 
 import {
-    createDocumentShareLinkAction,
-    createImageShareLinkAction,
-    deleteShareLinkAction,
-    getDocumentShareLinksAction,
-    getImageShareLinksAction,
+  createDocumentShareLinkAction,
+  createImageShareLinkAction,
+  deleteShareLinkAction,
+  getDocumentShareLinksAction,
+  getImageShareLinksAction,
 } from "@/actions/share-links";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
 } from "@/components/ui/dialog";
 import { Icon } from "@/components/ui/icon";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
@@ -219,7 +219,7 @@ function ShareLinkItem({
         <div className="min-w-0 flex-1">
           {/* URL */}
           <div className="flex items-center gap-2">
-            <code className="min-w-0 flex-1 truncate rounded bg-muted px-2 py-1 text-xs">
+            <code className="min-w-0 w-0 flex-1 truncate rounded bg-muted px-2 py-1 text-xs max-w-[55ch]">
               {link.url}
             </code>
             <Button
@@ -232,6 +232,15 @@ function ShareLinkItem({
                 icon={copied ? "mdi:check" : "mdi:content-copy"}
                 className="h-4 w-4"
               />
+            </Button>
+             {/* Delete button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="shrink-0 text-destructive hover:text-destructive"
+              onClick={onDelete}
+            >
+              <Icon icon="mdi:delete" className="h-4 w-4" />
             </Button>
           </div>
 
@@ -261,15 +270,7 @@ function ShareLinkItem({
           </div>
         </div>
 
-        {/* Delete button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="shrink-0 text-destructive hover:text-destructive"
-          onClick={onDelete}
-        >
-          <Icon icon="mdi:delete" className="h-4 w-4" />
-        </Button>
+       
       </div>
     </div>
   );

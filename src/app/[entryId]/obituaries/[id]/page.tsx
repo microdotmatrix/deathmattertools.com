@@ -8,14 +8,14 @@ import { ObituaryContentShell } from "@/components/sections/obituaries/obituary-
 import { ShareDialog } from "@/components/sections/share/share-dialog";
 import { buttonVariants } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
+  Card,
+  CardContent,
 } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { getDocumentWithAccess, listDocumentComments } from "@/lib/db/queries";
 import {
-    getChatByDocumentId,
-    getMessagesByChatId,
+  getChatByDocumentId,
+  getMessagesByChatId,
 } from "@/lib/db/queries/chats";
 import { getEntryWithAccess } from "@/lib/db/queries/entries";
 import { auth, clerkClient } from "@clerk/nextjs/server";
@@ -33,7 +33,7 @@ const toSerializableComments = (comments: Awaited<
 >) =>
   comments.map((item) => ({
     id: item.comment.id,
-    userId: item.comment.userId,
+    userId: item.comment.userId ?? item.author.id,
     content: item.comment.content,
     parentId: item.comment.parentId,
     createdAt: item.comment.createdAt.toISOString(),
@@ -122,6 +122,7 @@ export default async function ObituaryPage({
   };
 
   const canModerate = isOwner;
+  const serializableComments = toSerializableComments(comments);
 
   // Organization settings logic
   const documentHasOrganization = Boolean(access.document.organizationId);
@@ -242,7 +243,7 @@ export default async function ObituaryPage({
                 canComment={access.canComment}
                 canModerate={canModerate}
                 currentUser={currentUser}
-                initialComments={toSerializableComments(comments)}
+                initialComments={serializableComments}
               />
             </CardContent>
           </Card>
