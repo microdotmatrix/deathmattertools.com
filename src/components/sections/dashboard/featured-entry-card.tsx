@@ -1,3 +1,4 @@
+import { CachedImage } from "@/components/elements/image-cache";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
@@ -5,7 +6,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { EntryWithObituaries } from "@/lib/db/queries";
 import { auth } from "@clerk/nextjs/server";
 import { differenceInYears, format } from "date-fns";
-import Image from "next/image";
 import Link from "next/link";
 import { CreatePortal } from "./create-dialog";
 import { ActionButtons } from "./entry-action-buttons";
@@ -49,12 +49,12 @@ export const FeaturedEntryCard = async ({
     <Card className="border-0 shadow-xl md:grid md:grid-cols-12 min-h-fit p-4">
       {/* Image Section - Left Half */}
       <figure className="relative md:col-span-5 shadow-xl dark:shadow-foreground/5 transition-shadow duration-200 rounded-lg overflow-clip aspect-square md:aspect-auto w-full max-h-130 md:max-h-136 3xl:max-h-180 3xl:aspect-4/3 max-w-full">
-        <Image
-          src={entry.image ?? "/images/create-entry_portrait-01.png"}
+        <CachedImage
+          src={entry.image!}
           alt={entry.name}
-          fill
-          priority
-          className="size-full object-cover object-center"
+          height={600}
+          width={800}
+          className="w-full h-full object-cover"
         />
       </figure>
 
