@@ -75,6 +75,21 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "ufs.sh",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.utfs.io",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "utfs.io",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "*.googleusercontent.com",
         pathname: "/**",
       },

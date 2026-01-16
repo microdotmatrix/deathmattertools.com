@@ -19,6 +19,8 @@ export const env = createEnv({
     RESEND_EMAIL_TO: z.string().min(1),
     // JWT secret for guest commenter tokens (min 32 chars for security)
     SHARE_LINK_SECRET: z.string().min(32),
+    // Cron job secret for orphaned upload cleanup (optional - Vercel sets this automatically)
+    CRON_SECRET: z.string().min(16).optional(),
   },
   emptyStringAsUndefined: true,
   experimental__runtimeEnv: process.env,

@@ -2,13 +2,53 @@
 
 import { isOrganizationOwner } from "@/lib/auth/organization-roles";
 import { db } from "@/lib/db";
-import { EntryDetailsTable, EntryTable, UserTable } from "@/lib/db/schema";
+import {
+  EntryDetailsTable,
+  EntryTable,
+  PendingUploadTable,
+  UserTable,
+  UserUploadTable,
+} from "@/lib/db/schema";
 import { action } from "@/lib/utils";
 import { auth } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { upsertUser } from "./auth";
+
+/**
+ * Validates image upload data integrity.
+ * @returns Object with validated imageUrl and imageKey, or null if no image
+ * @throws Error with user-friendly message if data is inconsistent
+ */
+function validateImageData(
+  imageUrl: string | null,
+  imageKey: string | null
+): { url: string; key: string } | null {
+  const hasUrl = imageUrl && imageUrl.trim() !== "";
+  const hasKey = imageKey && imageKey.trim() !== "";
+
+  // Both present - valid upload
+  if (hasUrl && hasKey) {
+    return { url: imageUrl.trim(), key: imageKey.trim() };
+  }
+
+  // Both absent - no upload intended
+  if (!hasUrl && !hasKey) {
+    return null;
+  }
+
+  // Partial data - corrupted upload state
+  if (hasUrl && !hasKey) {
+    throw new Error("Image upload incomplete. Please re-upload the image.");
+  }
+
+  if (!hasUrl && hasKey) {
+    throw new Error("Image data corrupted. Please re-upload the image.");
+  }
+
+  return null;
+}
 
 const CreateEntrySchema = z.object({
   name: z.string().min(1).max(150),
@@ -17,6 +57,7 @@ const CreateEntrySchema = z.object({
   birthLocation: z.string().max(250),
   deathLocation: z.string().max(250),
   image: z.string(),
+  imageKey: z.string().optional(),
   causeOfDeath: z.string().max(250),
 });
 
@@ -26,27 +67,67 @@ export const createEntryAction = action(CreateEntrySchema, async (data) => {
   if (!userId) {
     return { error: "Unauthorized" };
   }
-  
+
   try {
+    const entryId = crypto.randomUUID();
+
+    // Validate image data consistency - throws if incomplete
+    const imageData = validateImageData(
+      data.image?.trim() || null,
+      data.imageKey?.trim() || null
+    );
+
     // Ensure user exists in database (fallback if webhook failed)
     await ensureUserExists(userId);
-    
-    await db.insert(EntryTable).values({
-      id: crypto.randomUUID(),
+
+    // Build atomic batch transaction
+    const entryInsert = db.insert(EntryTable).values({
+      id: entryId,
       name: data.name,
       dateOfBirth: new Date(data.dateOfBirth),
       dateOfDeath: new Date(data.dateOfDeath),
       locationBorn: data.birthLocation,
       locationDied: data.deathLocation,
-      image: data.image,
+      image: imageData?.url ?? null,
       causeOfDeath: data.causeOfDeath,
       userId,
       organizationId: orgId ?? null,
     });
 
+    // Execute with image upload record if image data is complete
+    if (imageData) {
+      const uploadInsert = db.insert(UserUploadTable).values({
+        id: crypto.randomUUID(),
+        userId,
+        entryId,
+        url: imageData.url,
+        key: imageData.key,
+        isPrimary: true,
+      });
+
+      // Execute entry + upload insert as atomic transaction first
+      await db.batch([entryInsert, uploadInsert]);
+
+      // Remove from pending uploads table AFTER successful insert
+      // This ensures if the batch fails, the pending record still exists
+      // and will be cleaned up by the cron job
+      await db
+        .delete(PendingUploadTable)
+        .where(eq(PendingUploadTable.key, imageData.key));
+    } else {
+      // Execute entry insert only
+      await entryInsert;
+    }
+
     return { success: true };
   } catch (error) {
-    console.error(error);
+    console.error("[createEntryAction] Error:", error);
+
+    // Return specific error message if available (e.g., from validateImageData)
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+
     return { error: "Failed to create entry" };
   } finally {
     revalidatePath("/dashboard");
@@ -327,11 +408,33 @@ export const setPrimaryImageAction = async (
       return { error: "Entry not found or unauthorized" };
     }
 
-    // Update the entry's primary image
-    await db
-      .update(EntryTable)
-      .set({ image: imageUrl, updatedAt: new Date() })
-      .where(and(eq(EntryTable.id, entryId), eq(EntryTable.userId, userId)));
+    const targetUpload = await db.query.UserUploadTable.findFirst({
+      where: and(
+        eq(UserUploadTable.entryId, entryId),
+        eq(UserUploadTable.userId, userId),
+        eq(UserUploadTable.url, imageUrl)
+      ),
+      columns: { id: true },
+    });
+
+    if (!targetUpload) {
+      return { error: "Primary image not found" };
+    }
+
+    await db.batch([
+      db
+        .update(UserUploadTable)
+        .set({ isPrimary: false, updatedAt: new Date() })
+        .where(and(eq(UserUploadTable.entryId, entryId), eq(UserUploadTable.userId, userId))),
+      db
+        .update(UserUploadTable)
+        .set({ isPrimary: true, updatedAt: new Date() })
+        .where(eq(UserUploadTable.id, targetUpload.id)),
+      db
+        .update(EntryTable)
+        .set({ image: imageUrl, updatedAt: new Date() })
+        .where(and(eq(EntryTable.id, entryId), eq(EntryTable.userId, userId))),
+    ]);
 
     revalidatePath(`/${entryId}`);
     return { success: true };

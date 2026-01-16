@@ -3,6 +3,7 @@
 import { FileUploader } from "@/components/elements/file-uploader";
 import { AnimatedInput } from "@/components/elements/form/animated-input";
 import { useUploadThing } from "@/components/elements/uploads";
+import { useUploadCleanup } from "@/hooks/use-upload-cleanup";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { createEntryAction } from "@/lib/db/mutations/entries";
@@ -23,19 +24,32 @@ export const CreateEntryForm = () => {
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
   const [deathDate, setDeathDate] = useState<Date | undefined>(undefined);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageKey, setImageKey] = useState<string | null>(null);
   const [uploadComplete, setUploadComplete] = useState<boolean>(false);
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const { setImage, setUploading } = useEntryImage();
   const { setOpen } = useCreateForm();
   const formRef = useRef<HTMLFormElement>(null);
+
+  // Cleanup orphaned uploads on unmount or reset
+  const { cleanupUpload, resetCleanupState } = useUploadCleanup(
+    imageKey,
+    isSubmitted
+  );
 
   const { startUpload, isUploading } = useUploadThing("entryProfileImage", {
     onUploadProgress: () => {
       setUploading(true);
     },
     onClientUploadComplete: (res) => {
+      const uploadedFile = res?.[0];
+      const uploadedUrl = uploadedFile?.url ?? uploadedFile?.serverData?.url ?? null;
+      const uploadedKey = uploadedFile?.key ?? uploadedFile?.serverData?.key ?? null;
+
       toast.success("Image uploaded successfully");
-      setImageUrl(res[0]?.ufsUrl);
-      setImage(res[0]?.ufsUrl);
+      setImageUrl(uploadedUrl);
+      setImage(uploadedUrl);
+      setImageKey(uploadedKey);
       setUploading(false);
       setUploadComplete(true);
     },
@@ -47,15 +61,18 @@ export const CreateEntryForm = () => {
 
   useEffect(() => {
     if (state.success) {
+      setIsSubmitted(true); // Prevent cleanup hook from deleting the claimed upload
       toast.success("Profile created successfully");
       formRef.current?.reset();
       setImage(null);
       setImageUrl(null);
+      setImageKey(null);
+      setUploadComplete(false);
       setOpen(false);
     } else if (state.error) {
-      toast.error("Failed to create entry");
+      toast.error(state.error);
     }
-  }, [state]);
+  }, [state, setImage, setOpen]);
 
   return (
     <form action={formAction} className="space-y-6" ref={formRef}>
@@ -164,7 +181,8 @@ export const CreateEntryForm = () => {
             }}
           />
         )}
-        <input type="hidden" name="image" defaultValue={imageUrl!} />
+        <input type="hidden" name="image" value={imageUrl ?? ""} readOnly />
+        <input type="hidden" name="imageKey" value={imageKey ?? ""} readOnly />
       </motion.div>
 
       <motion.div
@@ -183,9 +201,19 @@ export const CreateEntryForm = () => {
         <Button
           type="button"
           variant="outline"
-          onClick={() => {
+          onClick={async () => {
+            // Clean up orphaned upload from UploadThing CDN
+            if (imageKey) {
+              await cleanupUpload();
+            }
+            // Reset form state
             setBirthDate(undefined);
             setDeathDate(undefined);
+            setImageUrl(null);
+            setImageKey(null);
+            setUploadComplete(false);
+            setImage(null);
+            resetCleanupState();
             formRef.current?.reset();
           }}
           disabled={pending}

@@ -2,13 +2,16 @@ import { auth } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
 import { revalidateTag } from "next/cache";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
-import { UploadThingError } from "uploadthing/server";
+import { UploadThingError, UTApi } from "uploadthing/server";
 import { z } from "zod";
 
 import { entryDetailTag, entryListTag } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { countUploadsForEntry } from "@/lib/db/queries";
-import { EntryTable, UserUploadTable } from "@/lib/db/schema";
+import { EntryTable, PendingUploadTable, UserUploadTable } from "@/lib/db/schema";
+
+// Export UTApi instance for file deletion operations
+export const utapi = new UTApi();
 
 type UploadMetadata = {
   userId: string;
@@ -33,6 +36,17 @@ export const uploadRouter = {
       return { userId };
     })
     .onUploadComplete(async ({ metadata, file }: { metadata: UploadMetadata; file: UploadedFile }) => {
+      // Track this upload as pending until entry creation claims it
+      const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours TTL
+      await db.insert(PendingUploadTable).values({
+        id: crypto.randomUUID(),
+        userId: metadata.userId,
+        key: file.key,
+        url: file.ufsUrl,
+        uploadType: "entry_profile",
+        expiresAt,
+      });
+
       return {
         uploadedBy: metadata.userId,
         url: file.ufsUrl,

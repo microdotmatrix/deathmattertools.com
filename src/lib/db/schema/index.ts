@@ -5,6 +5,7 @@ export * from "./entry-feedback";
 export * from "./media";
 export * from "./organizations";
 export * from "./page-content";
+export * from "./pending-uploads";
 export * from "./quotes";
 export * from "./settings";
 export * from "./share-links";
