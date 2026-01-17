@@ -1,6 +1,8 @@
+import { documentsByEntryTag } from "@/lib/cache";
 import { db } from "@/lib/db";
 import { ChatTable, DocumentTable, SuggestionTable } from "@/lib/db/schema";
 import { and, eq, gt } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import "server-only";
 
 export const saveDocument = async ({
@@ -44,6 +46,8 @@ export const saveDocument = async ({
         organizationCommentingEnabled: organizationId ? true : false,
       })
       .returning();
+
+    revalidateTag(documentsByEntryTag(entryId), "max");
 
     return { success: true };
   } catch (error) {

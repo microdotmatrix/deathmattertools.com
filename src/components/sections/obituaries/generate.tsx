@@ -8,11 +8,13 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import {
   generateObituary,
   generateObituaryFromDocument,
 } from "@/lib/ai/actions";
+import { OBITUARY_LENGTH_CONFIG } from "@/lib/ai/length-config";
 import type { Entry, EntryDetails, SavedQuote } from "@/lib/db/schema";
 import { convertFileToDataURL } from "@/lib/helpers";
 import { cn } from "@/lib/utils";
@@ -38,6 +40,7 @@ export const GenerateObituary = ({
 
   const [tone, setTone] = useState<string>("reverent");
   const [style, setStyle] = useState<string>("modern");
+  const [length, setLength] = useState<string>("medium");
   const [toInclude, setToInclude] = useState<string>("");
   const [toAvoid, setToAvoid] = useState<string>("");
   const [isReligious, setIsReligious] = useState<boolean>(false);
@@ -57,6 +60,8 @@ export const GenerateObituary = ({
       setTone(value);
     } else if (field === "style") {
       setStyle(value);
+    } else if (field === "length") {
+      setLength(value);
     } else if (field === "toInclude") {
       setToInclude(value);
     } else if (field === "toAvoid") {
@@ -76,6 +81,7 @@ export const GenerateObituary = ({
       name: entry.name,
       style,
       tone,
+      length,
       toInclude,
       toAvoid,
       isReligious: isReligious,
@@ -140,6 +146,7 @@ export const GenerateObituary = ({
           isPending={isPending}
           tone={tone}
           style={style}
+          length={length}
           toInclude={toInclude}
           toAvoid={toAvoid}
           isReligious={isReligious}
@@ -185,7 +192,7 @@ export const GenerateObituary = ({
         <DirectionAwareTabs tabs={tabs} onChange={handleModeChange} />
       </aside>
       <article className="md:col-span-3 2xl:col-span-4 order-1 md:order-2 py-8">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-[80ch] mx-auto">
           {!completed && !isPending && (
             <Typewriter
               text="> Complete the form to generate an obituary..."
@@ -258,6 +265,7 @@ const ObituaryForm = ({
   isPending,
   tone,
   style,
+  length,
   toInclude,
   toAvoid,
   isReligious,
@@ -273,6 +281,7 @@ const ObituaryForm = ({
   isPending: boolean;
   tone: string;
   style: string;
+  length: string;
   toInclude: string;
   toAvoid: string;
   isReligious: boolean;
@@ -291,6 +300,7 @@ const ObituaryForm = ({
         entryDetails={entryDetails!}
         tone={tone}
         style={style}
+        length={length}
         toInclude={toInclude}
         toAvoid={toAvoid}
         isReligious={isReligious}
@@ -318,6 +328,7 @@ const ObituaryForm = ({
           onClick={() => {
             handleInputChange("style", "modern");
             handleInputChange("tone", "reverent");
+            handleInputChange("length", "medium");
             handleInputChange("toInclude", "");
             handleInputChange("toAvoid", "");
             handleInputChange("isReligious", "false");
@@ -363,6 +374,7 @@ const UploadForm = ({
 }) => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [instructions, setInstructions] = useState<string>("");
+  const [length, setLength] = useState<string>("medium");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isPending, startTransition] = useTransition();
@@ -427,6 +439,7 @@ const UploadForm = ({
       Object.entries({
         name: entry.name,
         instructions,
+        length,
         file: base64Data,
       }).forEach(([key, value]) => {
         formDataObj.append(key, String(value));
@@ -551,6 +564,31 @@ const UploadForm = ({
         )}
       </div>
 
+      {/* Length Selection Section */}
+      <div className="space-y-2">
+        <Label htmlFor="upload-length" className="text-sm font-medium">
+          Desired Length
+        </Label>
+        <RadioGroup
+          value={length}
+          onValueChange={setLength}
+          disabled={uploading || isPending}
+          className="flex flex-col gap-2"
+        >
+          {Object.entries(OBITUARY_LENGTH_CONFIG).map(([value, config]) => (
+            <div className="flex items-center gap-3" key={value}>
+              <RadioGroupItem value={value} id={`upload-${value}`} />
+              <Label htmlFor={`upload-${value}`} className="font-normal cursor-pointer">
+                <span className="font-medium">{config.label}</span>
+                <span className="text-xs text-muted-foreground ml-2">
+                  {config.description}
+                </span>
+              </Label>
+            </div>
+          ))}
+        </RadioGroup>
+      </div>
+
       {/* Instructions Section */}
       <div className="space-y-2">
         <Label htmlFor="instructions" className="text-sm font-medium">
@@ -588,6 +626,7 @@ const UploadForm = ({
           onClick={() => {
             setUploadedFile(null);
             setInstructions("");
+            setLength("medium");
           }}
           className="flex-auto bg-muted/50 border border-muted/50"
         >

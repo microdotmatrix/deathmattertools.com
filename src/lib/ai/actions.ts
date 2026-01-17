@@ -9,16 +9,18 @@ import { z } from "zod";
 import { selectExamples } from "./few-shot-examples";
 import { models } from "./models";
 import {
+    createFewShotSystemPrompt,
     createPromptFromEntryData,
     createPromptFromFile,
-    fewShotSystemPrompt,
-    systemPrompt
+    OBITUARY_LENGTH_CONFIG,
+    type ObituaryLength
 } from "./prompts";
 
 const ObitFormSchema = z.object({
   name: z.string(),
   style: z.string(),
   tone: z.string(),
+  length: z.enum(["short", "medium", "long"]).default("medium"),
   toInclude: z.string(),
   toAvoid: z.string(),
   isReligious: z
@@ -29,28 +31,38 @@ const ObitFormSchema = z.object({
 });
 
 /**
- * Generate a descriptive title for the obituary based on style, tone, and religious content
+ * Generate a descriptive title for the obituary based on style, tone, length, and religious content
  * @param style - The style of the obituary (e.g., "traditional", "modern", "personal")
  * @param tone - The tone of the obituary (e.g., "reverent", "celebratory", "contemporary")
+ * @param length - The length of the obituary (short, medium, long)
  * @param isReligious - Whether religious content is included
  * @returns A formatted title string
  */
-function generateObituaryTitle(style: string, tone: string, isReligious: boolean): string {
+function generateObituaryTitle(
+  style: string,
+  tone: string,
+  length: ObituaryLength,
+  isReligious: boolean
+): string {
   // Capitalize first letter of each word
-  const capitalizeWords = (str: string) => 
-    str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
-  
+  const capitalizeWords = (str: string) =>
+    str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+
   const formattedStyle = capitalizeWords(style);
   const formattedTone = capitalizeWords(tone);
-  
-  // Build the title with style and tone
-  let title = `${formattedStyle} ${formattedTone}`;
-  
+  const lengthLabel = OBITUARY_LENGTH_CONFIG[length].label;
+
+  // Build the title with style, tone, and length
+  let title = `${formattedStyle} ${formattedTone} (${lengthLabel})`;
+
   // Add religious indicator as a badge
   if (isReligious) {
     title += " 🕊️"; // Adding a dove emoji as a visual indicator
   }
-  
+
   return title;
 }
 
@@ -68,13 +80,14 @@ export const generateObituary = async (
   // let stream = createStreamableValue("");
 
   try {
-    const { name, style, tone, toInclude, toAvoid, isReligious, selectedQuoteIds } =
+    const { name, style, tone, length, toInclude, toAvoid, isReligious, selectedQuoteIds } =
       ObitFormSchema.parse(Object.fromEntries(data));
 
     const prompt = await createPromptFromEntryData(
       entryId,
       style,
       tone,
+      length,
       toInclude,
       toAvoid,
       isReligious,
@@ -107,7 +120,7 @@ export const generateObituary = async (
 
     const { textStream } = streamText({
       model: models.writer,
-      system: systemPrompt, // Use few-shot system prompt
+      system: createFewShotSystemPrompt(length), // Use few-shot system prompt with dynamic length
       messages, // Use message history instead of single message
       experimental_transform: smoothStream({ chunking: "word" }),
       onFinish: async ({ usage, text }) => {
@@ -116,7 +129,7 @@ export const generateObituary = async (
         tokenUsage = totalTokens;
         await saveDocument({
           id,
-          title: generateObituaryTitle(style, tone, isReligious),
+          title: generateObituaryTitle(style, tone, length, isReligious),
           content: text,
           tokenUsage,
           kind: "obituary",
@@ -154,6 +167,7 @@ export const generateObituary = async (
 const ObitFromFileSchema = z.object({
   name: z.string(),
   instructions: z.string().optional(),
+  length: z.enum(["short", "medium", "long"]).default("medium"),
   file: z.base64(),
 });
 
@@ -170,7 +184,7 @@ export const generateObituaryFromDocument = async (
   // let stream = createStreamableValue("");
 
   try {
-    const { name, instructions, file } = ObitFromFileSchema.parse(
+    const { name, instructions, length, file } = ObitFromFileSchema.parse(
       Object.fromEntries(data)
     );
 
@@ -217,7 +231,7 @@ export const generateObituaryFromDocument = async (
 
     const result = streamText({
       model: models.anthropic,
-      system: fewShotSystemPrompt, // Use few-shot system prompt instead of analyzeDocumentPrompt
+      system: createFewShotSystemPrompt(length), // Use few-shot system prompt with dynamic length
       messages,
       experimental_transform: smoothStream({ chunking: "word" }),
       onFinish: async ({ usage, text }) => {
@@ -226,7 +240,7 @@ export const generateObituaryFromDocument = async (
         tokenUsage = totalTokens;
         await saveDocument({
           id,
-          title: generateObituaryTitle("traditional", "reverent", false), // Default values for document-based generation
+          title: generateObituaryTitle("traditional", "reverent", length, false), // Default style/tone with user-selected length
           content: text,
           tokenUsage,
           kind: "obituary",

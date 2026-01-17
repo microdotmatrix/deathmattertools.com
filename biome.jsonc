@@ -3,6 +3,7 @@
   "extends": [
     "ultracite",
     "ultracite/core",
-    "ultracite/next"
+    "ultracite/next",
+    "ultracite/biome/core"
   ]
 }

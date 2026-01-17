@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
+import { OBITUARY_LENGTH_CONFIG, type ObituaryLength } from "@/lib/ai/length-config";
 import { Entry, EntryDetails } from "@/lib/db/schema";
 import { entryDetailsFormAtom } from "@/lib/state";
 import { useSetAtom } from "jotai";
@@ -12,6 +13,7 @@ import { useSetAtom } from "jotai";
 export const ObituaryOptions = ({
   tone,
   style,
+  length,
   toInclude,
   toAvoid,
   isReligious,
@@ -23,6 +25,7 @@ export const ObituaryOptions = ({
   entryDetails: EntryDetails;
   tone: string;
   style: string;
+  length: string;
   toInclude: string;
   toAvoid: string;
   isReligious: boolean;
@@ -31,6 +34,14 @@ export const ObituaryOptions = ({
   handleInputChange: (field: string, value: string) => void;
 }) => {
   const setOpenDetails = useSetAtom(entryDetailsFormAtom);
+
+  const lengthOptions = Object.entries(OBITUARY_LENGTH_CONFIG).map(
+    ([value, config]) => ({
+      value: value as ObituaryLength,
+      label: config.label,
+      description: config.description,
+    })
+  );
 
   const toneOptions = [
     {
@@ -87,6 +98,29 @@ export const ObituaryOptions = ({
           <RadioGroupItem id="traditional" value="traditional" />
           <Label htmlFor="traditional">Traditional</Label>
         </span>
+      </RadioGroup>
+      <Separator className="my-6" />
+      <Label htmlFor="length">Length</Label>
+      <RadioGroup
+        value={length}
+        disabled={isPending}
+        onValueChange={(value) => handleInputChange("length", value)}
+        className="flex flex-col gap-3 my-4 [&>div_label]:mt-0.75"
+      >
+        {lengthOptions.map((option) => (
+          <div className="flex items-center gap-4" key={option.value}>
+            <RadioGroupItem value={option.value} id={`length-${option.value}`} />
+            <Label
+              htmlFor={`length-${option.value}`}
+              className="items-baseline flex flex-row gap-2 cursor-pointer"
+            >
+              {option.label}
+              <span className="text-xs font-normal text-muted-foreground">
+                {option.description}
+              </span>
+            </Label>
+          </div>
+        ))}
       </RadioGroup>
       <Separator className="my-6" />
       <Label htmlFor="tone">Desired Tone (Choose One)</Label>
