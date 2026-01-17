@@ -112,7 +112,7 @@ export const ObituaryOptions = ({
             <RadioGroupItem value={option.value} id={`length-${option.value}`} />
             <Label
               htmlFor={`length-${option.value}`}
-              className="items-baseline flex flex-row gap-2 cursor-pointer"
+              className="items-baseline flex flex-row gap-1 cursor-pointer"
             >
               {option.label}
               <span className="text-xs font-normal text-muted-foreground">
