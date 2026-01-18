@@ -2,6 +2,7 @@
 
 import type { MemorialTemplateKey } from "@/lib/db/mutations/media";
 import type {
+  Document,
   Entry,
   EntryDetails,
   SavedQuote,
@@ -26,6 +27,7 @@ interface CreateImageWithPreviewProps {
   entryDetails?: EntryDetails | null;
   savedQuotes?: SavedQuote[];
   userUploads?: UserUpload[];
+  obituaries?: Document[];
   canvasToken?: string;
   hasGeneratedImages: boolean;
   children?: React.ReactNode; // For image results
@@ -39,6 +41,7 @@ export function CreateImageWithPreview({
   entryDetails,
   savedQuotes = [],
   userUploads = [],
+  obituaries = [],
   canvasToken,
   hasGeneratedImages,
   children,
@@ -76,6 +79,7 @@ export function CreateImageWithPreview({
           entryDetails={entryDetails}
           savedQuotes={savedQuotes}
           userUploads={userUploads}
+          obituaries={obituaries}
           onFormDataChange={handleFormDataChange}
         />
       </aside>

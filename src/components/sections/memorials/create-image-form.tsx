@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import type { MemorialTemplateKey } from "@/lib/db/mutations/media";
 import type {
+  Document,
   Entry,
   EntryDetails,
   SavedQuote,
@@ -22,6 +23,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { ColorPicker } from "./color-picker";
 import { PexelsImageSelector } from "./pexels-image-selector";
+import { GenerateSummaryDialog } from "./generate-summary-dialog";
 import {
   templateOptions,
   TemplateSelector,
@@ -40,6 +42,7 @@ interface CreateImageFormProps {
   entryDetails?: EntryDetails | null;
   savedQuotes?: SavedQuote[];
   userUploads?: UserUpload[];
+  obituaries?: Document[];
   // Callback to notify parent of form data changes for preview
   onFormDataChange?: (formData: PlacidCardRequest, templateKey: TemplateKey) => void;
 }
@@ -52,10 +55,19 @@ export function CreateImageForm({
   entryDetails,
   savedQuotes = [],
   userUploads = [],
+  obituaries = [],
   onFormDataChange,
 }: CreateImageFormProps) {
   const [selectedTemplate, setSelectedTemplate] =
     useState<TemplateKey>("bookmark");
+
+  // Prefer AI-generated summary, fallback to biographical summary
+  // Note: generatedObitSummary field added in migration - type will update after db:push
+  const initialObitSummary =
+    (entryDetails as EntryDetails & { generatedObitSummary?: string | null })
+      ?.generatedObitSummary ||
+    entryDetails?.biographicalSummary ||
+    "";
 
   const [formData, setFormData] = useState<PlacidCardRequest>({
     name: deceased.name,
@@ -72,7 +84,7 @@ export function CreateImageForm({
     icon: "",
     prayer: "",
     service: formatServices(entryDetails?.serviceDetails) || "",
-    obit_summary: entryDetails?.biographicalSummary || "",
+    obit_summary: initialObitSummary,
     thank_you_message: "",
     sign_off: "",
   });
@@ -156,7 +168,7 @@ export function CreateImageForm({
       icon: "",
       prayer: "",
       service: formatServices(entryDetails?.serviceDetails) || "",
-      obit_summary: entryDetails?.biographicalSummary || "",
+      obit_summary: initialObitSummary,
       thank_you_message: "",
       sign_off: "",
     });
@@ -164,6 +176,11 @@ export function CreateImageForm({
     setSelectedTemplate("bookmark");
     setError(null);
     router.replace(`/${entryId}/images/create`);
+  };
+
+  // Handle summary change from the dialog
+  const handleSummaryChange = (summary: string) => {
+    setFormData((prev) => ({ ...prev, obit_summary: summary }));
   };
 
   const selectedTemplateConfig = templateOptions.find(
@@ -383,15 +400,33 @@ export function CreateImageForm({
         )}
 
         {showObitSummaryField && (
-          <AnimatedInput
-            name="obit_summary"
-            label="Obituary Summary"
-            type="textarea"
-            controlled={true}
-            value={formData.obit_summary || ""}
-            onChange={handleChange}
-            placeholder="A brief summary of their life..."
-          />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Obituary Summary</label>
+              <GenerateSummaryDialog
+                entryId={entryId}
+                obituaries={obituaries}
+                currentSummary={
+                  (
+                    entryDetails as EntryDetails & {
+                      generatedObitSummary?: string | null;
+                    }
+                  )?.generatedObitSummary
+                }
+                onSummaryChange={handleSummaryChange}
+                disabled={isPending}
+              />
+            </div>
+            <AnimatedInput
+              name="obit_summary"
+              label=""
+              type="textarea"
+              controlled={true}
+              value={formData.obit_summary || ""}
+              onChange={handleChange}
+              placeholder="A brief summary of their life... Use the Generate Summary button to create one from your obituaries."
+            />
+          </div>
         )}
 
         {showThankYouFields && (

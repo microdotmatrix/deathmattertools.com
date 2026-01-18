@@ -7,6 +7,7 @@ import {
     createMemorialImage,
     type MemorialTemplateKey,
 } from "@/lib/db/mutations/media";
+import { getDocumentsByEntryId } from "@/lib/db/queries/documents";
 import {
     getEntryDetailsById,
     getEntryWithAccess,
@@ -70,7 +71,7 @@ export default async function Create({
 
   const deceased = access.entry;
 
-  const [savedQuotes, userUploads, entryDetails, canvasTokenData] = await Promise.all([
+  const [savedQuotes, userUploads, entryDetails, canvasTokenData, documents] = await Promise.all([
     getSavedQuotesByEntryId(entryId),
     db
       .select()
@@ -78,7 +79,11 @@ export default async function Create({
       .where(eq(UserUploadTable.entryId, entryId)),
     getEntryDetailsById(entryId),
     getCanvasToken().catch(() => null),
+    getDocumentsByEntryId(entryId),
   ]);
+
+  // Filter to only obituaries (not eulogies)
+  const obituaries = documents.filter((doc) => doc.kind === "obituary");
 
   const createMemorialImageAction = async (
     formData: PlacidCardRequest,
@@ -109,6 +114,7 @@ export default async function Create({
         entryDetails={entryDetails}
         savedQuotes={savedQuotes}
         userUploads={userUploads}
+        obituaries={obituaries}
         canvasToken={canvasTokenData?.token}
         hasGeneratedImages={hasGeneratedImages}
       >

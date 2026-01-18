@@ -97,6 +97,9 @@ export const EntryDetailsTable = pgTable("entry_details", {
   specialAcknowledgments: text("special_acknowledgments"), // Thank yous, special mentions
   additionalNotes: text("additional_notes"), // Any other relevant information
 
+  // AI-generated summary
+  generatedObitSummary: text("generated_obit_summary"), // ~100 word AI-generated summary from obituary
+
   createdAt: timestamp("created_at")
     .$defaultFn(() => new Date())
     .notNull(),

@@ -13,4 +13,5 @@ export const models = {
   openrouter: openrouter("google/gemini-2.5-pro"),
   writer: openrouter("@preset/obituary-writer"),
   assistant: openrouter("@preset/obituary-assistant"), // Use Claude via OpenRouter with ID truncation
+  summarizer: openrouter("gpt-4o-mini"),
 };
