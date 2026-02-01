@@ -17,8 +17,9 @@ import { UserTable } from "./users";
  * Share Link Types
  * - document: Links to obituary/eulogy documents
  * - image: Links to memorial images
+ * - survey: Links to pre-need surveys
  */
-export const SHARE_LINK_TYPES = ["document", "image"] as const;
+export const SHARE_LINK_TYPES = ["document", "image", "survey"] as const;
 export type ShareLinkType = (typeof SHARE_LINK_TYPES)[number];
 
 /**
@@ -39,6 +40,8 @@ export const ShareLinkTable = pgTable(
     documentCreatedAt: timestamp("document_created_at"),
     // Reference to the image (nullable for documents)
     imageId: text("image_id"),
+    // Reference to the survey (nullable for documents/images)
+    surveyId: uuid("survey_id"),
     // Who created this share link
     createdBy: text("created_by")
       .notNull()
@@ -67,6 +70,7 @@ export const ShareLinkTable = pgTable(
     index("share_link_token_idx").on(table.token),
     index("share_link_document_idx").on(table.documentId),
     index("share_link_image_idx").on(table.imageId),
+    index("share_link_survey_idx").on(table.surveyId),
     index("share_link_entry_idx").on(table.entryId),
   ]
 );

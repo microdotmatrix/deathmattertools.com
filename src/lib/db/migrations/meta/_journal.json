@@ -162,6 +162,13 @@
       "when": 1768536138156,
       "tag": "0022_dear_microchip",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1769925639946,
+      "tag": "0023_public_gamora",
+      "breakpoints": true
     }
   ]
 }

@@ -86,6 +86,15 @@ export const shareLinksByEntryTag = (entryId: string) =>
   `share:entry:${entryId}`;
 export const publicShareTag = "share:public";
 
+// Pre-need survey tags
+export const surveyTag = (surveyId: string) => `survey:${surveyId}`;
+export const surveysByUserTag = (userId: string) => `surveys:user:${userId}`;
+export const surveysByEntryTag = (entryId: string) => `surveys:entry:${entryId}`;
+export const surveysByOrgTag = (orgId: string) => `surveys:org:${orgId}`;
+export const surveyResponseTag = (surveyId: string) =>
+  `survey:${surveyId}:response`;
+export const surveyAuditTag = (surveyId: string) => `survey:${surveyId}:audit`;
+
 // ============================================================================
 // Cache Profile Types (matches next.config.ts cacheLife profiles)
 // ============================================================================
