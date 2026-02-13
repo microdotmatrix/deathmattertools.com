@@ -42,12 +42,6 @@ const workspaceLinks: SidebarLink[] = [
     icon: "mdi:view-dashboard-outline",
   },
   {
-    label: "Feedback Surveys",
-    href: "/dashboard/feedback-surveys",
-    icon: "mdi:clipboard-text-outline",
-    disabled: true,
-  },
-  {
     label: "User Settings",
     href: "/dashboard/settings",
     icon: "mdi:cog-outline",

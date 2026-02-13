@@ -3,18 +3,20 @@
 import { FileUploader } from "@/components/elements/file-uploader";
 import { AnimatedInput } from "@/components/elements/form/animated-input";
 import { useUploadThing } from "@/components/elements/uploads";
-import { useUploadCleanup } from "@/hooks/use-upload-cleanup";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
+import { useUploadCleanup } from "@/hooks/use-upload-cleanup";
 import { createEntryAction } from "@/lib/db/mutations/entries";
 import { useCreateForm, useEntryImage } from "@/lib/state";
 import { ActionState, cn } from "@/lib/utils";
 import { Check, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 export const CreateEntryForm = () => {
+  const router = useRouter();
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     createEntryAction,
     {
@@ -60,7 +62,7 @@ export const CreateEntryForm = () => {
   });
 
   useEffect(() => {
-    if (state.success) {
+    if (state.success && state.entryId) {
       setIsSubmitted(true); // Prevent cleanup hook from deleting the claimed upload
       toast.success("Profile created successfully");
       formRef.current?.reset();
@@ -69,10 +71,12 @@ export const CreateEntryForm = () => {
       setImageKey(null);
       setUploadComplete(false);
       setOpen(false);
+      // Redirect to entry page with survey prompt
+      router.push(`/${state.entryId}?showSurveyPrompt=true`);
     } else if (state.error) {
       toast.error(state.error);
     }
-  }, [state, setImage, setOpen]);
+  }, [state, setImage, setOpen, router]);
 
   return (
     <form action={formAction} className="space-y-6" ref={formRef}>

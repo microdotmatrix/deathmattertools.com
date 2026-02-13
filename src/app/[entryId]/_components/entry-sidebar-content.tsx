@@ -1,27 +1,45 @@
 import { SavedQuotesList } from "@/components/quotes-scripture/saved-quotes-list";
+import { EntrySurveySidebarSection } from "@/components/sections/entries/entry-survey-sidebar-section";
 import { ObituaryListItem } from "@/components/sections/entries/obituary-list";
 import { Button } from "@/components/ui/button";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Icon } from "@/components/ui/icon";
 import {
-  SidebarGroup,
-  SidebarGroupAction,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+    SidebarGroup,
+    SidebarGroupAction,
+    SidebarGroupContent,
+    SidebarGroupLabel,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { obitLimit } from "@/lib/config";
-import type { DocumentStatus } from "@/lib/db/schema";
+import type { DocumentStatus, SurveyStatus } from "@/lib/db/schema";
 import { format } from "date-fns";
 import { ChevronDown, Plus } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
+
+type SerializedSurvey = {
+  id: string;
+  entryId: string;
+  userId: string;
+  organizationId: string | null;
+  title: string | null;
+  status: SurveyStatus;
+  completionPercentage: number;
+  currentStep: number | null;
+  shareToken: string | null;
+  createdAt: string;
+  updatedAt: string;
+  statusChangedAt: string | null;
+  lockedAt: string | null;
+  lastClientAccessAt: string | null;
+};
 
 type EntrySidebarContentProps = {
   entryId: string;
@@ -41,6 +59,7 @@ type EntrySidebarContentProps = {
     createdAt: string;
     status: string;
   }>;
+  surveys: SerializedSurvey[];
 };
 
 export const EntrySidebarContent = ({
@@ -50,6 +69,7 @@ export const EntrySidebarContent = ({
   obituaries,
   pendingCommentCounts,
   generatedImages,
+  surveys,
 }: EntrySidebarContentProps) => {
   const pendingCounts = pendingCommentCounts ?? {};
   return (
@@ -189,6 +209,13 @@ export const EntrySidebarContent = ({
           </CollapsibleContent>
         </SidebarGroup>
       </Collapsible>
+
+      <EntrySurveySidebarSection
+        entryId={entryId}
+        entryName={entryName}
+        surveys={surveys}
+        canEdit={canEdit}
+      />
     </>
   );
 };

@@ -1,21 +1,24 @@
 "use client";
 
-import Stepper, { Step } from "@/components/elements/multi-step";
-import { Button } from "@/components/ui/button";
-import { useState, useTransition } from "react";
-import { toast } from "sonner";
 import {
+  saveOwnerSurveyProgressAction,
   saveSurveyProgressAction,
+  submitOwnerSurveyAction,
   submitSurveyAction,
 } from "@/actions/pre-need-survey";
+import Stepper, { Step } from "@/components/elements/multi-step";
+import { Button } from "@/components/ui/button";
 import type { PreNeedSurveyResponse } from "@/lib/db/schema";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 // Step Components
 import { BasicAccessStep } from "./steps/basic-access-step";
-import { KeyContactsStep } from "./steps/key-contacts-step";
 import { DocumentsFinancialStep } from "./steps/documents-financial-step";
-import { PropertyDigitalStep } from "./steps/property-digital-step";
 import { HealthcareEndOfLifeStep } from "./steps/healthcare-end-of-life-step";
+import { KeyContactsStep } from "./steps/key-contacts-step";
+import { PropertyDigitalStep } from "./steps/property-digital-step";
 import { SpecialItemsFinalStep } from "./steps/special-items-final-step";
 
 export interface SurveyFormData {
@@ -148,25 +151,34 @@ export interface SurveyFormData {
 }
 
 interface SurveyFormProps {
-  shareToken: string;
-  initialData?: PreNeedSurveyResponse | null;
+  shareToken?: string;
+  surveyId?: string;
+  entryId?: string;
+  initialData?: PreNeedSurveyResponse | SurveyFormData | null;
   initialStep?: number;
   isLocked?: boolean;
-  subjectName: string;
+  subjectName?: string;
+  isOwnerMode?: boolean;
 }
 
 export function SurveyForm({
   shareToken,
+  surveyId,
+  entryId,
   initialData,
   initialStep = 1,
   isLocked = false,
   subjectName,
+  isOwnerMode = false,
 }: SurveyFormProps) {
   // Convert initial data to form data format
   const processInitialData = (
-    data: PreNeedSurveyResponse | null | undefined
+    data: PreNeedSurveyResponse | SurveyFormData | null | undefined,
   ): SurveyFormData => {
     if (!data) return {};
+    if (!("id" in data)) {
+      return data;
+    }
     // Filter out non-form fields
     const {
       id,
@@ -182,8 +194,9 @@ export function SurveyForm({
   };
 
   const [formData, setFormData] = useState<SurveyFormData>(
-    processInitialData(initialData)
+    processInitialData(initialData),
   );
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(initialStep);
@@ -216,7 +229,11 @@ export function SurveyForm({
     }
 
     startTransition(async () => {
-      const result = await saveSurveyProgressAction(shareToken, {}, formDataObj);
+      // Use owner mode action if surveyId is provided, otherwise use token-based action
+      const result =
+        isOwnerMode && surveyId
+          ? await saveOwnerSurveyProgressAction(surveyId, {}, formDataObj)
+          : await saveSurveyProgressAction(shareToken!, {}, formDataObj);
       if (result.error) {
         toast.error(result.error);
       }
@@ -234,14 +251,22 @@ export function SurveyForm({
     }
 
     startTransition(async () => {
-      const result = await submitSurveyAction(shareToken, {}, formDataObj);
+      // Use owner mode action if surveyId is provided, otherwise use token-based action
+      const result =
+        isOwnerMode && surveyId
+          ? await submitOwnerSurveyAction(surveyId, {}, formDataObj)
+          : await submitSurveyAction(shareToken!, {}, formDataObj);
       if (result.error) {
         toast.error(result.error);
         setIsSubmitting(false);
       } else {
         toast.success("Survey submitted successfully!");
-        // Redirect or show thank you
-        window.location.href = `/survey/${shareToken}/thank-you`;
+        // Redirect based on mode
+        if (isOwnerMode && entryId) {
+          router.push(`/${entryId}`);
+        } else {
+          router.push(`/survey/${shareToken}/thank-you`);
+        }
       }
     });
   };

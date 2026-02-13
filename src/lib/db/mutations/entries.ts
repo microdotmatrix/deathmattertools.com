@@ -3,11 +3,11 @@
 import { isOrganizationOwner } from "@/lib/auth/organization-roles";
 import { db } from "@/lib/db";
 import {
-  EntryDetailsTable,
-  EntryTable,
-  PendingUploadTable,
-  UserTable,
-  UserUploadTable,
+    EntryDetailsTable,
+    EntryTable,
+    PendingUploadTable,
+    UserTable,
+    UserUploadTable,
 } from "@/lib/db/schema";
 import { action } from "@/lib/utils";
 import { auth } from "@clerk/nextjs/server";
@@ -119,7 +119,7 @@ export const createEntryAction = action(CreateEntrySchema, async (data) => {
       await entryInsert;
     }
 
-    return { success: true };
+    return { success: true, entryId };
   } catch (error) {
     console.error("[createEntryAction] Error:", error);
 

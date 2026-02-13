@@ -1,34 +1,43 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Icon } from "@iconify/react";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { AnimatedInput } from "@/components/elements/form/animated-input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { createSurveyAction } from "@/actions/pre-need-survey";
-import { toast } from "sonner";
+import { AnimatedInput } from "@/components/elements/form/animated-input";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Icon } from "@iconify/react";
 import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 interface CreateSurveyDialogProps {
   entryId: string;
   entryName: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  trigger?: React.ReactNode;
 }
 
 export function CreateSurveyDialog({
   entryId,
   entryName,
+  open: controlledOpen,
+  onOpenChange,
+  trigger,
 }: CreateSurveyDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? onOpenChange! : setInternalOpen;
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -80,12 +89,16 @@ export function CreateSurveyDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Icon icon="mdi:clipboard-text-plus" className="mr-2 h-4 w-4" />
-          Create Survey
-        </Button>
-      </DialogTrigger>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <Button>
+              <Icon icon="mdi:clipboard-text-plus" className="mr-2 h-4 w-4" />
+              Create Survey
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>

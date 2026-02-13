@@ -1,37 +1,38 @@
 "use server";
 
+import {
+    entryDetailTag,
+    shareLinkTag,
+    surveyResponseTag,
+    surveysByEntryTag,
+    surveysByOrgTag,
+    surveysByUserTag,
+    surveyTag,
+} from "@/lib/cache";
+import {
+    completeSurveyResponse,
+    createPreNeedSurvey,
+    createSurveyAuditLog,
+    deleteSurvey,
+    incrementSurveyViewCount,
+    lockSurvey,
+    unlockSurvey,
+    updateSurveyProgress,
+    updateSurveyStatus,
+    upsertSurveyResponse,
+} from "@/lib/db/mutations/pre-need-survey";
+import { getEntryWithAccess } from "@/lib/db/queries/entries";
+import {
+    getLatestSurveyResponse,
+    getSurveyByShareToken,
+    getSurveysByEntryId,
+    getSurveyWithAccess,
+} from "@/lib/db/queries/pre-need-survey";
+import type { SurveyStatus } from "@/lib/db/schema";
+import { env } from "@/lib/env/server";
 import { auth } from "@clerk/nextjs/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
-import {
-  surveyTag,
-  surveysByUserTag,
-  surveysByEntryTag,
-  surveysByOrgTag,
-  surveyResponseTag,
-  shareLinkTag,
-  entryDetailTag,
-} from "@/lib/cache";
-import {
-  createPreNeedSurvey,
-  updateSurveyStatus,
-  lockSurvey,
-  unlockSurvey,
-  upsertSurveyResponse,
-  completeSurveyResponse,
-  updateSurveyProgress,
-  deleteSurvey,
-  createSurveyAuditLog,
-  incrementSurveyViewCount,
-} from "@/lib/db/mutations/pre-need-survey";
-import {
-  getSurveyWithAccess,
-  getSurveyByShareToken,
-  getLatestSurveyResponse,
-} from "@/lib/db/queries/pre-need-survey";
-import { getEntryWithAccess } from "@/lib/db/queries/entries";
-import { env } from "@/lib/env/server";
-import type { SurveyStatus } from "@/lib/db/schema";
 
 // ============================================================================
 // Types
@@ -613,6 +614,223 @@ export async function approveSurveyAction(
   } catch (error) {
     console.error("Error approving survey:", error);
     return { error: "Failed to approve survey" };
+  }
+}
+
+// ============================================================================
+// Owner Mode Actions (Authenticated users filling their own survey)
+// ============================================================================
+
+type CreateOrGetSurveyResult = ActionState & {
+  survey?: {
+    id: string;
+    status: SurveyStatus;
+    currentStep: number | null;
+  };
+};
+
+/**
+ * Create or get an existing survey for an entry (owner mode)
+ * Used when entry owner wants to fill the survey directly
+ */
+export async function createOrGetEntrySurveyAction(
+  entryId: string
+): Promise<CreateOrGetSurveyResult> {
+  try {
+    const { userId, orgId } = await auth();
+
+    if (!userId) {
+      return { error: "Unauthorized" };
+    }
+
+    // Verify access to entry
+    const entryAccess = await getEntryWithAccess(entryId);
+    if (!entryAccess?.canEdit) {
+      return { error: "You don't have permission to access this entry" };
+    }
+
+    // Check if survey already exists for this entry
+    const existingSurveys = await getSurveysByEntryId(entryId);
+    
+    if (existingSurveys.length > 0) {
+      const survey = existingSurveys[0];
+      return {
+        success: true,
+        survey: {
+          id: survey.id,
+          status: survey.status,
+          currentStep: survey.currentStep,
+        },
+      };
+    }
+
+    // Create a new survey for owner mode (no share link needed initially)
+    const { survey } = await createPreNeedSurvey({
+      userId,
+      organizationId: orgId ?? null,
+      entryId,
+      title: `Survey for ${entryAccess.entry.name}`,
+      clientName: null,
+      clientEmail: null,
+      clientRelationship: "Self/Owner",
+      password: null,
+      expiresAt: null,
+    });
+
+    // Invalidate caches
+    revalidateTag(surveysByUserTag(userId));
+    revalidateTag(surveysByEntryTag(entryId));
+    if (orgId) revalidateTag(surveysByOrgTag(orgId));
+
+    return {
+      success: true,
+      survey: {
+        id: survey.id,
+        status: survey.status,
+        currentStep: survey.currentStep,
+      },
+    };
+  } catch (error) {
+    console.error("Error creating/getting survey:", error);
+    return { error: "Failed to create or retrieve survey" };
+  }
+}
+
+/**
+ * Save survey progress for owner mode (authenticated)
+ */
+export async function saveOwnerSurveyProgressAction(
+  surveyId: string,
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return { error: "Unauthorized" };
+    }
+
+    // Verify owner access to survey
+    const access = await getSurveyWithAccess(surveyId);
+    if (!access?.canEdit) {
+      return { error: "You don't have permission to edit this survey" };
+    }
+
+    if (access.survey.isLocked) {
+      return { error: "This survey is locked and cannot be edited" };
+    }
+
+    // Parse response data from form
+    const rawData: Record<string, unknown> = {};
+    for (const [key, value] of formData.entries()) {
+      if (key === "currentStep") continue;
+      if (value === "true") rawData[key] = true;
+      else if (value === "false") rawData[key] = false;
+      else if (value === "") rawData[key] = undefined;
+      else rawData[key] = value;
+    }
+
+    const parsed = SurveyResponseSchema.safeParse(rawData);
+
+    if (!parsed.success) {
+      return { error: "Invalid form data" };
+    }
+
+    // Calculate completion percentage
+    const completionPercentage = calculateCompletionPercentage(parsed.data);
+    const currentStep = formData.get("currentStep");
+
+    // Upsert response
+    await upsertSurveyResponse({
+      surveyId,
+      responseData: parsed.data,
+    });
+
+    // Update progress
+    await updateSurveyProgress({
+      surveyId,
+      currentStep: currentStep ? Number.parseInt(currentStep as string, 10) : undefined,
+      completionPercentage,
+    });
+
+    // Invalidate caches
+    revalidateTag(surveyTag(surveyId));
+    revalidateTag(surveyResponseTag(surveyId));
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error saving owner survey progress:", error);
+    return { error: "Failed to save progress" };
+  }
+}
+
+/**
+ * Submit and auto-approve survey for owner mode
+ */
+export async function submitOwnerSurveyAction(
+  surveyId: string,
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return { error: "Unauthorized" };
+    }
+
+    // Verify owner access
+    const access = await getSurveyWithAccess(surveyId);
+    if (!access?.canEdit) {
+      return { error: "You don't have permission to submit this survey" };
+    }
+
+    // First save the final data
+    const saveResult = await saveOwnerSurveyProgressAction(surveyId, {}, formData);
+    if (saveResult.error) {
+      return saveResult;
+    }
+
+    // Get the response to mark as complete
+    const response = await getLatestSurveyResponse(surveyId);
+    if (!response) {
+      return { error: "No response found to submit" };
+    }
+
+    // Complete the response
+    await completeSurveyResponse({
+      surveyId,
+      responseId: response.id,
+    });
+
+    // Auto-approve since owner is filling
+    await updateSurveyStatus({ surveyId, status: "approved", userId });
+
+    // Lock the survey
+    await lockSurvey({ surveyId, userId });
+
+    // Log approval
+    await createSurveyAuditLog({
+      surveyId,
+      actorType: "owner",
+      actorId: userId,
+      action: "approved",
+    });
+
+    // Invalidate caches
+    revalidateTag(surveyTag(surveyId));
+    revalidateTag(surveyResponseTag(surveyId));
+    revalidateTag(surveysByUserTag(access.survey.userId));
+    revalidateTag(entryDetailTag(access.survey.entryId));
+    if (access.survey.organizationId) {
+      revalidateTag(surveysByOrgTag(access.survey.organizationId));
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error submitting owner survey:", error);
+    return { error: "Failed to submit survey" };
   }
 }
 
