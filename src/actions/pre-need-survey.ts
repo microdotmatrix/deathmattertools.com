@@ -677,10 +677,10 @@ export async function createOrGetEntrySurveyAction(
       expiresAt: null,
     });
 
-    // Invalidate caches
-    revalidateTag(surveysByUserTag(userId));
-    revalidateTag(surveysByEntryTag(entryId));
-    if (orgId) revalidateTag(surveysByOrgTag(orgId));
+    // Note: revalidateTag is NOT called here because this function
+    // is invoked during server component render (page.tsx).
+    // Next.js 16 forbids revalidation during render.
+    // Caches will be invalidated on the next mutation (e.g. saving survey progress).
 
     return {
       success: true,
